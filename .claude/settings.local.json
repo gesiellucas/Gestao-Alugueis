@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(test:*)",
+      "Bash(del \"c:\\\\Users\\\\ADMIN\\\\Documents\\\\GitHub\\\\Gestao Alugueis\\\\constants.ts\")",
+      "Bash(npm ls:*)"
+    ]
+  }
+}

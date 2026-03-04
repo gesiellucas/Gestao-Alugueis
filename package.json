@@ -1,16 +1,25 @@
 {
   "name": "gc-loca-moto---gestão-pro",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "main": "dist/electron/main/index.js",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "electron:compile": "tsc --project tsconfig.electron.json",
+    "electron:dev": "concurrently --kill-others \"npm run dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development npx --no electron dist/electron/main/index.js\"",
+    "electron:build": "npm run build && npm run electron:compile && electron-builder --config electron-builder.config.ts",
+    "electron:build:win": "npm run electron:build -- --win",
+    "postinstall": "electron-rebuild -f -w better-sqlite3"
   },
   "dependencies": {
     "@google/genai": "^1.40.0",
     "@supabase/supabase-js": "^2.95.3",
+    "@tanstack/react-query": "^5.90.21",
+    "@tanstack/react-query-devtools": "^5.91.3",
+    "better-sqlite3": "^11.10.0",
     "lucide-react": "^0.563.0",
     "next": "^15.2.0",
     "react": "^19.0.0",
@@ -18,13 +27,20 @@
     "recharts": "^3.7.0"
   },
   "devDependencies": {
+    "@electron/rebuild": "^3.7.2",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.14.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.2.1",
+    "cross-env": "^7.0.3",
+    "electron": "^34.5.8",
+    "electron-builder": "^25.1.8",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.15",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "~5.8.2"
+    "typescript": "~5.8.2",
+    "wait-on": "^8.0.5"
   }
 }

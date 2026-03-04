@@ -2,10 +2,12 @@
 
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { AppProvider, useAppContext } from '../contexts/AppContext';
 import { Layout } from '../components/Layout';
 import { Login } from '../components/Login';
 import { UserRole } from '../types';
+import { queryClient } from '../lib/queryClient';
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
   const { user, setUser } = useAppContext();
@@ -35,8 +37,10 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <AppProvider>
-      <AuthWrapper>{children}</AuthWrapper>
-    </AppProvider>
+    <QueryClientProvider client={queryClient}>
+      <AppProvider>
+        <AuthWrapper>{children}</AuthWrapper>
+      </AppProvider>
+    </QueryClientProvider>
   );
 }

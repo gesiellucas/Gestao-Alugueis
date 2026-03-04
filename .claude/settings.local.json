@@ -9,7 +9,17 @@
       "Bash(del \"c:\\\\Users\\\\ADMIN\\\\Documents\\\\GitHub\\\\Gestao Alugueis\\\\constants.ts\")",
       "Bash(npm ls:*)",
       "Bash(python -c \":*)",
-      "Bash(npx next build)"
+      "Bash(npx next build)",
+      "Bash(node --version)",
+      "Bash(npm --version)",
+      "Bash(python3 -c \"import sys,json; content=sys.stdin.read\\(\\); data=json.loads\\(content\\); text=[x[''text''] for x in data if x.get\\(''type''\\)==''text'']; print\\(''\\\\n''.join\\(text\\)\\)\")",
+      "Bash(python3 -c \":*)",
+      "Bash(node -e \":*)",
+      "Bash(npx electron --version)",
+      "Bash(node_modules/.bin/electron --version)",
+      "Bash(node -e \"const d=require\\(''fs''\\).readFileSync\\(''/dev/stdin'',''utf8''\\);const p=JSON.parse\\(d\\);console.log\\(''electron version in node_modules:'',p.version\\)\")",
+      "Bash(node -e \"console.log\\(require\\(''./node_modules/electron/package.json''\\).version\\)\")",
+      "Bash(node_modules/.bin/electron-rebuild -f -w better-sqlite3)"
     ]
   }
 }

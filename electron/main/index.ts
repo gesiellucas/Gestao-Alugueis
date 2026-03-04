@@ -1,0 +1,86 @@
+import { app, BrowserWindow, shell, protocol } from 'electron';
+import path from 'path';
+import { initDatabase, registerIpcHandlers } from './db';
+
+// Prevent multiple instances
+const gotLock = app.requestSingleInstanceLock();
+if (!gotLock) {
+  app.quit();
+  process.exit(0);
+}
+
+let mainWindow: BrowserWindow | null = null;
+
+const isDev = process.env.NODE_ENV === 'development';
+
+// Register custom protocol BEFORE app is ready
+// This allows the SPA to handle all routes with a single index.html
+app.whenReady().then(() => {
+  const outDir = path.join(app.getAppPath(), 'out');
+
+  if (!isDev) {
+    protocol.registerFileProtocol('app', (request, callback) => {
+      const pathname = new URL(request.url).pathname;
+      const hasExt = path.extname(pathname).length > 0;
+      const target = hasExt
+        ? path.join(outDir, pathname)
+        : path.join(outDir, 'index.html');
+      callback({ path: target });
+    });
+  }
+
+  initDatabase();
+  registerIpcHandlers();
+  createWindow();
+
+  app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  });
+});
+
+function createWindow(): void {
+  mainWindow = new BrowserWindow({
+    width: 1280,
+    height: 800,
+    minWidth: 900,
+    minHeight: 600,
+    title: 'GC Loca Moto',
+    webPreferences: {
+      preload: path.join(__dirname, '..', 'preload', 'index.js'),
+      contextIsolation: true,  // Required for security
+      nodeIntegration: false,  // Required for security
+      sandbox: false,          // Allow preload to use Node APIs
+    },
+  });
+
+  if (isDev) {
+    mainWindow.loadURL('http://localhost:3000');
+    mainWindow.webContents.openDevTools();
+  } else {
+    mainWindow.loadURL('app://./index.html');
+  }
+
+  // Open external links in system browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('https:') || url.startsWith('http:')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
+  });
+}
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});
+
+// Focus existing window on second instance
+app.on('second-instance', () => {
+  if (mainWindow) {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+});

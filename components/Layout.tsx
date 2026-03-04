@@ -1,5 +1,7 @@
+'use client';
 import React, { useState } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AppUser, UserRole } from "../types";
 import {
   LayoutDashboard,
@@ -22,7 +24,7 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const location = useLocation();
+  const pathname = usePathname();
 
   const navItems = [
     {
@@ -64,8 +66,8 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
   ].filter((item) => item.roles.includes(user.role));
 
   const isActive = (to: string) => {
-    if (to === "/") return location.pathname === "/";
-    return location.pathname.startsWith(to);
+    if (to === "/") return pathname === "/";
+    return pathname.startsWith(to);
   };
 
   return (
@@ -90,9 +92,9 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
 
         <nav className="flex-1 py-8 px-4 space-y-2">
           {navItems.map((item) => (
-            <NavLink
+            <Link
               key={item.to}
-              to={item.to}
+              href={item.to}
               className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all text-sm font-semibold ${
                 isActive(item.to)
                   ? "bg-blue-600 text-white shadow-xl shadow-blue-900/30 ring-1 ring-white/20"
@@ -104,7 +106,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
                 className={isActive(item.to) ? "text-yellow-400" : ""}
               />
               {item.label}
-            </NavLink>
+            </Link>
           ))}
         </nav>
 
@@ -148,9 +150,9 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
           <div className="md:hidden absolute inset-0 bg-[#0a2342] z-30 pt-20 px-6 pb-6 animate-in slide-in-from-top duration-300">
             <nav className="space-y-4">
               {navItems.map((item) => (
-                <NavLink
+                <Link
                   key={item.to}
-                  to={item.to}
+                  href={item.to}
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`w-full flex items-center gap-4 px-5 py-5 rounded-xl text-lg font-bold ${
                     isActive(item.to)
@@ -160,7 +162,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
                 >
                   <item.icon size={24} />
                   {item.label}
-                </NavLink>
+                </Link>
               ))}
               <button
                 onClick={onLogout}

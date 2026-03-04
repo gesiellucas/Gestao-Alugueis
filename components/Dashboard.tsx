@@ -1,3 +1,4 @@
+'use client';
 import React, { useEffect, useState } from "react";
 import { VehicleStatus } from "../types";
 import { useAppContext } from "../contexts/AppContext";

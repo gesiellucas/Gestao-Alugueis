@@ -44,7 +44,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
           >
             <div className="h-48 bg-[#f8fafc] relative flex items-center justify-center p-6">
               <img
-                src={vehicle.image_url}
+                src={vehicle.image_url ?? undefined}
                 alt={vehicle.model}
                 className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500 drop-shadow-2xl"
               />

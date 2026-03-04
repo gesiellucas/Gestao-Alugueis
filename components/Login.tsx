@@ -1,3 +1,4 @@
+'use client';
 import React from "react";
 import { UserRole, AppUser } from "../types";
 import { ShieldCheck, User, Wrench, DollarSign } from "lucide-react";

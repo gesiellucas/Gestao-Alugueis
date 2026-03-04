@@ -2,7 +2,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 // Fixed: Correct initialization using process.env.API_KEY named parameter
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY });
 
 export const generateWhatsAppMessage = async (clientName: string, debtAmount: number, vehicleModel: string): Promise<string> => {
   try {

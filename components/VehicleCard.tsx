@@ -1,13 +1,15 @@
+'use client';
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Hash, Circle, User, DollarSign, Wrench, Image } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Hash, Circle, User, DollarSign, Wrench } from "lucide-react";
 import { VehicleStatus } from "../types";
 
 interface VehicleCardProps {
   id: string;
   image_url: string;
   model: string;
-  status: VehicleStatus;
+  status: `${VehicleStatus}`;
   year: number;
   brand: string;
   plate: string;
@@ -45,13 +47,13 @@ export const VehicleCard = ({
   monthly_rate,
   maintenanceId,
 }: VehicleCardProps) => {
-  const navigate = useNavigate();
+  const router = useRouter();
 
   const handleClientClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (current_renter_id) {
-      navigate(`/cliente/${current_renter_id}`);
+      router.push(`/cliente/${current_renter_id}`);
     }
   };
 
@@ -59,13 +61,13 @@ export const VehicleCard = ({
     e.preventDefault();
     e.stopPropagation();
     if (maintenanceId) {
-      navigate(`/oficina/${maintenanceId}`);
+      router.push(`/oficina/${maintenanceId}`);
     }
   };
 
   return (
     <Link
-      to={`/veiculo/${id}`}
+      href={`/veiculo/${id}`}
       className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block"
     >
       <div className="h-48 bg-[#f8fafc] relative flex items-center justify-center p-6">

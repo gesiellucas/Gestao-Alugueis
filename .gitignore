@@ -25,7 +25,7 @@ dist-ssr
 
 .env
 .env.local
-.next/
+.next
 .DS_Store
 .env
 .gclient_done
@@ -83,3 +83,4 @@ patches/mtime-cache.json
 spec/fixtures/logo.png
 
 .yarn/install-state.gz
+.out

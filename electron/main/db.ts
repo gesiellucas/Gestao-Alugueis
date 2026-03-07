@@ -3,7 +3,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import { randomUUID } from 'crypto';
 
-let db: Database.Database;
+export let db: Database.Database;
 
 // ─── Initialization ──────────────────────────────────────────────────────────
 
@@ -13,6 +13,26 @@ export function initDatabase(): void {
   db.pragma('journal_mode = WAL');
   db.pragma('foreign_keys = ON');
   createTables();
+  runMigrations();
+}
+
+function runMigrations(): void {
+  // Array of tables to ensure deleted_at exists for existing SQLite database files
+  const tables = ['customers', 'vehicles', 'rental_contracts', 'maintenance_records'];
+
+  for (const table of tables) {
+    try {
+      const columns = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
+      const hasDeletedAt = columns.some(col => col.name === 'deleted_at');
+
+      if (!hasDeletedAt) {
+        db.exec(`ALTER TABLE ${table} ADD COLUMN deleted_at TEXT`);
+        console.log(`[Database] Migration: Added deleted_at column to ${table}`);
+      }
+    } catch (err) {
+      console.error(`[Database] Migration error on ${table}:`, err);
+    }
+  }
 }
 
 function createTables(): void {

@@ -1,6 +1,8 @@
 import { app, BrowserWindow, shell, protocol } from 'electron';
 import path from 'path';
-import { initDatabase, registerIpcHandlers } from './db';
+import 'dotenv/config';
+import { initDatabase, registerIpcHandlers, db } from './db';
+import { initSyncEngine } from './sync';
 
 // Prevent multiple instances
 const gotLock = app.requestSingleInstanceLock();
@@ -30,7 +32,15 @@ app.whenReady().then(() => {
   }
 
   initDatabase();
+
+  // Inject Supabase credentials into local SQLite config
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    db.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').run('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    db.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').run('NEXT_PUBLIC_SUPABASE_ANON_KEY', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  }
+
   registerIpcHandlers();
+  initSyncEngine(db);
   createWindow();
 
   app.on('activate', () => {

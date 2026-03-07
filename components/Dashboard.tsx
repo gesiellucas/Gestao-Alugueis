@@ -160,8 +160,8 @@ export const Dashboard: React.FC = () => {
           <h3 className="text-xl font-extrabold text-[#0a2342] mb-8">
             Receita de Aluguéis (7 dias)
           </h3>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-72 w-full min-h-[250px]">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <BarChart data={revenueData}>
                 <CartesianGrid
                   strokeDasharray="3 3"
@@ -203,8 +203,8 @@ export const Dashboard: React.FC = () => {
           <h3 className="text-xl font-extrabold text-[#0a2342] self-start mb-8">
             Status Geral da Frota
           </h3>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-64 w-full min-h-[200px]">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <PieChart>
                 <Pie
                   data={statusData}

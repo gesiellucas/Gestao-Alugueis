@@ -83,4 +83,4 @@ patches/mtime-cache.json
 spec/fixtures/logo.png
 
 .yarn/install-state.gz
-.out
+out

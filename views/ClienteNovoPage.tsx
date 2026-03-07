@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "../contexts/AppContext";
-import { customersApi } from "../services/api";
+import { getCustomersApi } from "../lib/apiFactory";
 import { ArrowLeft, Save } from "lucide-react";
 
 export const ClienteNovoPage: React.FC = () => {
@@ -25,7 +25,7 @@ export const ClienteNovoPage: React.FC = () => {
     setError(null);
 
     try {
-      const newCustomer = await customersApi.create({
+      const newCustomer = await getCustomersApi().create({
         name: form.name,
         phone: form.phone,
         cpf: form.cpf,

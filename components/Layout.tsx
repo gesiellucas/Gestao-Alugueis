@@ -14,7 +14,10 @@ import {
   LogOut,
   ShieldCheck,
   FileText,
+  Settings,
 } from "lucide-react";
+import { SyncIndicator } from "./SyncIndicator";
+import { useAutoSync } from "../hooks/useSync";
 
 interface LayoutProps {
   user: AppUser;
@@ -25,6 +28,9 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  
+  // Trigger SQLite background sync with Supabase on mount/login
+  useAutoSync(user.id);
 
   const navItems = [
     {
@@ -62,6 +68,12 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
       label: "Cobranças WhatsApp",
       icon: MessageSquare,
       roles: [UserRole.ADMIN, UserRole.BILLING],
+    },
+    {
+      to: "/configuracoes",
+      label: "Configurações Globais",
+      icon: Settings,
+      roles: [UserRole.ADMIN],
     },
   ].filter((item) => item.roles.includes(user.role));
 
@@ -140,6 +152,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
             <h1 className="text-lg font-extrabold">GC LOCA MOTO</h1>
           </div>
           <div className="flex items-center gap-4">
+            <SyncIndicator />
             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
               {isMobileMenuOpen ? <X /> : <Menu />}
             </button>

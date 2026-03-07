@@ -38,6 +38,7 @@ const VALID_CHANNELS = [
   'sync:getMetadata',
   'sync:setMetadata',
   'sync:status',
+  'sync:force',
   // App
   'app:isElectron',
   'app:getVersion',

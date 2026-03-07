@@ -1,5 +1,7 @@
 import { VeiculoDetalhePage } from '../../../views/VeiculoDetalhePage';
 
+export const dynamic = 'force-static';
+
 export function generateStaticParams() {
   return [{ id: 'placeholder' }];
 }

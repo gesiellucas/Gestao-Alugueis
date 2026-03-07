@@ -6,14 +6,15 @@ import {
   Customer,
   VehicleStatus,
   AppUser,
+  UserRole,
   RentalContract,
 } from "../types";
 import {
-  vehiclesApi,
-  customersApi,
-  rentalContractsApi,
-  maintenanceRecordsApi,
-} from "../services/api";
+  getVehiclesApi,
+  getCustomersApi,
+  getRentalsApi,
+  getMaintenanceApi,
+} from "../lib/apiFactory";
 
 interface AppContextType {
   user: AppUser | null;
@@ -59,6 +60,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Re-hydrate user from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const storedId = localStorage.getItem("electron_user_id");
+      if (storedId) {
+        // Mocking the static users from Login.tsx
+        if (storedId === "1") {
+          setUser({ id: "1", name: "Gestor Master", role: UserRole.ADMIN, email: "admin@gclocamoto.com.br" });
+        } else if (storedId === "2") {
+          setUser({ id: "2", name: "Roberto Mecânico", role: UserRole.MECHANIC, email: "oficina@gclocamoto.com.br" });
+        } else if (storedId === "3") {
+          setUser({ id: "3", name: "Clara Financeiro", role: UserRole.BILLING, email: "financeiro@gclocamoto.com.br" });
+        }
+      }
+    }
+  }, []);
+
   // Função para carregar todos os dados do Supabase
   const loadData = async () => {
     try {
@@ -67,10 +85,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const [vehiclesData, customersData, contractsData, maintenanceData] =
         await Promise.all([
-          vehiclesApi.getAll(),
-          customersApi.getAll(),
-          rentalContractsApi.getAll(),
-          maintenanceRecordsApi.getAll(),
+          getVehiclesApi().getAll(),
+          getCustomersApi().getAll(),
+          getRentalsApi().getAll(),
+          getMaintenanceApi().getAll(),
         ]);
 
       setVehicles(vehiclesData);
@@ -78,7 +96,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setRentalContracts(contractsData);
       setMaintenanceRecords(maintenanceData);
     } catch (err) {
-      console.error("Error loading data from Supabase:", err);
       setError(err instanceof Error ? err.message : "Erro ao carregar dados");
     } finally {
       setLoading(false);
@@ -92,8 +109,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleAddMaintenanceRecord = async (record: MaintenanceRecord) => {
     try {
-      // Criar no Supabase
-      const newRecord = await maintenanceRecordsApi.create({
+      // Criar na API correspondente (Local ou Supabase)
+      const newRecord = await getMaintenanceApi().create({
         vehicle_id: record.vehicle_id,
         vehicle_plate: record.vehicle_plate,
         entry_date: record.entry_date,
@@ -105,7 +122,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       // Atualizar status do veículo para "Em Manutenção"
-      await vehiclesApi.updateStatus(
+      await getVehiclesApi().updateStatus(
         record.vehicle_id,
         VehicleStatus.MAINTENANCE,
       );
@@ -130,11 +147,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const record = maintenanceRecords.find((r) => r.id === recordId);
       if (!record) return;
 
-      // Finalizar manutenção no Supabase
-      await maintenanceRecordsApi.complete(recordId);
+      // Finalizar manutenção
+      await getMaintenanceApi().complete(recordId);
 
       // Atualizar status do veículo para "Disponível"
-      await vehiclesApi.updateStatus(
+      await getVehiclesApi().updateStatus(
         record.vehicle_id,
         VehicleStatus.AVAILABLE,
       );
@@ -172,8 +189,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     startDate: string,
   ) => {
     try {
-      // Criar contrato no Supabase
-      const newContract = await rentalContractsApi.create({
+      // Criar contrato
+      const newContract = await getRentalsApi().create({
         vehicle_id: vehicleId,
         customer_id: customerId,
         monthly_rate: monthlyRate,
@@ -182,13 +199,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       // Atualizar veículo: status = Alugada e current_renter_id
-      await vehiclesApi.update(vehicleId, {
+      await getVehiclesApi().update(vehicleId, {
         status: VehicleStatus.RENTED,
         current_renter_id: customerId,
       });
 
       // Atualizar cliente: active_contract = true
-      await customersApi.update(customerId, { active_contract: true });
+      await getCustomersApi().update(customerId, { active_contract: true });
 
       // Atualizar estado local
       setRentalContracts((prev) => [newContract, ...prev]);
@@ -218,11 +235,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       );
       if (!activeContract) return;
 
-      // Encerrar contrato no Supabase
-      await rentalContractsApi.end(activeContract.id);
+      // Encerrar contrato
+      await getRentalsApi().end(activeContract.id);
 
       // Atualizar veículo: status = Disponível e limpar current_renter_id
-      await vehiclesApi.update(vehicleId, {
+      await getVehiclesApi().update(vehicleId, {
         status: VehicleStatus.AVAILABLE,
         current_renter_id: null,
       });
@@ -237,7 +254,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       );
 
       if (otherActiveContracts.length === 0) {
-        await customersApi.update(customerId, { active_contract: false });
+        await getCustomersApi().update(customerId, { active_contract: false });
       }
 
       // Atualizar estado local

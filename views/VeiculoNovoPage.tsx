@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "../contexts/AppContext";
-import { vehiclesApi } from "../services/api";
+import { getVehiclesApi } from "../lib/apiFactory";
 import { ArrowLeft, Save } from "lucide-react";
 
 export const VeiculoNovoPage: React.FC = () => {
@@ -29,7 +29,7 @@ export const VeiculoNovoPage: React.FC = () => {
     setError(null);
 
     try {
-      const newVehicle = await vehiclesApi.create({
+      const newVehicle = await getVehiclesApi().create({
         plate: form.plate,
         model: form.model,
         brand: form.brand,

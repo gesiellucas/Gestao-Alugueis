@@ -1,5 +1,7 @@
 import { VeiculoEditarPage } from '../../../../views/VeiculoEditarPage';
 
+export const dynamic = 'force-static';
+
 export function generateStaticParams() {
   return [{ id: 'placeholder' }];
 }

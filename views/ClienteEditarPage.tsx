@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppContext } from "../contexts/AppContext";
+import { getCustomersApi } from "../lib/apiFactory";
 import { ArrowLeft, Save } from "lucide-react";
 
 export const ClienteEditarPage: React.FC = () => {
@@ -19,6 +20,8 @@ export const ClienteEditarPage: React.FC = () => {
     active_contract: customer?.active_contract || false,
     balance_due: customer?.balance_due || 0,
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   if (!customer) {
     return (
@@ -38,23 +41,40 @@ export const ClienteEditarPage: React.FC = () => {
     );
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setCustomers((prev) =>
-      prev.map((c) =>
-        c.id === id
-          ? {
-              ...c,
-              name: form.name,
-              phone: form.phone,
-              cpf: form.cpf,
-              active_contract: form.active_contract,
-              balance_due: form.balance_due,
-            }
-          : c,
-      ),
-    );
-    router.push(`/cliente/${id}`);
+    setSubmitting(true);
+    setError(null);
+    try {
+      await getCustomersApi().update(id, {
+        name: form.name,
+        phone: form.phone,
+        cpf: form.cpf,
+        active_contract: form.active_contract,
+        balance_due: form.balance_due,
+      });
+
+      setCustomers((prev) =>
+        prev.map((c) =>
+          c.id === id
+            ? {
+                ...c,
+                name: form.name,
+                phone: form.phone,
+                cpf: form.cpf,
+                active_contract: form.active_contract,
+                balance_due: form.balance_due,
+              }
+            : c,
+        ),
+      );
+      router.push(`/cliente/${id}`);
+    } catch (err) {
+      console.error("Error updating customer:", err);
+      setError("Erro ao atualizar o cliente.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -78,6 +98,11 @@ export const ClienteEditarPage: React.FC = () => {
           </h3>
         </div>
         <form onSubmit={handleSubmit} className="p-10 space-y-6">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 font-medium text-sm">
+              {error}
+            </div>
+          )}
           <div>
             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
               Nome Completo
@@ -170,9 +195,10 @@ export const ClienteEditarPage: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="flex-1 py-4 bg-[#0a2342] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2"
+              disabled={submitting}
+              className="flex-1 py-4 bg-[#0a2342] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save size={18} /> Salvar Alterações
+              <Save size={18} /> {submitting ? "Salvando..." : "Salvar Alterações"}
             </button>
           </div>
         </form>

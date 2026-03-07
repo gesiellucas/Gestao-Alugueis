@@ -75,7 +75,16 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           {roles.map((item) => (
             <button
               key={item.role}
-              onClick={() => onLogin(item.user)}
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('electron_user_id', item.user.id);
+                }
+                onLogin(item.user);
+                
+                // Força um recarregamento para que todas as queries 
+                // da Home/AppContext utilizem o novo ID imediatamente.
+                window.location.reload();
+              }}
               className="w-full group bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/30 p-6 rounded-[2rem] text-left transition-all duration-300 flex items-center gap-5 active:scale-95"
             >
               <div

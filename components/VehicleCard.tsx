@@ -71,7 +71,7 @@ export const VehicleCard = ({
       className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-300 block"
     >
       <div className="h-48 bg-[#f8fafc] relative flex items-center justify-center p-6">
-        <img src={image_url} alt={model} />
+        {image_url ? <img src={image_url} alt={model} /> : null}
         <div className="absolute top-4 right-4">
           <span
             className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${getStatusStyle(status)}`}

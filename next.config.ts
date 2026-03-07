@@ -3,8 +3,9 @@ import type { NextConfig } from 'next';
 const isProd = process.env.NODE_ENV === 'production';
 
 const nextConfig: NextConfig = {
-  // Static HTML export — required for Electron to load the app via file://
-  output: 'export',
+  // Static HTML export — only in production (Electron build).
+  // In dev mode this constraint causes "missing param" errors for dynamic routes.
+  output: isProd ? 'export' : undefined,
 
   // Trailing slash ensures each route generates its own index.html
   // e.g. /clientes -> /clientes/index.html (not /clientes.html)

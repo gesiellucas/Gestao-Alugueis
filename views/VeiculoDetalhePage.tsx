@@ -170,8 +170,8 @@ export const VeiculoDetalhePage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2">
           <div className="h-72 lg:h-auto bg-[#f8fafc] flex items-center justify-center p-10">
             <img
-              src={vehicle.image_url ?? undefined}
-              alt={vehicle.model}
+              src={vehicle.model?.image_url || undefined}
+              alt={vehicle.model?.name || 'Moto'}
               className="max-w-full max-h-full object-contain drop-shadow-2xl"
             />
           </div>
@@ -180,7 +180,7 @@ export const VeiculoDetalhePage: React.FC = () => {
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <span className="text-xs font-black text-blue-600 bg-blue-50 px-3 py-1 rounded uppercase">
-                  Honda
+                  {vehicle.model?.brand || "Marca"}
                 </span>
                 <span className="text-sm font-bold text-slate-400">
                   {vehicle.year}
@@ -192,7 +192,7 @@ export const VeiculoDetalhePage: React.FC = () => {
                 </span>
               </div>
               <h2 className="text-3xl font-extrabold text-[#0a2342] leading-tight">
-                {vehicle.model}
+                {vehicle.model?.name || "Modelo"}
               </h2>
             </div>
 

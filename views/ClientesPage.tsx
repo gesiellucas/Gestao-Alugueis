@@ -124,7 +124,7 @@ export const ClientesPage: React.FC = () => {
                         Veículo Atual
                       </p>
                       <p className="font-bold text-slate-700">
-                        {vehicle ? vehicle.model : "Nenhum"}
+                        {vehicle?.model?.name || "Nenhum"}
                       </p>
                     </div>
                     {vehicle && (

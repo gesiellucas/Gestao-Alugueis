@@ -19,9 +19,9 @@ export const AlugueisPage: React.FC = () => {
         ...contract,
         customerName: customer?.name || "Cliente não encontrado",
         customerCPF: customer?.cpf || "-",
-        vehicleModel: vehicle?.model || "Veículo não encontrado",
+        vehicleModel: vehicle?.model?.name || "Veículo não encontrado",
         vehicle_plate: vehicle?.plate || "-",
-        vehicleBrand: vehicle?.brand || "-",
+        vehicleBrand: vehicle?.model?.brand || "-",
       };
     });
   }, [rentalContracts, customers, vehicles]);

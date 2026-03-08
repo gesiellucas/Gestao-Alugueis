@@ -52,6 +52,7 @@ CREATE TABLE app_users (
 -- =============================================
 CREATE TABLE customers (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
   name TEXT NOT NULL,
   phone TEXT NOT NULL,
   cpf TEXT NOT NULL UNIQUE,
@@ -59,7 +60,23 @@ CREATE TABLE customers (
   balance_due NUMERIC(10, 2) NOT NULL DEFAULT 0,
   last_payment_date DATE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  deleted_at TIMESTAMPTZ
+);
+
+-- =============================================
+-- Tabela: vehicle_models (Modelos de Veículos)
+-- =============================================
+CREATE TABLE vehicle_models (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  name TEXT NOT NULL,
+  brand TEXT NOT NULL,
+  image_url TEXT,
+  status TEXT NOT NULL DEFAULT 'ACTIVE',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  deleted_at TIMESTAMPTZ
 );
 
 -- =============================================
@@ -67,9 +84,9 @@ CREATE TABLE customers (
 -- =============================================
 CREATE TABLE vehicles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
   plate TEXT NOT NULL UNIQUE,
-  model TEXT NOT NULL,
-  brand TEXT NOT NULL,
+  model_id UUID REFERENCES vehicle_models(id) ON DELETE SET NULL,
   year INTEGER NOT NULL,
   status vehicle_status NOT NULL DEFAULT 'Disponível',
   mileage INTEGER NOT NULL DEFAULT 0,
@@ -77,7 +94,8 @@ CREATE TABLE vehicles (
   current_renter_id UUID REFERENCES customers(id) ON DELETE SET NULL,
   default_monthly_rate NUMERIC(10, 2) NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  deleted_at TIMESTAMPTZ
 );
 
 -- =============================================
@@ -85,6 +103,7 @@ CREATE TABLE vehicles (
 -- =============================================
 CREATE TABLE rental_contracts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
   vehicle_id UUID NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
   customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
   start_date DATE NOT NULL,
@@ -92,7 +111,8 @@ CREATE TABLE rental_contracts (
   monthly_rate NUMERIC(10, 2) NOT NULL,
   status contract_status NOT NULL DEFAULT 'ACTIVE',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  deleted_at TIMESTAMPTZ
 );
 
 -- =============================================
@@ -100,6 +120,7 @@ CREATE TABLE rental_contracts (
 -- =============================================
 CREATE TABLE maintenance_records (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
   vehicle_id UUID NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
   vehicle_plate TEXT NOT NULL,
   entry_date TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -110,12 +131,19 @@ CREATE TABLE maintenance_records (
   cost NUMERIC(10, 2) NOT NULL DEFAULT 0,
   status maintenance_status NOT NULL DEFAULT 'OPEN',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  deleted_at TIMESTAMPTZ
 );
 
 -- =============================================
 -- Índices para performance
 -- =============================================
+CREATE INDEX idx_vehicle_models_user_id ON vehicle_models(user_id);
+CREATE INDEX idx_customers_user_id ON customers(user_id);
+CREATE INDEX idx_vehicles_user_id ON vehicles(user_id);
+CREATE INDEX idx_rental_contracts_user_id ON rental_contracts(user_id);
+CREATE INDEX idx_maintenance_records_user_id ON maintenance_records(user_id);
+
 CREATE INDEX idx_vehicles_status ON vehicles(status);
 CREATE INDEX idx_vehicles_plate ON vehicles(plate);
 CREATE INDEX idx_vehicles_current_renter ON vehicles(current_renter_id);
@@ -143,6 +171,10 @@ CREATE TRIGGER trg_app_users_updated_at
   BEFORE UPDATE ON app_users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+CREATE TRIGGER trg_vehicle_models_updated_at
+  BEFORE UPDATE ON vehicle_models
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
 CREATE TRIGGER trg_customers_updated_at
   BEFORE UPDATE ON customers
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
@@ -163,6 +195,7 @@ CREATE TRIGGER trg_maintenance_records_updated_at
 -- Row Level Security (RLS)
 -- =============================================
 ALTER TABLE app_users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE vehicle_models ENABLE ROW LEVEL SECURITY;
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vehicles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rental_contracts ENABLE ROW LEVEL SECURITY;
@@ -171,6 +204,11 @@ ALTER TABLE maintenance_records ENABLE ROW LEVEL SECURITY;
 -- Política: Permitir leitura para todos os usuários autenticados
 CREATE POLICY "Authenticated users can read app_users"
   ON app_users FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Authenticated users can read vehicle_models"
+  ON vehicle_models FOR SELECT
   TO authenticated
   USING (true);
 
@@ -195,6 +233,16 @@ CREATE POLICY "Authenticated users can read maintenance_records"
   USING (true);
 
 -- Política: Permitir escrita para todos os usuários autenticados
+CREATE POLICY "Authenticated users can insert vehicle_models"
+  ON vehicle_models FOR INSERT
+  TO authenticated
+  WITH CHECK (true);
+
+CREATE POLICY "Authenticated users can update vehicle_models"
+  ON vehicle_models FOR UPDATE
+  TO authenticated
+  USING (true);
+
 CREATE POLICY "Authenticated users can insert customers"
   ON customers FOR INSERT
   TO authenticated

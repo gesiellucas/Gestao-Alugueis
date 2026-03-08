@@ -133,7 +133,7 @@ export const ClienteDetalhePage: React.FC = () => {
                   className="block hover:bg-slate-100 -m-2 p-2 rounded-xl transition-colors"
                 >
                   <p className="font-extrabold text-[#0a2342] text-lg">
-                    {vehicle.model}
+                    {vehicle.model?.name || 'Modelo desconhecido'}
                   </p>
                   <div className="flex items-center gap-3 mt-1">
                     <span className="text-xs font-black bg-blue-600 text-white px-2 py-1 rounded">

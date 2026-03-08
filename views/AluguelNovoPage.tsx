@@ -122,7 +122,7 @@ export const AluguelNovoPage: React.FC = () => {
             <Bike size={24} className="text-blue-400" />
             <div>
               <h3 className="font-black text-xl uppercase tracking-tighter text-white">
-                {vehicle.model}
+                {vehicle.model?.name || 'Modelo desconhecido'}
               </h3>
               <p className="text-blue-300 text-sm font-mono font-bold">
                 {vehicle.plate}

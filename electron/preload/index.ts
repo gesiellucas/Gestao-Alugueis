@@ -42,6 +42,17 @@ const VALID_CHANNELS = [
   // App
   'app:isElectron',
   'app:getVersion',
+  // Roles
+  'db:roles:getAll',
+  'db:roles:create',
+  'db:roles:update',
+  'db:roles:delete',
+  // Users
+  'db:users:getAll',
+  'db:users:create',
+  'db:users:update',
+  'db:users:delete',
+  'db:users:login',
 ] as const;
 
 type ValidChannel = typeof VALID_CHANNELS[number];

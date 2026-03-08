@@ -19,7 +19,7 @@ export const WhatsAppPage: React.FC = () => {
     setGeneratedMessage('');
 
     const rentedVehicle = vehicles.find(v => v.current_renter_id === customer.id);
-    const vehicleName = rentedVehicle ? rentedVehicle.model : 'sua moto alugada';
+    const vehicleName = rentedVehicle?.model?.name || 'sua moto alugada';
 
     const message = await generateWhatsAppMessage(customer.name, customer.balance_due, vehicleName);
 

@@ -7,7 +7,7 @@ export const vehiclesApi = {
   async getAll(): Promise<Vehicle[]> {
     const { data, error } = await supabase
       .from('vehicles')
-      .select('*')
+      .select('*, model:vehicle_models(*)')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -18,7 +18,7 @@ export const vehiclesApi = {
   async getById(id: string): Promise<Vehicle | null> {
     const { data, error } = await supabase
       .from('vehicles')
-      .select('*')
+      .select('*, model:vehicle_models(*)')
       .eq('id', id)
       .single();
 
@@ -65,7 +65,7 @@ export const vehiclesApi = {
   async getByStatus(status: VehicleStatus): Promise<Vehicle[]> {
     const { data, error } = await supabase
       .from('vehicles')
-      .select('*')
+      .select('*, model:vehicle_models(*)')
       .eq('status', status)
       .order('plate');
 

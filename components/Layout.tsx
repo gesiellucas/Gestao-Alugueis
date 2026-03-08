@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { AppUser, UserRole } from "../types";
+import { AppUser } from "../types";
 import {
   LayoutDashboard,
   Bike,
@@ -32,50 +32,53 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
   // Trigger SQLite background sync with Supabase on mount/login
   useAutoSync(user.id);
 
+  const perms = user.role?.permissions || [];
+  const hasPerm = (p: string) => perms.includes('*') || perms.includes(p);
+
   const navItems = [
     {
       to: "/",
       label: "Dashboard",
       icon: LayoutDashboard,
-      roles: [UserRole.ADMIN],
+      show: hasPerm('dashboard'),
     },
     {
       to: "/veiculos",
       label: "Gestão da Frota",
       icon: Bike,
-      roles: [UserRole.ADMIN, UserRole.MECHANIC],
+      show: hasPerm('veiculos_view'),
     },
     {
       to: "/oficina",
       label: "Oficina GC",
       icon: Wrench,
-      roles: [UserRole.ADMIN, UserRole.MECHANIC],
+      show: hasPerm('oficina_view'),
     },
     {
       to: "/clientes",
       label: "Parceiros GC",
       icon: Users,
-      roles: [UserRole.ADMIN, UserRole.BILLING],
+      show: hasPerm('financeiro_view') || hasPerm('clientes_view'),
     },
     {
       to: "/alugueis",
       label: "Histórico de Aluguéis",
       icon: FileText,
-      roles: [UserRole.ADMIN, UserRole.BILLING],
+      show: hasPerm('financeiro_view'),
     },
     {
       to: "/automacao/whatsapp",
       label: "Cobranças WhatsApp",
       icon: MessageSquare,
-      roles: [UserRole.ADMIN, UserRole.BILLING],
+      show: hasPerm('financeiro_view'),
     },
     {
       to: "/configuracoes",
       label: "Configurações Globais",
       icon: Settings,
-      roles: [UserRole.ADMIN],
+      show: hasPerm('configuracoes'),
     },
-  ].filter((item) => item.roles.includes(user.role));
+  ].filter((item) => item.show);
 
   const isActive = (to: string) => {
     if (to === "/") return pathname === "/";
@@ -130,7 +133,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
             <div className="overflow-hidden">
               <p className="text-xs font-bold truncate">{user.name}</p>
               <p className="text-[10px] text-blue-400 font-black uppercase tracking-tighter">
-                {user.role}
+                {user.role?.name || "USUÁRIO"}
               </p>
             </div>
           </div>

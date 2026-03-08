@@ -10,17 +10,16 @@ export const VeiculoEditarPage: React.FC = () => {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
-  const { vehicles, setVehicles } = useAppContext();
+  const { vehicles, setVehicles, vehicleModels } = useAppContext();
 
   const vehicle = vehicles.find((v) => v.id === id);
 
   const [form, setForm] = useState({
     plate: vehicle?.plate || "",
-    model: vehicle?.model || "",
+    model_id: vehicle?.model_id || "",
     year: vehicle?.year || new Date().getFullYear(),
     mileage: vehicle?.mileage || 0,
     status: vehicle?.status || VehicleStatus.AVAILABLE,
-    image_url: vehicle?.image_url || "",
     default_monthly_rate: vehicle?.default_monthly_rate || 800,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -52,11 +51,10 @@ export const VeiculoEditarPage: React.FC = () => {
     try {
       await getVehiclesApi().update(id, {
         plate: form.plate,
-        model: form.model,
+        model_id: form.model_id,
         year: form.year,
         mileage: form.mileage,
         status: form.status,
-        image_url: form.image_url || null,
         default_monthly_rate: form.default_monthly_rate,
       });
 
@@ -66,12 +64,12 @@ export const VeiculoEditarPage: React.FC = () => {
             ? {
                 ...v,
                 plate: form.plate,
-                model: form.model,
+                model_id: form.model_id,
                 year: form.year,
                 mileage: form.mileage,
                 status: form.status,
-                image_url: form.image_url || undefined,
                 default_monthly_rate: form.default_monthly_rate,
+                model: vehicleModels.find(m => m.id === form.model_id),
               }
             : v,
         ),
@@ -102,7 +100,7 @@ export const VeiculoEditarPage: React.FC = () => {
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="bg-[#0a2342] p-8">
           <h3 className="font-black text-xl uppercase tracking-tighter text-white">
-            {vehicle.plate} - {vehicle.model}
+            {vehicle.plate} - {vehicle.model?.name || 'Modelo desconhecido'}
           </h3>
         </div>
         <form onSubmit={handleSubmit} className="p-10 space-y-6">
@@ -130,13 +128,17 @@ export const VeiculoEditarPage: React.FC = () => {
               <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Modelo
               </label>
-              <input
-                type="text"
-                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border"
-                value={form.model}
-                onChange={(e) => setForm({ ...form, model: e.target.value })}
+              <select
+                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border appearance-none"
+                value={form.model_id}
+                onChange={(e) => setForm({ ...form, model_id: e.target.value })}
                 required
-              />
+              >
+                <option value="">Selecione um modelo...</option>
+                {vehicleModels.map(m => (
+                  <option key={m.id} value={m.id}>{m.name} ({m.brand})</option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
@@ -205,18 +207,7 @@ export const VeiculoEditarPage: React.FC = () => {
               />
             </div>
           </div>
-          <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-              URL da Imagem
-            </label>
-            <input
-              type="url"
-              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border"
-              value={form.image_url}
-              onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-              placeholder="https://exemplo.com/imagem.png"
-            />
-          </div>
+
 
           <div className="pt-4 flex gap-4">
             <button

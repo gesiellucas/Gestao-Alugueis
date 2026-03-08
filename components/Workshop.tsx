@@ -122,7 +122,7 @@ export const Workshop: React.FC<WorkshopProps> = ({
                     .filter((v) => v.status !== VehicleStatus.MAINTENANCE)
                     .map((v) => (
                       <option key={v.id} value={v.plate}>
-                        {v.plate} - {v.model}
+                        {v.plate} - {v.model?.name || 'Modelo desconhecido'}
                       </option>
                     ))}
                 </select>

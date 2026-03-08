@@ -1,54 +1,51 @@
 'use client';
-import React from "react";
-import { UserRole, AppUser } from "../types";
-import { ShieldCheck, User, Wrench, DollarSign } from "lucide-react";
+import React, { useState } from "react";
+import { AppUser } from "../types";
+import { ShieldCheck, LogIn, Lock, Mail, AlertCircle } from "lucide-react";
+import { getUsersApi } from "../lib/apiFactory";
 
 interface LoginProps {
   onLogin: (user: AppUser) => void;
 }
 
 export const Login: React.FC<LoginProps> = ({ onLogin }) => {
-  const roles = [
-    {
-      role: UserRole.ADMIN,
-      label: "Administrador",
-      desc: "Acesso total ao sistema",
-      icon: ShieldCheck,
-      color: "bg-blue-600",
-      user: {
-        id: "1",
-        name: "Gestor Master",
-        role: UserRole.ADMIN,
-        email: "admin@gclocamoto.com.br",
-      },
-    },
-    {
-      role: UserRole.MECHANIC,
-      label: "Oficina / Mecânico",
-      desc: "Gestão de frota e reparos",
-      icon: Wrench,
-      color: "bg-amber-500",
-      user: {
-        id: "2",
-        name: "Roberto Mecânico",
-        role: UserRole.MECHANIC,
-        email: "oficina@gclocamoto.com.br",
-      },
-    },
-    {
-      role: UserRole.BILLING,
-      label: "Financeiro / SAC",
-      desc: "Cobranças e parceiros",
-      icon: DollarSign,
-      color: "bg-green-500",
-      user: {
-        id: "3",
-        name: "Clara Financeiro",
-        role: UserRole.BILLING,
-        email: "financeiro@gclocamoto.com.br",
-      },
-    },
-  ];
+  const [isRecovering, setIsRecovering] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState("");
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      if (isRecovering) {
+        // Mock recovery for now
+        setSuccess("Instruções de recuperação enviadas para o seu e-mail.");
+        setTimeout(() => setIsRecovering(false), 3000);
+      } else {
+        const user = await getUsersApi().login(email, password);
+        if (user) {
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('electron_user_id', user.id);
+            localStorage.setItem('electron_user_email', user.email);
+          }
+           // Force reload or just call onLogin.
+          // Since the app uses hardcoded hydration we can just pass the user to AppContext
+          onLogin(user);
+        } else {
+          setError("E-mail ou senha inválidos.");
+        }
+      }
+    } catch (err) {
+      setError("Erro ao tentar conectar. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0a2342] flex items-center justify-center p-6 relative overflow-hidden">
@@ -67,47 +64,96 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             GC LOCA MOTO
           </h1>
           <p className="text-blue-200 font-medium">
-            Selecione seu perfil de acesso
+            {isRecovering ? "Recuperar sua senha" : "Acesse o sistema"}
           </p>
         </div>
 
-        <div className="space-y-4">
-          {roles.map((item) => (
-            <button
-              key={item.role}
-              onClick={() => {
-                if (typeof window !== 'undefined') {
-                  localStorage.setItem('electron_user_id', item.user.id);
-                }
-                onLogin(item.user);
-                
-                // Força um recarregamento para que todas as queries 
-                // da Home/AppContext utilizem o novo ID imediatamente.
-                window.location.reload();
-              }}
-              className="w-full group bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/30 p-6 rounded-[2rem] text-left transition-all duration-300 flex items-center gap-5 active:scale-95"
-            >
-              <div
-                className={`${item.color} p-4 rounded-xl text-white shadow-lg group-hover:scale-110 transition-transform`}
-              >
-                <item.icon size={24} />
+        <form onSubmit={handleLogin} className="bg-white/10 border border-white/10 p-8 rounded-[2rem] space-y-6">
+          {error && (
+            <div className="bg-red-500/20 text-red-100 border border-red-500/50 p-4 rounded-xl flex items-center gap-3">
+              <AlertCircle size={20} className="text-red-400" />
+              <span className="text-sm font-medium">{error}</span>
+            </div>
+          )}
+
+          {success && (
+            <div className="bg-green-500/20 text-green-100 border border-green-500/50 p-4 rounded-xl flex items-center gap-3">
+              <ShieldCheck size={20} className="text-green-400" />
+              <span className="text-sm font-medium">{success}</span>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <label className="text-white text-sm font-bold uppercase tracking-wider mb-2 block">E-mail</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Mail className="h-5 w-5 text-blue-300" />
+                </div>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-[#0a2342] border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white placeholder-blue-300/50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  placeholder="seu@email.com"
+                  required
+                />
               </div>
+            </div>
+
+            {!isRecovering && (
               <div>
-                <h3 className="text-white font-black text-lg uppercase tracking-tight leading-tight">
-                  {item.label}
-                </h3>
-                <p className="text-blue-300 text-sm">{item.desc}</p>
+                <label className="text-white text-sm font-bold uppercase tracking-wider mb-2 block">Senha</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-blue-300" />
+                  </div>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full bg-[#0a2342] border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white placeholder-blue-300/50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
               </div>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl uppercase tracking-widest flex items-center justify-center gap-3 transition-colors disabled:opacity-50"
+          >
+            {loading ? (
+              <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
+            ) : isRecovering ? (
+              <Mail size={20} />
+            ) : (
+              <LogIn size={20} />
+            )}
+            {isRecovering ? "Enviar Recuperação" : "Entrar no Sistema"}
+          </button>
+
+          <div className="text-center pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setIsRecovering(!isRecovering);
+                setError("");
+                setSuccess("");
+              }}
+              className="text-blue-300 hover:text-white text-sm font-medium transition-colors"
+            >
+              {isRecovering ? "Voltar ao login" : "Esqueceu sua senha? Recuperar senha"}
             </button>
-          ))}
-        </div>
+          </div>
+        </form>
 
         <div className="mt-12 text-center">
           <p className="text-blue-400 text-xs font-bold uppercase tracking-widest">
             GC Loca Moto © 2024
-          </p>
-          <p className="text-blue-500 text-[10px] mt-1 italic">
-            Ambiente Seguro de Demonstração MVP
           </p>
         </div>
       </div>

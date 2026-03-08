@@ -13,14 +13,18 @@ import { isElectron } from './ipc';
 // Supabase implementations (existing)
 import { customersApi } from '../services/api/customers';
 import { vehiclesApi } from '../services/api/vehicles';
+import { vehicleModelsApi } from '../services/api/vehicleModels';
 import { rentalContractsApi } from '../services/api/rentalContracts';
 import { maintenanceRecordsApi } from '../services/api/maintenanceRecords';
 
 // Local SQLite implementations (new)
 import { localCustomersApi } from '../services/localApi/customers';
 import { localVehiclesApi } from '../services/localApi/vehicles';
+import { localVehicleModelsApi } from '../services/localApi/vehicleModels';
 import { localRentalsApi } from '../services/localApi/rentals';
 import { localMaintenanceApi } from '../services/localApi/maintenance';
+import { localUsersApi } from '../services/localApi/users';
+import { localRolesApi } from '../services/localApi/roles';
 
 export function getCustomersApi() {
   return isElectron() ? localCustomersApi : customersApi;
@@ -36,4 +40,16 @@ export function getRentalsApi() {
 
 export function getMaintenanceApi() {
   return isElectron() ? localMaintenanceApi : maintenanceRecordsApi;
+}
+
+export function getUsersApi() {
+  return isElectron() ? localUsersApi : {} as any; // Mock for now if not electron
+}
+
+export function getRolesApi() {
+  return isElectron() ? localRolesApi : {} as any; // Mock for now if not electron
+}
+
+export function getVehicleModelsApi() {
+  return isElectron() ? localVehicleModelsApi : vehicleModelsApi;
 }

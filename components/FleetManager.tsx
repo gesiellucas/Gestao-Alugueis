@@ -44,8 +44,8 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
           >
             <div className="h-48 bg-[#f8fafc] relative flex items-center justify-center p-6">
               <img
-                src={vehicle.image_url ?? undefined}
-                alt={vehicle.model}
+                src={vehicle.model?.image_url || undefined}
+                alt={vehicle.model?.name || 'Moto'}
                 className="max-w-full max-h-full object-contain group-hover:scale-110 transition-transform duration-500 drop-shadow-2xl"
               />
               <div className="absolute top-4 right-4">
@@ -67,7 +67,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
                   </span>
                 </div>
                 <h3 className="text-xl font-extrabold text-[#0a2342] leading-tight">
-                  {vehicle.model}
+                  {vehicle.model?.name || 'Modelo desconhecido'}
                 </h3>
               </div>
 

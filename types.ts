@@ -14,17 +14,21 @@ export enum MaintenanceType {
   CHECKUP = 'Vistoria de Entrada'
 }
 
-export enum UserRole {
-  ADMIN = 'ADMIN',
-  MECHANIC = 'MECHANIC',
-  BILLING = 'BILLING'
+export interface Role {
+  id: string;
+  name: string;
+  permissions: string[]; // e.g. ['dashboard', 'veiculos', 'oficina', 'clientes', 'alugueis', 'financeiro', 'configuracoes']
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface AppUser {
   id: string;
   name: string;
-  role: UserRole;
   email: string;
+  role_id: string;
+  role?: Role; // Populated from join
+  password?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -41,15 +45,24 @@ export interface Customer {
   updated_at?: string;
 }
 
+export interface VehicleModel {
+  id: string;
+  name: string;
+  brand: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  image_url?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Vehicle {
   id: string;
   plate: string;
-  model: string;
-  brand: string;
+  model_id: string;
+  model?: VehicleModel; // Populated from join
   year: number;
   status: `${VehicleStatus}`;
   mileage: number;
-  image_url?: string | null;
   current_renter_id?: string | null;
   default_monthly_rate: number;
   created_at?: string;

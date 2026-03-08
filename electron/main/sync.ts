@@ -80,7 +80,7 @@ async function runSync() {
 
 async function pushChanges() {
     console.error('[Sync Engine] Pushing changes...');
-    const tables = ['customers', 'vehicles', 'rental_contracts', 'maintenance_records'];
+    const tables = ['vehicle_models', 'customers', 'vehicles', 'rental_contracts', 'maintenance_records'];
 
     for (const table of tables) {
         // Get all dirty records for this table
@@ -95,6 +95,19 @@ async function pushChanges() {
         // Prepare data to remove local-only columns like 'dirty'
         const recordsToPush = dirtyRecords.map(record => {
             const { dirty, ...rest } = record;
+
+            // Map legacy local user_id '1' to a valid UUID for Supabase
+            if (rest.user_id === '1') {
+                rest.user_id = '00000000-0000-0000-0000-000000000000';
+            }
+
+            // Vehicles table in SQLite might still contain the legacy columns 'brand' and 'model'
+            // We must strip them out before pushing to Supabase
+            if (table === 'vehicles') {
+                delete rest.brand;
+                delete rest.model;
+            }
+
             return rest;
         });
 
@@ -118,7 +131,7 @@ async function pushChanges() {
 
 async function pullChanges() {
     console.log('[Sync Engine] Pulling changes...');
-    const tables = ['customers', 'vehicles', 'rental_contracts', 'maintenance_records'];
+    const tables = ['vehicle_models', 'customers', 'vehicles', 'rental_contracts', 'maintenance_records'];
 
     for (const table of tables) {
         console.error(table);

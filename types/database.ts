@@ -72,16 +72,44 @@ export interface Database {
         };
         Relationships: [];
       };
+      vehicle_models: {
+        Row: {
+          id: string;
+          name: string;
+          brand: string;
+          image_url: string | null;
+          status: 'ACTIVE' | 'INACTIVE';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          brand: string;
+          image_url?: string | null;
+          status?: 'ACTIVE' | 'INACTIVE';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          brand?: string;
+          image_url?: string | null;
+          status?: 'ACTIVE' | 'INACTIVE';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       vehicles: {
         Row: {
           id: string;
           plate: string;
-          model: string;
-          brand: string;
+          model_id: string;
           year: number;
           status: 'Disponível' | 'Alugada' | 'Em Manutenção' | 'Indisponível';
           mileage: number;
-          image_url: string | null;
           current_renter_id: string | null;
           default_monthly_rate: number;
           created_at: string;
@@ -90,12 +118,10 @@ export interface Database {
         Insert: {
           id?: string;
           plate: string;
-          model: string;
-          brand: string;
+          model_id: string;
           year: number;
           status?: 'Disponível' | 'Alugada' | 'Em Manutenção' | 'Indisponível';
           mileage?: number;
-          image_url?: string | null;
           current_renter_id?: string | null;
           default_monthly_rate?: number;
           created_at?: string;
@@ -104,18 +130,23 @@ export interface Database {
         Update: {
           id?: string;
           plate?: string;
-          model?: string;
-          brand?: string;
+          model_id?: string;
           year?: number;
           status?: 'Disponível' | 'Alugada' | 'Em Manutenção' | 'Indisponível';
           mileage?: number;
-          image_url?: string | null;
           current_renter_id?: string | null;
           default_monthly_rate?: number;
           created_at?: string;
           updated_at?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: 'vehicles_model_id_fkey';
+            columns: ['model_id'];
+            isOneToOne: false;
+            referencedRelation: 'vehicle_models';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'vehicles_current_renter_id_fkey';
             columns: ['current_renter_id'];

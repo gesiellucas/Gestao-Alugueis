@@ -6,14 +6,16 @@ import {
   Customer,
   VehicleStatus,
   AppUser,
-  UserRole,
   RentalContract,
+  VehicleModel,
 } from "../types";
 import {
   getVehiclesApi,
   getCustomersApi,
   getRentalsApi,
   getMaintenanceApi,
+  getUsersApi,
+  getVehicleModelsApi,
 } from "../lib/apiFactory";
 
 interface AppContextType {
@@ -21,6 +23,8 @@ interface AppContextType {
   setUser: (user: AppUser | null) => void;
   vehicles: Vehicle[];
   setVehicles: React.Dispatch<React.SetStateAction<Vehicle[]>>;
+  vehicleModels: VehicleModel[];
+  setVehicleModels: React.Dispatch<React.SetStateAction<VehicleModel[]>>;
   maintenanceRecords: MaintenanceRecord[];
   setMaintenanceRecords: React.Dispatch<
     React.SetStateAction<MaintenanceRecord[]>
@@ -52,6 +56,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [vehicleModels, setVehicleModels] = useState<VehicleModel[]>([]);
   const [maintenanceRecords, setMaintenanceRecords] = useState<
     MaintenanceRecord[]
   >([]);
@@ -63,16 +68,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   // Re-hydrate user from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedId = localStorage.getItem("electron_user_id");
-      if (storedId) {
-        // Mocking the static users from Login.tsx
-        if (storedId === "1") {
-          setUser({ id: "1", name: "Gestor Master", role: UserRole.ADMIN, email: "admin@gclocamoto.com.br" });
-        } else if (storedId === "2") {
-          setUser({ id: "2", name: "Roberto Mecânico", role: UserRole.MECHANIC, email: "oficina@gclocamoto.com.br" });
-        } else if (storedId === "3") {
-          setUser({ id: "3", name: "Clara Financeiro", role: UserRole.BILLING, email: "financeiro@gclocamoto.com.br" });
-        }
+      const storedEmail = localStorage.getItem("electron_user_email");
+      if (storedEmail) {
+        getUsersApi().login(storedEmail).then((u: AppUser | null) => {
+          if (u) {
+            setUser(u);
+          } else {
+            localStorage.removeItem("electron_user_email");
+            localStorage.removeItem("electron_user_id");
+          }
+        }).catch((err: any) => console.error("Error auto-login:", err));
       }
     }
   }, []);
@@ -83,15 +88,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setLoading(true);
       setError(null);
 
-      const [vehiclesData, customersData, contractsData, maintenanceData] =
+      const [vehiclesData, modelsData, customersData, contractsData, maintenanceData] =
         await Promise.all([
           getVehiclesApi().getAll(),
+          getVehicleModelsApi().getAll(),
           getCustomersApi().getAll(),
           getRentalsApi().getAll(),
           getMaintenanceApi().getAll(),
         ]);
 
       setVehicles(vehiclesData);
+      setVehicleModels(modelsData);
       setCustomers(customersData);
       setRentalContracts(contractsData);
       setMaintenanceRecords(maintenanceData);
@@ -292,6 +299,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setUser,
         vehicles,
         setVehicles,
+        vehicleModels,
+        setVehicleModels,
         maintenanceRecords,
         setMaintenanceRecords,
         customers,

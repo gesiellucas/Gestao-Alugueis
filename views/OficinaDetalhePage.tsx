@@ -85,15 +85,15 @@ export const OficinaDetalhePage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3">
           <div className="h-56 lg:h-auto bg-[#f8fafc] flex items-center justify-center p-8">
             <img
-              src={vehicle.image_url ?? undefined}
-              alt={vehicle.model}
+              src={vehicle.model?.image_url || undefined}
+              alt={vehicle.model?.name || 'Moto'}
               className="max-w-full max-h-full object-contain drop-shadow-2xl"
             />
           </div>
           <div className="lg:col-span-2 p-8 space-y-6">
             <div className="flex items-center gap-3">
               <h2 className="text-2xl font-extrabold text-[#0a2342]">
-                {vehicle.model}
+                {vehicle.model?.name || 'Modelo desconhecido'}
               </h2>
               <span
                 className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusStyle(vehicle.status)}`}

@@ -79,7 +79,7 @@ export const OficinaNovePage: React.FC = () => {
               <option value="">Selecione a placa...</option>
               {availableVehicles.map((v) => (
                 <option key={v.id} value={v.plate}>
-                  {v.plate} - {v.model}
+                  {v.plate} - {v.model?.name || 'Modelo desconhecido'}
                 </option>
               ))}
             </select>

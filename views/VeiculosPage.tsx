@@ -15,11 +15,12 @@ export const VeiculosPage: React.FC = () => {
   const [brandFilter, setBrandFilter] = useState<string>("TODAS");
 
   const brands = useMemo(() => {
-    const set = new Set(vehicles.map((v) => v.model.split(" ")[0]));
+    const set = new Set(vehicles.map((v) => v.model?.brand || "Desconhecida"));
     return Array.from(set).sort();
   }, [vehicles]);
 
   const filteredVehicles = useMemo(() => {
+    console.log("vehicles", vehicles);
     return vehicles.filter((v) => {
       if (statusFilter !== "TODOS" && v.status !== statusFilter) return false;
       if (
@@ -27,7 +28,7 @@ export const VeiculosPage: React.FC = () => {
         !v.plate.toLowerCase().includes(plateFilter.toLowerCase())
       )
         return false;
-      if (brandFilter !== "TODAS" && !v.model.startsWith(brandFilter))
+      if (brandFilter !== "TODAS" && v.model?.brand !== brandFilter)
         return false;
       return true;
     });
@@ -122,11 +123,11 @@ export const VeiculosPage: React.FC = () => {
             <VehicleCard
               key={vehicle.id}
               id={vehicle.id}
-              image_url={vehicle.image_url ?? ""}
-              model={vehicle.model}
+              image_url={vehicle.model?.image_url || ""}
+              model={vehicle.model?.name || "Desconhecido"}
               status={vehicle.status}
               year={vehicle.year}
-              brand={vehicle.brand}
+              brand={vehicle.model?.brand || "Desconhecido"}
               plate={vehicle.plate}
               mileage={vehicle.mileage}
               current_renter_id={vehicle.current_renter_id}

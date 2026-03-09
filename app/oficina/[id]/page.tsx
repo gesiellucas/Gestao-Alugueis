@@ -1,4 +1,4 @@
-import { OficinaDetalhePage } from '../../../views/OficinaDetalhePage';
+import { OficinaDetalhePage } from '../../../views/oficina/template/OficinaDetalhePage';
 
 export const dynamic = 'force-static';
 

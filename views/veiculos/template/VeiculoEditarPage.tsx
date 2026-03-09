@@ -1,9 +1,9 @@
 'use client';
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useAppContext } from "../contexts/AppContext";
-import { getVehiclesApi } from "../lib/apiFactory";
-import { VehicleStatus } from "../types";
+import { useAppContext } from "../../../contexts/AppContext";
+import { getVehiclesApi } from "../../../lib/apiFactory";
+import { VehicleStatus } from "../../../types";
 import { ArrowLeft, Save } from "lucide-react";
 
 export const VeiculoEditarPage: React.FC = () => {

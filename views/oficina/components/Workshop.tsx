@@ -4,7 +4,7 @@ import {
   Vehicle,
   MaintenanceType,
   VehicleStatus,
-} from "../types";
+} from "../../../types";
 // Fixed: Added missing X icon to the lucide-react imports
 import {
   PlusCircle,

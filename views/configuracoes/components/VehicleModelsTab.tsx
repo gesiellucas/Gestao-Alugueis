@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from "react";
-import { VehicleModel } from "../types";
-import { getVehicleModelsApi } from "../lib/apiFactory";
+import { VehicleModel } from "../../../types";
+import { getVehicleModelsApi } from "../../../lib/apiFactory";
 import { Car, Plus, Edit2, Trash2, Check, X } from "lucide-react";
 
 type FormData = { name: string; brand: string; status: 'ACTIVE' | 'INACTIVE' };

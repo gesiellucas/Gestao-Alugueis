@@ -1,5 +1,5 @@
 import React from "react";
-import { Vehicle, VehicleStatus } from "../types";
+import { Vehicle, VehicleStatus } from "../../../types";
 import { Circle, User, Hash, Calendar } from "lucide-react";
 
 interface FleetProps {

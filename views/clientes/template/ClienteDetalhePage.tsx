@@ -2,7 +2,7 @@
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAppContext } from "../contexts/AppContext";
+import { useAppContext } from "../../../contexts/AppContext";
 import {
   ArrowLeft,
   Pencil,

@@ -1,4 +1,4 @@
-import { ClienteDetalhePage } from '../../../views/ClienteDetalhePage';
+import { ClienteDetalhePage } from '../../../views/clientes/template/ClienteDetalhePage';
 
 // Required by Next.js static export for dynamic segments.
 // Routing is handled client-side at runtime via useParams().

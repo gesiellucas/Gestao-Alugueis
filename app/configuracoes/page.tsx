@@ -1,4 +1,4 @@
-import { ConfiguracoesPage } from '../../views/ConfiguracoesPage';
+import { ConfiguracoesPage } from '../../views/configuracoes/template/ConfiguracoesPage';
 
 export const dynamic = 'force-static';
 

@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from 'react';
-import { useAppContext } from '../contexts/AppContext';
-import { generateWhatsAppMessage } from '../services/geminiService';
-import { Customer } from '../types';
+import { useAppContext } from '../../../contexts/AppContext';
+import { generateWhatsAppMessage } from '../../../services/geminiService';
+import { Customer } from '../../../types';
 import { MessageSquare, Send, Sparkles, AlertCircle } from 'lucide-react';
 
 export const WhatsAppPage: React.FC = () => {

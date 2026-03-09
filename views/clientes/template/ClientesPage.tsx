@@ -1,5 +1,7 @@
-import React from "react";
-import { Customer, Vehicle } from "../types";
+'use client';
+import React, { useState } from "react";
+import Link from "next/link";
+import { useAppContext } from "../../../contexts/AppContext";
 import {
   User,
   Phone,
@@ -9,21 +11,27 @@ import {
   MessageSquare,
   Search,
   PlusCircle,
+  Pencil,
 } from "lucide-react";
 
-interface CustomerManagerProps {
-  customers: Customer[];
-  vehicles: Vehicle[];
-}
+export const ClientesPage: React.FC = () => {
+  const { customers, vehicles } = useAppContext();
+  const [search, setSearch] = useState("");
 
-export const CustomerManager: React.FC<CustomerManagerProps> = ({
-  customers,
-  vehicles,
-}) => {
-  // Helper to find which vehicle a customer is using
   const getCustomerVehicle = (customerId: string) => {
     return vehicles.find((v) => v.current_renter_id === customerId);
   };
+
+  const filtered = customers.filter(
+    (c) =>
+      c.name.toLowerCase().includes(search.toLowerCase()) ||
+      c.cpf.includes(search) ||
+      vehicles.find(
+        (v) =>
+          v.current_renter_id === c.id &&
+          v.plate.toLowerCase().includes(search.toLowerCase()),
+      ),
+  );
 
   return (
     <div className="space-y-8">
@@ -36,10 +44,13 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
             Gestão de entregadores e contratos ativos.
           </p>
         </div>
-        <button className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2 uppercase tracking-widest text-xs">
+        <Link
+          href="/cliente/novo"
+          className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2 uppercase tracking-widest text-xs"
+        >
           <PlusCircle size={18} />
           Novo Parceiro
-        </button>
+        </Link>
       </div>
 
       <div className="relative group">
@@ -49,13 +60,15 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
         />
         <input
           type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar parceiro por nome, CPF ou placa..."
           className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-xl shadow-sm outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700"
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {customers.map((customer) => {
+        {filtered.map((customer) => {
           const vehicle = getCustomerVehicle(customer.id);
           const hasDebt = customer.balance_due > 0;
 
@@ -66,10 +79,19 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
             >
               <div className="p-8">
                 <div className="flex justify-between items-start mb-6">
-                  <div className="w-16 h-16 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-black text-2xl border border-blue-100">
+                  <Link
+                    href={`/cliente/${customer.id}`}
+                    className="w-16 h-16 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-black text-2xl border border-blue-100 hover:bg-blue-100 transition-colors"
+                  >
                     {customer.name.charAt(0)}
-                  </div>
-                  <div className="text-right">
+                  </Link>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      href={`/cliente/editar/${customer.id}`}
+                      className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl transition-colors"
+                    >
+                      <Pencil size={14} />
+                    </Link>
                     {customer.active_contract ? (
                       <span className="bg-green-100 text-green-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-green-200 flex items-center gap-1">
                         <CheckCircle size={10} /> Ativo
@@ -82,15 +104,18 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
                   </div>
                 </div>
 
-                <div className="mb-6">
-                  <h3 className="text-xl font-extrabold text-[#0a2342] mb-1">
+                <Link
+                  href={`/cliente/${customer.id}`}
+                  className="block mb-6 group"
+                >
+                  <h3 className="text-xl font-extrabold text-[#0a2342] mb-1 group-hover:text-blue-600 transition-colors">
                     {customer.name}
                   </h3>
                   <div className="flex items-center gap-2 text-slate-400 text-sm font-medium">
                     <FileText size={14} />
                     <span>CPF: {customer.cpf}</span>
                   </div>
-                </div>
+                </Link>
 
                 <div className="space-y-4 mb-8">
                   <div className="bg-slate-50 p-4 rounded-xl flex items-center justify-between">
@@ -142,9 +167,12 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
                     <MessageSquare size={16} />
                     WhatsApp
                   </button>
-                  <button className="p-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors">
+                  <Link
+                    href={`/cliente/${customer.id}`}
+                    className="p-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl transition-colors flex items-center justify-center"
+                  >
                     <User size={18} />
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

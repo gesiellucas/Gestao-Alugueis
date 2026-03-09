@@ -1,7 +1,7 @@
 'use client';
 import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAppContext } from "../contexts/AppContext";
+import { useAppContext } from "../../../contexts/AppContext";
 import { Search, Calendar, User, Bike, DollarSign, CheckCircle, XCircle } from "lucide-react";
 
 export const AlugueisPage: React.FC = () => {

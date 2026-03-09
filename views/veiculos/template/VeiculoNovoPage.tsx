@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAppContext } from "../contexts/AppContext";
-import { getVehiclesApi, getVehicleModelsApi } from "../lib/apiFactory";
+import { useAppContext } from "../../../contexts/AppContext";
+import { getVehiclesApi, getVehicleModelsApi } from "../../../lib/apiFactory";
 import { ArrowLeft, Save, PlusCircle } from "lucide-react";
 
 export const VeiculoNovoPage: React.FC = () => {
@@ -118,7 +118,7 @@ export const VeiculoNovoPage: React.FC = () => {
                 required
               />
             </div>
-            
+
             <div>
               <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
                 Modelo do Veículo
@@ -252,4 +252,3 @@ export const VeiculoNovoPage: React.FC = () => {
     </div>
   );
 };
-

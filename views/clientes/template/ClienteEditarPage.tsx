@@ -1,40 +1,76 @@
 'use client';
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAppContext } from "../contexts/AppContext";
-import { getCustomersApi } from "../lib/apiFactory";
+import { useParams, useRouter } from "next/navigation";
+import { useAppContext } from "../../../contexts/AppContext";
+import { getCustomersApi } from "../../../lib/apiFactory";
 import { ArrowLeft, Save } from "lucide-react";
 
-export const ClienteNovoPage: React.FC = () => {
+export const ClienteEditarPage: React.FC = () => {
+  const params = useParams();
+  const id = params.id as string;
   const router = useRouter();
-  const { setCustomers } = useAppContext();
+  const { customers, setCustomers } = useAppContext();
+
+  const customer = customers.find((c) => c.id === id);
 
   const [form, setForm] = useState({
-    name: "",
-    phone: "",
-    cpf: "",
+    name: customer?.name || "",
+    phone: customer?.phone || "",
+    cpf: customer?.cpf || "",
+    active_contract: customer?.active_contract || false,
+    balance_due: customer?.balance_due || 0,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  if (!customer) {
+    return (
+      <div className="space-y-6">
+        <button
+          onClick={() => router.push("/clientes")}
+          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
+        >
+          <ArrowLeft size={20} /> Voltar
+        </button>
+        <div className="bg-white rounded-[2.5rem] p-12 text-center shadow-sm">
+          <p className="text-slate-500 font-medium text-lg">
+            Cliente não encontrado.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.phone || !form.cpf) return;
-
     setSubmitting(true);
     setError(null);
-
     try {
-      const newCustomer = await getCustomersApi().create({
+      await getCustomersApi().update(id, {
         name: form.name,
         phone: form.phone,
         cpf: form.cpf,
+        active_contract: form.active_contract,
+        balance_due: form.balance_due,
       });
 
-      setCustomers((prev) => [newCustomer, ...prev]);
-      router.push("/clientes");
+      setCustomers((prev) =>
+        prev.map((c) =>
+          c.id === id
+            ? {
+                ...c,
+                name: form.name,
+                phone: form.phone,
+                cpf: form.cpf,
+                active_contract: form.active_contract,
+                balance_due: form.balance_due,
+              }
+            : c,
+        ),
+      );
+      router.push(`/cliente/${id}`);
     } catch (err) {
-      setError("Erro ao cadastrar parceiro. Verifique se o CPF já não está cadastrado.");
+      setError("Erro ao atualizar o cliente.");
     } finally {
       setSubmitting(false);
     }
@@ -44,20 +80,20 @@ export const ClienteNovoPage: React.FC = () => {
     <div className="space-y-8">
       <div className="flex items-center gap-4">
         <button
-          onClick={() => router.push("/clientes")}
+          onClick={() => router.push(`/cliente/${id}`)}
           className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
         >
           <ArrowLeft size={20} /> Voltar
         </button>
         <h2 className="text-3xl font-extrabold text-[#0a2342] uppercase tracking-tight">
-          Novo Parceiro
+          Editar Parceiro
         </h2>
       </div>
 
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="bg-[#0a2342] p-8">
           <h3 className="font-black text-xl uppercase tracking-tighter text-white">
-            Cadastro de Parceiro
+            {customer.name}
           </h3>
         </div>
         <form onSubmit={handleSubmit} className="p-10 space-y-6">
@@ -75,7 +111,6 @@ export const ClienteNovoPage: React.FC = () => {
               className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Nome do parceiro"
               required
             />
           </div>
@@ -90,7 +125,6 @@ export const ClienteNovoPage: React.FC = () => {
                 className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                placeholder="5511999999999"
                 required
               />
             </div>
@@ -103,16 +137,57 @@ export const ClienteNovoPage: React.FC = () => {
                 className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border"
                 value={form.cpf}
                 onChange={(e) => setForm({ ...form, cpf: e.target.value })}
-                placeholder="000.000.000-00"
                 required
               />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+                Débito Pendente (R$)
+              </label>
+              <input
+                type="number"
+                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border"
+                value={form.balance_due}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    balance_due: parseFloat(e.target.value) || 0,
+                  })
+                }
+                min={0}
+                step={0.01}
+              />
+            </div>
+            <div className="flex items-center gap-4">
+              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">
+                Contrato Ativo
+              </label>
+              <button
+                type="button"
+                onClick={() =>
+                  setForm({ ...form, active_contract: !form.active_contract })
+                }
+                className={`relative w-14 h-7 rounded-full transition-colors ${form.active_contract ? "bg-green-500" : "bg-slate-300"}`}
+              >
+                <div
+                  className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${form.active_contract ? "translate-x-7" : "translate-x-0.5"}`}
+                />
+              </button>
+              <span
+                className={`text-sm font-bold ${form.active_contract ? "text-green-600" : "text-slate-400"}`}
+              >
+                {form.active_contract ? "Ativo" : "Inativo"}
+              </span>
             </div>
           </div>
 
           <div className="pt-4 flex gap-4">
             <button
               type="button"
-              onClick={() => router.push("/clientes")}
+              onClick={() => router.push(`/cliente/${id}`)}
               className="flex-1 py-4 font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors"
             >
               Cancelar
@@ -122,7 +197,7 @@ export const ClienteNovoPage: React.FC = () => {
               disabled={submitting}
               className="flex-1 py-4 bg-[#0a2342] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save size={18} /> {submitting ? "Cadastrando..." : "Cadastrar"}
+              <Save size={18} /> {submitting ? "Salvando..." : "Salvar Alterações"}
             </button>
           </div>
         </form>

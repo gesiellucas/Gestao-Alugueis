@@ -1,8 +1,8 @@
 'use client';
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useAppContext } from "../contexts/AppContext";
-import { MaintenanceType, MaintenanceRecord, VehicleStatus } from "../types";
+import { useAppContext } from "../../../contexts/AppContext";
+import { MaintenanceType, MaintenanceRecord, VehicleStatus } from "../../../types";
 import { ArrowLeft, Save } from "lucide-react";
 
 export const OficinaNovePage: React.FC = () => {

@@ -3,7 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Hash, Circle, User, DollarSign, Wrench } from "lucide-react";
-import { VehicleStatus } from "../types";
+import { VehicleStatus } from "../../../types";
 
 interface VehicleCardProps {
   id: string;

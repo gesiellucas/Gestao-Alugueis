@@ -1,4 +1,4 @@
-import { ClienteEditarPage } from '../../../../views/ClienteEditarPage';
+import { ClienteEditarPage } from '../../../../views/clientes/template/ClienteEditarPage';
 
 export const dynamic = 'force-static';
 

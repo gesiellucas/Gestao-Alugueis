@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { Customer, Vehicle } from '../types';
-import { generateWhatsAppMessage } from '../services/geminiService';
+import { Customer, Vehicle } from '../../../types';
+import { generateWhatsAppMessage } from '../../../services/geminiService';
 import { MessageSquare, Send, Sparkles, AlertCircle } from 'lucide-react';
 
 interface BillingProps {
@@ -19,13 +19,13 @@ export const Billing: React.FC<BillingProps> = ({ customers, vehicles }) => {
     setSelectedCustomer(customer);
     setIsGenerating(true);
     setGeneratedMessage('');
-    
+
     // Find vehicle model if rented
     const rentedVehicle = vehicles.find(v => v.current_renter_id === customer.id);
     const vehicleName = rentedVehicle?.model?.name || 'sua moto alugada';
 
     const message = await generateWhatsAppMessage(customer.name, customer.balance_due, vehicleName);
-    
+
     setGeneratedMessage(message);
     setIsGenerating(false);
   };
@@ -56,7 +56,7 @@ export const Billing: React.FC<BillingProps> = ({ customers, vehicles }) => {
               <div className="p-4 text-center text-slate-500 text-sm">Nenhum cliente com débito.</div>
             ) : (
               pendingCustomers.map(customer => (
-                <button 
+                <button
                   key={customer.id}
                   onClick={() => handleGenerateMessage(customer)}
                   className={`w-full p-4 text-left transition-colors hover:bg-slate-50 ${selectedCustomer?.id === customer.id ? 'bg-indigo-50 border-l-4 border-indigo-500' : ''}`}
@@ -111,7 +111,7 @@ export const Billing: React.FC<BillingProps> = ({ customers, vehicles }) => {
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex gap-3">
                      <button
                       onClick={() => handleGenerateMessage(selectedCustomer)}

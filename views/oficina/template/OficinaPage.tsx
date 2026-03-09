@@ -1,7 +1,7 @@
 'use client';
 import React from "react";
 import Link from "next/link";
-import { useAppContext } from "../contexts/AppContext";
+import { useAppContext } from "../../../contexts/AppContext";
 import { PlusCircle, ShieldAlert, Clock, CheckCircle } from "lucide-react";
 
 export const OficinaPage: React.FC = () => {

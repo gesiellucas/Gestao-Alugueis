@@ -1,17 +1,17 @@
 'use client';
 import React, { useState } from "react";
-import { useAppContext } from "../contexts/AppContext";
-import { useFullSync, useSyncStatus } from "../hooks/useSync";
+import { useAppContext } from "../../../contexts/AppContext";
+import { useFullSync, useSyncStatus } from "../../../hooks/useSync";
 import { Settings, RefreshCw, Database, Server, CheckCircle, AlertCircle, ShieldCheck, Car } from "lucide-react";
-import { AccessControl } from "./AccessControl";
-import { VehicleModelsTab } from "./VehicleModelsTab";
+import { AccessControl } from "../components/AccessControl";
+import { VehicleModelsTab } from "../components/VehicleModelsTab";
 
 export const ConfiguracoesPage: React.FC = () => {
   const { user } = useAppContext();
   const { data: syncStatus, refetch: refetchStatus } = useSyncStatus();
   const syncMutation = useFullSync();
   const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
-  
+
   const [activeTab, setActiveTab] = useState<'access' | 'vehicleModels' | 'sync'>('access');
 
   const handleManualSync = async () => {
@@ -50,7 +50,7 @@ export const ConfiguracoesPage: React.FC = () => {
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-slate-200">
-        <button 
+        <button
           onClick={() => setActiveTab('access')}
           className={`pb-4 px-2 font-black uppercase tracking-widest text-sm transition-colors border-b-2 ${activeTab === 'access' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
         >
@@ -87,10 +87,10 @@ export const ConfiguracoesPage: React.FC = () => {
               </p>
             </div>
           </div>
-          
+
           <div className="p-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-              
+
               {/* Status Panel */}
               <div className="space-y-6">
                 <div className="flex items-center gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
@@ -136,7 +136,7 @@ export const ConfiguracoesPage: React.FC = () => {
                   <RefreshCw size={22} className={syncMutation.isPending ? "animate-spin" : ""} />
                   {syncMutation.isPending ? "Sincronizando..." : "Sincronizar Agora"}
                 </button>
-                
+
                 <p className="text-sm text-blue-600 text-center mt-4 font-medium">
                   Sincroniza automaticamente a cada 5 minutos em segundo plano.
                 </p>

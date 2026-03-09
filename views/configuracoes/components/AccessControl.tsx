@@ -1,14 +1,14 @@
 'use client';
 import React, { useState, useEffect } from "react";
-import { AppUser, Role } from "../types";
-import { getUsersApi, getRolesApi } from "../lib/apiFactory";
+import { AppUser, Role } from "../../../types";
+import { getUsersApi, getRolesApi } from "../../../lib/apiFactory";
 import { Users, Shield, Plus, Edit2, Trash2, X, Check } from "lucide-react";
 
 export const AccessControl: React.FC = () => {
   const [users, setUsers] = useState<AppUser[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   // Toggles for UI
   const [isEditingUser, setIsEditingUser] = useState<AppUser | null>(null);
   const [isCreatingUser, setIsCreatingUser] = useState(false);
@@ -88,7 +88,7 @@ export const AccessControl: React.FC = () => {
 
   return (
     <div className="space-y-10 py-4">
-      
+
       {/* ---------- USERS SECTION ---------- */}
       <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100">
         <div className="flex justify-between items-center mb-6">
@@ -98,7 +98,7 @@ export const AccessControl: React.FC = () => {
             </div>
             <h3 className="text-xl font-black text-[#0a2342] uppercase">Membros de Equipe</h3>
           </div>
-          <button 
+          <button
             onClick={() => { setIsCreatingUser(true); setFormDataUser({ name: '', email: '', password: '', role_id: roles[0]?.id || '' }); }}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
           >
@@ -177,7 +177,7 @@ export const AccessControl: React.FC = () => {
             </div>
             <h3 className="text-xl font-black text-[#0a2342] uppercase">Cargos e Permissões</h3>
           </div>
-          <button 
+          <button
             onClick={() => { setIsCreatingRole(true); setFormDataRole({ name: '', permissions: [] }); }}
             className="bg-[#0a2342] hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
           >
@@ -199,12 +199,12 @@ export const AccessControl: React.FC = () => {
                   const isChecked = formDataRole.permissions.includes(mod.id);
                   return (
                     <label key={mod.id} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${isChecked ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200 hover:border-blue-200'}`}>
-                      <input 
-                        type="checkbox" 
+                      <input
+                        type="checkbox"
                         checked={isChecked}
                         onChange={(e) => {
                           setFormDataRole(prev => {
-                            const newPerms = e.target.checked 
+                            const newPerms = e.target.checked
                               ? [...prev.permissions, mod.id]
                               : prev.permissions.filter(p => p !== mod.id);
                             return { ...prev, permissions: newPerms };
@@ -234,12 +234,12 @@ export const AccessControl: React.FC = () => {
                   <button onClick={() => { setIsEditingRole(r); setFormDataRole({ name: r.name, permissions: r.permissions }); }} className="p-1.5 text-blue-500 bg-blue-50 rounded-md hover:bg-blue-100"><Edit2 size={14} /></button>
                   <button onClick={() => handleDeleteRole(r.id)} className="p-1.5 text-red-500 bg-red-50 rounded-md hover:bg-red-100"><Trash2 size={14} /></button>
                 </div>
-                
+
                 <h4 className="text-lg font-black text-slate-800 mb-1">{r.name}</h4>
                 <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-4">
                   {users.filter(u => u.role_id === r.id).length} Usuário(s)
                 </p>
-                
+
                 <div className="flex flex-wrap gap-2">
                   {r.permissions.includes('*') ? (
                     <span className="px-2.5 py-1 bg-purple-100 text-purple-700 rounded-lg text-xs font-bold">Acesso Total (*)</span>

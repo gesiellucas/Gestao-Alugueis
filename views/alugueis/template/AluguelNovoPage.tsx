@@ -1,8 +1,8 @@
 'use client';
 import React, { useState, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { useAppContext } from "../contexts/AppContext";
-import { VehicleStatus } from "../types";
+import { useAppContext } from "../../../contexts/AppContext";
+import { VehicleStatus } from "../../../types";
 import {
   ArrowLeft,
   Save,

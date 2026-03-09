@@ -77,24 +77,51 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             localStorage.removeItem("electron_user_email");
             localStorage.removeItem("electron_user_id");
           }
-        }).catch((err: any) => console.error("Error auto-login:", err));
+        }).catch(() => {});
       }
     }
   }, []);
 
-  // Função para carregar todos os dados do Supabase
+  // Função para carregar todos os dados
   const loadData = async () => {
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('electron_user_id') : null;
+
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
       const [vehiclesData, modelsData, customersData, contractsData, maintenanceData] =
         await Promise.all([
-          getVehiclesApi().getAll(),
-          getVehicleModelsApi().getAll(),
-          getCustomersApi().getAll(),
-          getRentalsApi().getAll(),
-          getMaintenanceApi().getAll(),
+          getVehiclesApi().getAll().then(data => {
+            return data;
+          }).catch(() => {
+            return [] as Vehicle[];
+          }),
+          getVehicleModelsApi().getAll().then(data => {
+            return data;
+          }).catch(() => {
+            return [] as VehicleModel[];
+          }),
+          getCustomersApi().getAll().then(data => {
+            return data;
+          }).catch(() => {
+            return [] as Customer[];
+          }),
+          getRentalsApi().getAll().then(data => {
+            return data;
+          }).catch(() => {
+            return [] as RentalContract[];
+          }),
+          getMaintenanceApi().getAll().then(data => {
+            return data;
+          }).catch(() => {
+            return [] as MaintenanceRecord[];
+          }),
         ]);
 
       setVehicles(vehiclesData);
@@ -109,10 +136,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Carregar dados na montagem do componente
+  // Carregar dados na montagem e quando o user mudar
   useEffect(() => {
     loadData();
-  }, []);
+  }, [user]);
 
   const handleAddMaintenanceRecord = async (record: MaintenanceRecord) => {
     try {
@@ -144,7 +171,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         ),
       );
     } catch (err) {
-      console.error("Error adding maintenance record:", err);
       throw err;
     }
   };
@@ -184,7 +210,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         ),
       );
     } catch (err) {
-      console.error("Error finishing maintenance:", err);
       throw err;
     }
   };
@@ -229,7 +254,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         ),
       );
     } catch (err) {
-      console.error("Error creating rental contract:", err);
       throw err;
     }
   };
@@ -287,7 +311,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         );
       }
     } catch (err) {
-      console.error("Error ending rental contract:", err);
       throw err;
     }
   };

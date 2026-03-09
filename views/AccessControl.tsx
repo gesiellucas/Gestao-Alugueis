@@ -40,7 +40,6 @@ export const AccessControl: React.FC = () => {
       setUsers(u);
       setRoles(r);
     } catch (e) {
-      console.error(e);
     } finally {
       setLoading(false);
     }

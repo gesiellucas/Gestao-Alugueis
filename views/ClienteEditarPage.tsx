@@ -70,7 +70,6 @@ export const ClienteEditarPage: React.FC = () => {
       );
       router.push(`/cliente/${id}`);
     } catch (err) {
-      console.error("Error updating customer:", err);
       setError("Erro ao atualizar o cliente.");
     } finally {
       setSubmitting(false);

@@ -20,7 +20,6 @@ export const VeiculosPage: React.FC = () => {
   }, [vehicles]);
 
   const filteredVehicles = useMemo(() => {
-    console.log("vehicles", vehicles);
     return vehicles.filter((v) => {
       if (statusFilter !== "TODOS" && v.status !== statusFilter) return false;
       if (

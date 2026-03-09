@@ -15,7 +15,13 @@ function requireUserId(): string {
 
 export const localMaintenanceApi = {
   async getAll(): Promise<MaintenanceRecord[]> {
-    return ipcInvoke<MaintenanceRecord[]>('db:maintenance:getAll', { userId: requireUserId() });
+    const userId = requireUserId();
+    try {
+      const result = await ipcInvoke<MaintenanceRecord[]>('db:maintenance:getAll', { userId });
+      return result;
+    } catch (err) {
+      throw err;
+    }
   },
 
   async getById(id: string): Promise<MaintenanceRecord | null> {

@@ -34,7 +34,6 @@ export const ClienteNovoPage: React.FC = () => {
       setCustomers((prev) => [newCustomer, ...prev]);
       router.push("/clientes");
     } catch (err) {
-      console.error("Error creating customer:", err);
       setError("Erro ao cadastrar parceiro. Verifique se o CPF já não está cadastrado.");
     } finally {
       setSubmitting(false);

@@ -15,7 +15,13 @@ function requireUserId(): string {
 
 export const localRentalsApi = {
   async getAll(): Promise<RentalContract[]> {
-    return ipcInvoke<RentalContract[]>('db:rentals:getAll', { userId: requireUserId() });
+    const userId = requireUserId();
+    try {
+      const result = await ipcInvoke<RentalContract[]>('db:rentals:getAll', { userId });
+      return result;
+    } catch (err) {
+      throw err;
+    }
   },
 
   async getById(id: string): Promise<RentalContract | null> {

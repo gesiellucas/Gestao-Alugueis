@@ -70,7 +70,6 @@ export const VeiculoNovoPage: React.FC = () => {
       setVehicles((prev) => [newVehicle, ...prev]);
       router.push("/veiculos");
     } catch (err) {
-      console.error("Error creating vehicle:", err);
       setError("Erro ao cadastrar veículo. Verifique se a placa já não está cadastrada.");
     } finally {
       setSubmitting(false);

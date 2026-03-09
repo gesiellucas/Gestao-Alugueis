@@ -33,17 +33,15 @@ function initSupabaseClient() {
             supabase = createClient(urlRow.value, anonKeyRow.value);
             setupRealtimeSubscriptions();
         } else {
-            console.log('[Sync Engine] Supabase credentials not found in local config.');
         }
     } catch (error) {
-        console.error('[Sync Engine] Error initializing Supabase client:', error);
     }
 }
 
 function startPolling(intervalMs: number) {
     if (syncInterval) clearInterval(syncInterval);
     syncInterval = setInterval(() => {
-        if (!isSyncing) runSync().catch(console.error);
+        if (!isSyncing) runSync().catch(() => {});
     }, intervalMs);
 }
 
@@ -57,7 +55,6 @@ async function runSync() {
 
     if (isSyncing) return { success: false, reason: 'Already syncing' };
     isSyncing = true;
-    console.error('[Sync Engine] Sync started...');
 
     try {
         // 1. PUSH local changes to remote
@@ -66,10 +63,8 @@ async function runSync() {
         // 2. PULL remote changes to local
         await pullChanges();
 
-        console.log('[Sync Engine] Sync completed successfully.');
         return { success: true };
     } catch (error) {
-        console.error('[Sync Engine] Sync failed:', error);
         return { success: false, error };
     } finally {
         isSyncing = false;
@@ -79,7 +74,6 @@ async function runSync() {
 // ─── PUSH ─────────────────────────────────────────────────────────────────────
 
 async function pushChanges() {
-    console.error('[Sync Engine] Pushing changes...');
     const tables = ['vehicle_models', 'customers', 'vehicles', 'rental_contracts', 'maintenance_records'];
 
     for (const table of tables) {
@@ -88,7 +82,6 @@ async function pushChanges() {
 
         if (dirtyRecords.length === 0) continue;
 
-        console.log(`[Sync Engine] Found ${dirtyRecords.length} dirty records in ${table} to push.`);
 
         // For simplicity, we upsert them one by one or in small batches. 
         // Supabase upsert accepts an array.
@@ -97,8 +90,16 @@ async function pushChanges() {
             const { dirty, ...rest } = record;
 
             // Map legacy local user_id '1' to a valid UUID for Supabase
-            if (rest.user_id === '1') {
-                rest.user_id = '00000000-0000-0000-0000-000000000000';
+            // Only for tables that still have user_id (not vehicles/vehicle_models)
+            if (rest.user_id !== undefined && table !== 'vehicles' && table !== 'vehicle_models') {
+                if (rest.user_id === '1') {
+                    rest.user_id = '00000000-0000-0000-0000-000000000000';
+                }
+            }
+
+            // Vehicles and vehicle_models no longer have user_id locally
+            if (table === 'vehicles' || table === 'vehicle_models') {
+                delete rest.user_id;
             }
 
             // Vehicles table in SQLite might still contain the legacy columns 'brand' and 'model'
@@ -115,7 +116,6 @@ async function pushChanges() {
         const { error } = await (supabase as any).from(table).upsert(recordsToPush);
 
         if (error) {
-            console.error(`[Sync Engine] Failed to push to ${table}:`, error);
             // Skip marking as clean if it failed
             continue;
         }
@@ -130,11 +130,9 @@ async function pushChanges() {
 // ─── PULL ─────────────────────────────────────────────────────────────────────
 
 async function pullChanges() {
-    console.log('[Sync Engine] Pulling changes...');
     const tables = ['vehicle_models', 'customers', 'vehicles', 'rental_contracts', 'maintenance_records'];
 
     for (const table of tables) {
-        console.error(table);
         const lastSyncAt = getSyncMetadata(table) || new Date(0).toISOString();
 
         // Fetch records modified in Supabase after our last sync
@@ -145,13 +143,11 @@ async function pullChanges() {
             .order('updated_at', { ascending: true }); // Ensure chronological order
 
         if (error) {
-            console.error(`[Sync Engine] Failed to pull from ${table}:`, error);
             continue;
         }
 
         if (!data || data.length === 0) continue;
 
-        console.log(`[Sync Engine] Pulled ${data.length} updated records for ${table} from Supabase.`);
 
         // UPSERT into local SQLite
         upsertLocally(table, data);
@@ -164,7 +160,6 @@ async function pullChanges() {
 
 // Helper to route to the correct local upsert statement
 function upsertLocally(table: string, records: any[]) {
-    console.error('[Sync Engine] Upserting records locally...');
     // We need to bypass the 'dirty = 1' logic when pulling from remote.
     // We can either expose the existing `upsertBatch` functions from db.ts, 
     // or construct a generic upsert here.
@@ -178,11 +173,20 @@ function upsertLocally(table: string, records: any[]) {
 
     for (const record of records) {
         // Sanitize records to ensure compatibility with local NOT NULL constraints
-        // if the remote Supabase schema is missing these columns
-        if (record.user_id === undefined || record.user_id === null) {
-            record.user_id = '1'; // Default admin user ID fallback
+        // Only apply user_id fallback for tables that still use user_id
+        if (table !== 'vehicles' && table !== 'vehicle_models') {
+            if (record.user_id === undefined || record.user_id === null) {
+                record.user_id = '1'; // Default admin user ID fallback
+            }
+            // Reverter o mapeamento feito no pushChanges:
+            if (record.user_id === '00000000-0000-0000-0000-000000000000') {
+                record.user_id = '1';
+            }
+        } else {
+            // Remove user_id from vehicles/vehicle_models if present in remote data
+            delete record.user_id;
         }
-        // Set missing deleted_at to null so SQLite doesn't complain about missing keys in the object structure if we force the mapping based on PRAGMA
+        // Set missing deleted_at to null
         if (record.deleted_at === undefined) {
             record.deleted_at = null;
         }
@@ -224,7 +228,6 @@ function upsertLocally(table: string, records: any[]) {
 function setupRealtimeSubscriptions() {
     if (!supabase) return;
 
-    console.log('[Sync Engine] Setting up Supabase Realtime...');
 
     supabase
         .channel('db-changes')
@@ -232,7 +235,6 @@ function setupRealtimeSubscriptions() {
             'postgres_changes',
             { event: '*', schema: 'public' },
             (payload) => {
-                console.log('[Sync Engine] Realtime event received:', payload.table, payload.eventType);
 
                 // Handle incoming realtime change seamlessly
                 if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
@@ -244,13 +246,11 @@ function setupRealtimeSubscriptions() {
                     try {
                         db.prepare(`DELETE FROM ${payload.table} WHERE id = ?`).run(payload.old.id);
                     } catch (e) {
-                        console.error(`[Sync Engine] Error handling realtime DELETE:`, e);
                     }
                 }
             }
         )
         .subscribe((status) => {
-            console.log('[Sync Engine] Realtime status:', status);
         });
 }
 

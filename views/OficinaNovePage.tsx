@@ -41,7 +41,6 @@ export const OficinaNovePage: React.FC = () => {
       await handleAddMaintenanceRecord(record);
       router.push("/oficina");
     } catch (err) {
-      console.error("Error registering maintenance:", err);
     }
   };
 

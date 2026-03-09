@@ -2,8 +2,9 @@
 import React, { useState } from "react";
 import { useAppContext } from "../contexts/AppContext";
 import { useFullSync, useSyncStatus } from "../hooks/useSync";
-import { Settings, RefreshCw, Database, Server, CheckCircle, AlertCircle, ShieldCheck } from "lucide-react";
+import { Settings, RefreshCw, Database, Server, CheckCircle, AlertCircle, ShieldCheck, Car } from "lucide-react";
 import { AccessControl } from "./AccessControl";
+import { VehicleModelsTab } from "./VehicleModelsTab";
 
 export const ConfiguracoesPage: React.FC = () => {
   const { user } = useAppContext();
@@ -11,7 +12,7 @@ export const ConfiguracoesPage: React.FC = () => {
   const syncMutation = useFullSync();
   const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   
-  const [activeTab, setActiveTab] = useState<'access' | 'sync'>('access');
+  const [activeTab, setActiveTab] = useState<'access' | 'vehicleModels' | 'sync'>('access');
 
   const handleManualSync = async () => {
     setSyncMessage(null);
@@ -55,7 +56,13 @@ export const ConfiguracoesPage: React.FC = () => {
         >
           <div className="flex items-center gap-2"><ShieldCheck size={18} /> Controle de Acesso</div>
         </button>
-        <button 
+        <button
+          onClick={() => setActiveTab('vehicleModels')}
+          className={`pb-4 px-2 font-black uppercase tracking-widest text-sm transition-colors border-b-2 ${activeTab === 'vehicleModels' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          <div className="flex items-center gap-2"><Car size={18} /> Modelos de Veículos</div>
+        </button>
+        <button
           onClick={() => setActiveTab('sync')}
           className={`pb-4 px-2 font-black uppercase tracking-widest text-sm transition-colors border-b-2 ${activeTab === 'sync' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
         >
@@ -64,6 +71,8 @@ export const ConfiguracoesPage: React.FC = () => {
       </div>
 
       {activeTab === 'access' && <AccessControl />}
+
+      {activeTab === 'vehicleModels' && <VehicleModelsTab />}
 
       {activeTab === 'sync' && (
         <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">

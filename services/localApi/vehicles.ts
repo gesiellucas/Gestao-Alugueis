@@ -1,37 +1,40 @@
 /**
  * Local SQLite vehicle API — mirrors services/api/vehicles.ts
+ * Vehicles are shared across all users (no user_id filtering).
  */
 import { ipcInvoke } from '../../lib/ipc';
 import { Vehicle, VehicleStatus } from '../../types';
 import type { InsertDto, UpdateDto } from '../../types/database';
 
-function requireUserId(): string {
-  const userId = typeof localStorage !== 'undefined'
-    ? localStorage.getItem('electron_user_id')
-    : null;
-  if (!userId) throw new Error('Usuário não autenticado no contexto local.');
-  return userId;
-}
-
 export const localVehiclesApi = {
   async getAll(): Promise<Vehicle[]> {
-    return ipcInvoke<Vehicle[]>('db:vehicles:getAll', { userId: requireUserId() });
+    try {
+      const result = await ipcInvoke<Vehicle[]>('db:vehicles:getAll');
+      return result;
+    } catch (err) {
+      throw err;
+    }
   },
 
   async getById(id: string): Promise<Vehicle | null> {
-    return ipcInvoke<Vehicle | null>('db:vehicles:getById', { id, userId: requireUserId() });
+    try {
+      const result = await ipcInvoke<Vehicle | null>('db:vehicles:getById', { id });
+      return result;
+    } catch (err) {
+      throw err;
+    }
   },
 
   async create(vehicle: InsertDto<'vehicles'>): Promise<Vehicle> {
-    return ipcInvoke<Vehicle>('db:vehicles:create', { ...vehicle, userId: requireUserId() });
+    return ipcInvoke<Vehicle>('db:vehicles:create', { ...vehicle });
   },
 
   async update(id: string, updates: UpdateDto<'vehicles'>): Promise<Vehicle> {
-    return ipcInvoke<Vehicle>('db:vehicles:update', { ...updates, id, userId: requireUserId() });
+    return ipcInvoke<Vehicle>('db:vehicles:update', { ...updates, id });
   },
 
   async delete(id: string): Promise<void> {
-    await ipcInvoke('db:vehicles:delete', { id, userId: requireUserId() });
+    await ipcInvoke('db:vehicles:delete', { id });
   },
 
   async getByStatus(status: VehicleStatus): Promise<Vehicle[]> {

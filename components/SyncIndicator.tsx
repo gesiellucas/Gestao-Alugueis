@@ -37,7 +37,6 @@ export const SyncIndicator: React.FC = () => {
         setStatus(result);
       }
     } catch (e) {
-      console.error('Failed to fetch sync status', e);
     }
   }, []);
 
@@ -58,7 +57,6 @@ export const SyncIndicator: React.FC = () => {
         await fetchStatus();
       }
     } catch (error) {
-      console.error("Manual sync failed", error);
     } finally {
       setIsSyncing(false);
     }

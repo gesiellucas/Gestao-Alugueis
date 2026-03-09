@@ -20,6 +20,13 @@ const VALID_CHANNELS = [
   'db:vehicles:update',
   'db:vehicles:delete',
   'db:vehicles:upsertBatch',
+  // Vehicle Models
+  'db:vehicleModels:getAll',
+  'db:vehicleModels:getById',
+  'db:vehicleModels:create',
+  'db:vehicleModels:update',
+  'db:vehicleModels:delete',
+  'db:vehicleModels:upsertBatch',
   // Rentals
   'db:rentals:getAll',
   'db:rentals:getById',

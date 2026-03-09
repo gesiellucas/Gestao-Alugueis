@@ -23,11 +23,16 @@ function toBool(row: Customer & { active_contract: number | boolean }): Customer
 
 export const localCustomersApi = {
   async getAll(): Promise<Customer[]> {
-    const rows = await ipcInvoke<(Customer & { active_contract: number })[]>(
-      'db:customers:getAll',
-      { userId: requireUserId() }
-    );
-    return rows.map(toBool);
+    const userId = requireUserId();
+    try {
+      const rows = await ipcInvoke<(Customer & { active_contract: number })[]>(
+        'db:customers:getAll',
+        { userId }
+      );
+      return rows.map(toBool);
+    } catch (err) {
+      throw err;
+    }
   },
 
   async getById(id: string): Promise<Customer | null> {

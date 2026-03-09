@@ -76,7 +76,6 @@ export const VeiculoEditarPage: React.FC = () => {
       );
       router.push(`/veiculo/${id}`);
     } catch (err) {
-      console.error("Error updating vehicle:", err);
       setError("Erro ao atualizar veículo.");
     } finally {
       setSubmitting(false);

@@ -28,7 +28,6 @@ export const generateWhatsAppMessage = async (clientName: string, debtAmount: nu
     // Fixed: Access .text property directly (do not call as a method)
     return response.text || "Erro ao gerar mensagem.";
   } catch (error) {
-    console.error("Gemini API Error:", error);
     return `Olá ${clientName}, por favor entre em contato sobre sua fatura de R$ ${debtAmount}.`;
   }
 };
@@ -59,7 +58,6 @@ export const summarizeDailyWorkshop = async (records: any[]): Promise<string> =>
     return response.text || "Sem resumo disponível.";
 
   } catch (error) {
-    console.error("Gemini Summary Error:", error);
     return "Não foi possível gerar o resumo automático.";
   }
 }

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell, protocol } from 'electron';
+import { app, BrowserWindow, shell, protocol, ipcMain } from 'electron';
 import path from 'path';
 import 'dotenv/config';
 import { initDatabase, registerIpcHandlers, db } from './db';
@@ -55,6 +55,8 @@ function createWindow(): void {
     minWidth: 900,
     minHeight: 600,
     title: 'GC Loca Moto',
+    frame: false,
+    backgroundColor: '#0a2342',
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload', 'index.js'),
       contextIsolation: true,  // Required for security
@@ -62,6 +64,14 @@ function createWindow(): void {
       sandbox: false,          // Allow preload to use Node APIs
     },
   });
+
+  ipcMain.handle('window:minimize', () => mainWindow?.minimize());
+  ipcMain.handle('window:maximize', () => {
+    if (mainWindow?.isMaximized()) mainWindow.unmaximize();
+    else mainWindow?.maximize();
+  });
+  ipcMain.handle('window:close', () => mainWindow?.close());
+  ipcMain.handle('window:isMaximized', () => mainWindow?.isMaximized() ?? false);
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:3000');

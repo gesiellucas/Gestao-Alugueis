@@ -9,6 +9,33 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      workshops: {
+        Row: {
+          id: string;
+          name: string;
+          address: string | null;
+          status: 'ACTIVE' | 'INACTIVE';
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          address?: string | null;
+          status?: 'ACTIVE' | 'INACTIVE';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          address?: string | null;
+          status?: 'ACTIVE' | 'INACTIVE';
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       app_users: {
         Row: {
           id: string;
@@ -156,7 +183,7 @@ export interface Database {
           },
         ];
       };
-      rental_contracts: {
+      rentals: {
         Row: {
           id: string;
           vehicle_id: string;
@@ -192,17 +219,46 @@ export interface Database {
         };
         Relationships: [
           {
-            foreignKeyName: 'rental_contracts_vehicle_id_fkey';
+            foreignKeyName: 'rentals_vehicle_id_fkey';
             columns: ['vehicle_id'];
             isOneToOne: false;
             referencedRelation: 'vehicles';
             referencedColumns: ['id'];
           },
           {
-            foreignKeyName: 'rental_contracts_customer_id_fkey';
+            foreignKeyName: 'rentals_customer_id_fkey';
             columns: ['customer_id'];
             isOneToOne: false;
             referencedRelation: 'customers';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      contracts: {
+        Row: {
+          id: string;
+          rental_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          rental_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          rental_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'contracts_rental_id_fkey';
+            columns: ['rental_id'];
+            isOneToOne: true;
+            referencedRelation: 'rentals';
             referencedColumns: ['id'];
           },
         ];
@@ -211,6 +267,7 @@ export interface Database {
         Row: {
           id: string;
           vehicle_id: string;
+          workshop_id: string | null;
           vehicle_plate: string;
           entry_date: string;
           completion_date: string | null;
@@ -225,6 +282,7 @@ export interface Database {
         Insert: {
           id?: string;
           vehicle_id: string;
+          workshop_id?: string | null;
           vehicle_plate: string;
           entry_date?: string;
           completion_date?: string | null;
@@ -239,6 +297,7 @@ export interface Database {
         Update: {
           id?: string;
           vehicle_id?: string;
+          workshop_id?: string | null;
           vehicle_plate?: string;
           entry_date?: string;
           completion_date?: string | null;
@@ -258,7 +317,41 @@ export interface Database {
             referencedRelation: 'vehicles';
             referencedColumns: ['id'];
           },
+          {
+            foreignKeyName: 'maintenance_records_workshop_id_fkey';
+            columns: ['workshop_id'];
+            isOneToOne: false;
+            referencedRelation: 'workshops';
+            referencedColumns: ['id'];
+          },
         ];
+      };
+      documents: {
+        Row: {
+          id: string;
+          parent_id: string;
+          origin_type: 'CONTRACT' | 'WORKSHOP';
+          file_url: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          parent_id: string;
+          origin_type: 'CONTRACT' | 'WORKSHOP';
+          file_url: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          parent_id?: string;
+          origin_type?: 'CONTRACT' | 'WORKSHOP';
+          file_url?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
     };
     Views: {};
@@ -288,5 +381,8 @@ export type UpdateDto<T extends keyof Database['public']['Tables']> =
 export type DbAppUser = Tables<'app_users'>;
 export type DbCustomer = Tables<'customers'>;
 export type DbVehicle = Tables<'vehicles'>;
-export type DbRentalContract = Tables<'rental_contracts'>;
+export type DbRentalContract = Tables<'rentals'>;
 export type DbMaintenanceRecord = Tables<'maintenance_records'>;
+export type DbWorkshop = Tables<'workshops'>;
+export type DbContract = Tables<'contracts'>;
+export type DbDocument = Tables<'documents'>;

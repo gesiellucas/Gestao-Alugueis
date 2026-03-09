@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AppUser } from "../types";
@@ -15,6 +15,8 @@ import {
   ShieldCheck,
   FileText,
   Settings,
+  Minus,
+  Maximize2,
 } from "lucide-react";
 import { SyncIndicator } from "./SyncIndicator";
 import { useAutoSync } from "../hooks/useSync";
@@ -27,10 +29,15 @@ interface LayoutProps {
 
 export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isElectron, setIsElectron] = useState(false);
   const pathname = usePathname();
-  
+
   // Trigger SQLite background sync with Supabase on mount/login
   useAutoSync(user.id);
+
+  useEffect(() => {
+    setIsElectron(!!window.electronAPI?.isElectron);
+  }, []);
 
   const perms = user.role?.permissions || [];
   const hasPerm = (p: string) => perms.includes('*') || perms.includes(p);
@@ -89,8 +96,8 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
     <div className="flex h-screen bg-[#f1f5f9] overflow-hidden">
       {/* Sidebar - GC Navy Blue */}
       <aside className="hidden md:flex flex-col w-72 bg-[#0a2342] text-white">
-        <div className="p-8 border-b border-white/10">
-          <div className="flex items-center gap-3">
+        <div className={`p-8 border-b border-white/10${isElectron ? " electron-drag" : ""}`}>
+          <div className="flex items-center gap-3 electron-no-drag">
             <div className="bg-yellow-400 p-2 rounded-xl">
               <ShieldCheck className="text-[#0a2342] w-6 h-6" />
             </div>
@@ -149,6 +156,36 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col h-full overflow-hidden">
+        {/* Electron frameless: draggable strip with window controls */}
+        {isElectron && (
+          <div className="hidden md:flex items-center justify-end h-9 bg-[#f1f5f9] flex-shrink-0 electron-drag">
+            <div className="flex items-center electron-no-drag">
+              <SyncIndicator />
+              <button
+                onClick={() => window.electronAPI?.windowControls.minimize()}
+                className="w-11 h-9 hover:bg-black/5 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+                title="Minimizar"
+              >
+                <Minus size={12} />
+              </button>
+              <button
+                onClick={() => window.electronAPI?.windowControls.maximize()}
+                className="w-11 h-9 hover:bg-black/5 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
+                title="Maximizar"
+              >
+                <Maximize2 size={11} />
+              </button>
+              <button
+                onClick={() => window.electronAPI?.windowControls.close()}
+                className="w-11 h-9 hover:bg-red-500 hover:text-white flex items-center justify-center text-slate-400 transition-colors"
+                title="Fechar"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          </div>
+        )}
+
         <header className="md:hidden bg-[#0a2342] text-white p-4 flex items-center justify-between z-20">
           <div className="flex items-center gap-2">
             <ShieldCheck className="text-yellow-400 w-6 h-6" />

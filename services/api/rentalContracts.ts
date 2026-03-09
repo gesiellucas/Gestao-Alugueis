@@ -6,7 +6,7 @@ export const rentalContractsApi = {
   // Buscar todos os contratos
   async getAll(): Promise<RentalContract[]> {
     const { data, error } = await supabase
-      .from('rental_contracts')
+      .from('rentals')
       .select('*')
       .order('start_date', { ascending: false });
 
@@ -17,7 +17,7 @@ export const rentalContractsApi = {
   // Buscar contrato por ID
   async getById(id: string): Promise<RentalContract | null> {
     const { data, error } = await supabase
-      .from('rental_contracts')
+      .from('rentals')
       .select('*')
       .eq('id', id)
       .single();
@@ -27,9 +27,9 @@ export const rentalContractsApi = {
   },
 
   // Criar novo contrato
-  async create(contract: InsertDto<'rental_contracts'>): Promise<RentalContract> {
+  async create(contract: InsertDto<'rentals'>): Promise<RentalContract> {
     const { data, error } = await supabase
-      .from('rental_contracts')
+      .from('rentals')
       .insert(contract)
       .select()
       .single();
@@ -39,9 +39,9 @@ export const rentalContractsApi = {
   },
 
   // Atualizar contrato
-  async update(id: string, updates: UpdateDto<'rental_contracts'>): Promise<RentalContract> {
+  async update(id: string, updates: UpdateDto<'rentals'>): Promise<RentalContract> {
     const { data, error } = await supabase
-      .from('rental_contracts')
+      .from('rentals')
       .update(updates)
       .eq('id', id)
       .select()
@@ -54,7 +54,7 @@ export const rentalContractsApi = {
   // Deletar contrato
   async delete(id: string): Promise<void> {
     const { error } = await supabase
-      .from('rental_contracts')
+      .from('rentals')
       .delete()
       .eq('id', id);
 
@@ -64,7 +64,7 @@ export const rentalContractsApi = {
   // Buscar contratos ativos
   async getActive(): Promise<RentalContract[]> {
     const { data, error } = await supabase
-      .from('rental_contracts')
+      .from('rentals')
       .select('*')
       .eq('status', 'ACTIVE')
       .order('start_date', { ascending: false });
@@ -76,7 +76,7 @@ export const rentalContractsApi = {
   // Buscar contratos por veículo
   async getByVehicle(vehicle_id: string): Promise<RentalContract[]> {
     const { data, error } = await supabase
-      .from('rental_contracts')
+      .from('rentals')
       .select('*')
       .eq('vehicle_id', vehicle_id)
       .order('start_date', { ascending: false });
@@ -88,7 +88,7 @@ export const rentalContractsApi = {
   // Buscar contratos por cliente
   async getByCustomer(customer_id: string): Promise<RentalContract[]> {
     const { data, error } = await supabase
-      .from('rental_contracts')
+      .from('rentals')
       .select('*')
       .eq('customer_id', customer_id)
       .order('start_date', { ascending: false });
@@ -100,7 +100,7 @@ export const rentalContractsApi = {
   // Buscar contrato ativo de um veículo
   async getActiveByVehicle(vehicle_id: string): Promise<RentalContract | null> {
     const { data, error } = await supabase
-      .from('rental_contracts')
+      .from('rentals')
       .select('*')
       .eq('vehicle_id', vehicle_id)
       .eq('status', 'ACTIVE')

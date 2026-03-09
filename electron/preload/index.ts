@@ -34,6 +34,14 @@ const VALID_CHANNELS = [
   'db:rentals:update',
   'db:rentals:delete',
   'db:rentals:upsertBatch',
+  // Contracts
+  'db:contracts:getAll',
+  'db:contracts:getById',
+  'db:contracts:getByRental',
+  'db:contracts:create',
+  'db:contracts:update',
+  'db:contracts:delete',
+  'db:contracts:upsertBatch',
   // Maintenance
   'db:maintenance:getAll',
   'db:maintenance:getById',
@@ -41,6 +49,19 @@ const VALID_CHANNELS = [
   'db:maintenance:update',
   'db:maintenance:delete',
   'db:maintenance:upsertBatch',
+  // Workshops
+  'db:workshops:getAll',
+  'db:workshops:getById',
+  'db:workshops:create',
+  'db:workshops:update',
+  'db:workshops:delete',
+  'db:workshops:upsertBatch',
+  // Documents
+  'db:documents:getAll',
+  'db:documents:getByParent',
+  'db:documents:create',
+  'db:documents:delete',
+  'db:documents:upsertBatch',
   // Sync
   'sync:getMetadata',
   'sync:setMetadata',
@@ -75,4 +96,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   /** True when running inside Electron (allows renderer to detect environment) */
   isElectron: true as const,
+
+  /** Frameless window controls */
+  windowControls: {
+    minimize: (): Promise<void> => ipcRenderer.invoke('window:minimize'),
+    maximize: (): Promise<void> => ipcRenderer.invoke('window:maximize'),
+    close: (): Promise<void> => ipcRenderer.invoke('window:close'),
+    isMaximized: (): Promise<boolean> => ipcRenderer.invoke('window:isMaximized'),
+  },
 });

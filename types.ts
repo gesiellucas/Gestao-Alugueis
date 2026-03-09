@@ -14,8 +14,18 @@ export enum MaintenanceType {
   CHECKUP = 'Vistoria de Entrada'
 }
 
+export interface Workshop {
+  id: string;
+  name: string;
+  address?: string | null;
+  status: 'ACTIVE' | 'INACTIVE';
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface Role {
   id: string;
+  workshop_id?: string | null;
   name: string;
   permissions: string[]; // e.g. ['dashboard', 'veiculos', 'oficina', 'clientes', 'alugueis', 'financeiro', 'configuracoes']
   created_at?: string;
@@ -81,9 +91,17 @@ export interface RentalContract {
   updated_at?: string;
 }
 
+export interface Contract {
+  id: string;
+  rental_id: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export interface MaintenanceRecord {
   id: string;
   vehicle_id: string;
+  workshop_id?: string | null;
   vehicle_plate: string;
   entry_date: string;
   completion_date?: string | null;
@@ -92,6 +110,15 @@ export interface MaintenanceRecord {
   type: `${MaintenanceType}`;
   cost: number;
   status: 'OPEN' | 'COMPLETED';
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface Document {
+  id: string;
+  parent_id: string;
+  origin_type: 'CONTRACT' | 'WORKSHOP';
+  file_url: string;
   created_at?: string;
   updated_at?: string;
 }

@@ -35,6 +35,29 @@ CREATE TYPE maintenance_status AS ENUM (
   'COMPLETED'
 );
 
+CREATE TYPE workshop_status AS ENUM (
+  'ACTIVE',
+  'INACTIVE'
+);
+
+CREATE TYPE document_origin AS ENUM (
+  'CONTRACT',
+  'WORKSHOP'
+);
+
+-- =============================================
+-- Tabela: workshops (Oficinas)
+-- =============================================
+CREATE TABLE workshops (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  address TEXT,
+  status workshop_status NOT NULL DEFAULT 'ACTIVE',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  deleted_at TIMESTAMPTZ
+);
+
 -- =============================================
 -- Tabela: app_users (Usuários do sistema)
 -- =============================================
@@ -69,7 +92,6 @@ CREATE TABLE customers (
 -- =============================================
 CREATE TABLE vehicle_models (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL,
   name TEXT NOT NULL,
   brand TEXT NOT NULL,
   image_url TEXT,
@@ -84,7 +106,6 @@ CREATE TABLE vehicle_models (
 -- =============================================
 CREATE TABLE vehicles (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL,
   plate TEXT NOT NULL UNIQUE,
   model_id UUID REFERENCES vehicle_models(id) ON DELETE SET NULL,
   year INTEGER NOT NULL,
@@ -99,9 +120,9 @@ CREATE TABLE vehicles (
 );
 
 -- =============================================
--- Tabela: rental_contracts (Contratos de Aluguel)
+-- Tabela: rentals (Alugueis)
 -- =============================================
-CREATE TABLE rental_contracts (
+CREATE TABLE rentals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL,
   vehicle_id UUID NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
@@ -116,12 +137,24 @@ CREATE TABLE rental_contracts (
 );
 
 -- =============================================
+-- Tabela: contracts (Contratos)
+-- =============================================
+CREATE TABLE contracts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  rental_id UUID NOT NULL REFERENCES rentals(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  deleted_at TIMESTAMPTZ
+);
+
+-- =============================================
 -- Tabela: maintenance_records (Registros de Manutenção)
 -- =============================================
 CREATE TABLE maintenance_records (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL,
   vehicle_id UUID NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+  workshop_id UUID REFERENCES workshops(id) ON DELETE SET NULL,
   vehicle_plate TEXT NOT NULL,
   entry_date TIMESTAMPTZ NOT NULL DEFAULT now(),
   completion_date TIMESTAMPTZ,
@@ -136,12 +169,23 @@ CREATE TABLE maintenance_records (
 );
 
 -- =============================================
+-- Tabela: documents (Documentos)
+-- =============================================
+CREATE TABLE documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  parent_id UUID NOT NULL,
+  origin_type document_origin NOT NULL,
+  file_url TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  deleted_at TIMESTAMPTZ
+);
+
+-- =============================================
 -- Índices para performance
 -- =============================================
-CREATE INDEX idx_vehicle_models_user_id ON vehicle_models(user_id);
 CREATE INDEX idx_customers_user_id ON customers(user_id);
-CREATE INDEX idx_vehicles_user_id ON vehicles(user_id);
-CREATE INDEX idx_rental_contracts_user_id ON rental_contracts(user_id);
+CREATE INDEX idx_rentals_user_id ON rentals(user_id);
 CREATE INDEX idx_maintenance_records_user_id ON maintenance_records(user_id);
 
 CREATE INDEX idx_vehicles_status ON vehicles(status);
@@ -149,12 +193,15 @@ CREATE INDEX idx_vehicles_plate ON vehicles(plate);
 CREATE INDEX idx_vehicles_current_renter ON vehicles(current_renter_id);
 CREATE INDEX idx_customers_cpf ON customers(cpf);
 CREATE INDEX idx_customers_active_contract ON customers(active_contract);
-CREATE INDEX idx_rental_contracts_vehicle ON rental_contracts(vehicle_id);
-CREATE INDEX idx_rental_contracts_customer ON rental_contracts(customer_id);
-CREATE INDEX idx_rental_contracts_status ON rental_contracts(status);
+CREATE INDEX idx_rentals_vehicle ON rentals(vehicle_id);
+CREATE INDEX idx_rentals_customer ON rentals(customer_id);
+CREATE INDEX idx_rentals_status ON rentals(status);
+CREATE INDEX idx_contracts_rental ON contracts(rental_id);
 CREATE INDEX idx_maintenance_vehicle ON maintenance_records(vehicle_id);
+CREATE INDEX idx_maintenance_workshop ON maintenance_records(workshop_id);
 CREATE INDEX idx_maintenance_status ON maintenance_records(status);
 CREATE INDEX idx_maintenance_entry_date ON maintenance_records(entry_date);
+CREATE INDEX idx_documents_parent ON documents(parent_id, origin_type);
 
 -- =============================================
 -- Trigger para updated_at automático
@@ -183,12 +230,24 @@ CREATE TRIGGER trg_vehicles_updated_at
   BEFORE UPDATE ON vehicles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
-CREATE TRIGGER trg_rental_contracts_updated_at
-  BEFORE UPDATE ON rental_contracts
+CREATE TRIGGER trg_rentals_updated_at
+  BEFORE UPDATE ON rentals
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER trg_contracts_updated_at
+  BEFORE UPDATE ON contracts
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 CREATE TRIGGER trg_maintenance_records_updated_at
   BEFORE UPDATE ON maintenance_records
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER trg_workshops_updated_at
+  BEFORE UPDATE ON workshops
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE TRIGGER trg_documents_updated_at
+  BEFORE UPDATE ON documents
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- =============================================
@@ -198,8 +257,11 @@ ALTER TABLE app_users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vehicle_models ENABLE ROW LEVEL SECURITY;
 ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vehicles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE rental_contracts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rentals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contracts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE maintenance_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workshops ENABLE ROW LEVEL SECURITY;
+ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
 
 -- Política: Permitir leitura para todos os usuários autenticados
 CREATE POLICY "Authenticated users can read app_users"
@@ -222,13 +284,28 @@ CREATE POLICY "Authenticated users can read vehicles"
   TO authenticated
   USING (true);
 
-CREATE POLICY "Authenticated users can read rental_contracts"
-  ON rental_contracts FOR SELECT
+CREATE POLICY "Authenticated users can read rentals"
+  ON rentals FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Authenticated users can read contracts"
+  ON contracts FOR SELECT
   TO authenticated
   USING (true);
 
 CREATE POLICY "Authenticated users can read maintenance_records"
   ON maintenance_records FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Authenticated users can read workshops"
+  ON workshops FOR SELECT
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Authenticated users can read documents"
+  ON documents FOR SELECT
   TO authenticated
   USING (true);
 
@@ -263,13 +340,23 @@ CREATE POLICY "Authenticated users can update vehicles"
   TO authenticated
   USING (true);
 
-CREATE POLICY "Authenticated users can insert rental_contracts"
-  ON rental_contracts FOR INSERT
+CREATE POLICY "Authenticated users can insert rentals"
+  ON rentals FOR INSERT
   TO authenticated
   WITH CHECK (true);
 
-CREATE POLICY "Authenticated users can update rental_contracts"
-  ON rental_contracts FOR UPDATE
+CREATE POLICY "Authenticated users can update rentals"
+  ON rentals FOR UPDATE
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Authenticated users can insert contracts"
+  ON contracts FOR INSERT
+  TO authenticated
+  WITH CHECK (true);
+
+CREATE POLICY "Authenticated users can update contracts"
+  ON contracts FOR UPDATE
   TO authenticated
   USING (true);
 
@@ -280,5 +367,25 @@ CREATE POLICY "Authenticated users can insert maintenance_records"
 
 CREATE POLICY "Authenticated users can update maintenance_records"
   ON maintenance_records FOR UPDATE
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Authenticated users can insert workshops"
+  ON workshops FOR INSERT
+  TO authenticated
+  WITH CHECK (true);
+
+CREATE POLICY "Authenticated users can update workshops"
+  ON workshops FOR UPDATE
+  TO authenticated
+  USING (true);
+
+CREATE POLICY "Authenticated users can insert documents"
+  ON documents FOR INSERT
+  TO authenticated
+  WITH CHECK (true);
+
+CREATE POLICY "Authenticated users can update documents"
+  ON documents FOR UPDATE
   TO authenticated
   USING (true);

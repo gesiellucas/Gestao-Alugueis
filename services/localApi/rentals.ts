@@ -28,11 +28,11 @@ export const localRentalsApi = {
     return ipcInvoke<RentalContract | null>('db:rentals:getById', { id, userId: requireUserId() });
   },
 
-  async create(contract: InsertDto<'rental_contracts'>): Promise<RentalContract> {
+  async create(contract: InsertDto<'rentals'>): Promise<RentalContract> {
     return ipcInvoke<RentalContract>('db:rentals:create', { ...contract, userId: requireUserId() });
   },
 
-  async update(id: string, updates: UpdateDto<'rental_contracts'>): Promise<RentalContract> {
+  async update(id: string, updates: UpdateDto<'rentals'>): Promise<RentalContract> {
     return ipcInvoke<RentalContract>('db:rentals:update', { ...updates, id, userId: requireUserId() });
   },
 

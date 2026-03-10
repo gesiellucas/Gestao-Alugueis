@@ -3,13 +3,15 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Hash, Circle, User, DollarSign, Wrench } from "lucide-react";
-import { VehicleStatus } from "../../../types";
+import { VEHICLE_STATUS_IDS } from "../../../types";
 
 interface VehicleCardProps {
   id: string;
   image_url: string;
   model: string;
-  status: `${VehicleStatus}`;
+  status_id: string;
+  statusName: string;
+  statusColor: string;
   year: number;
   brand: string;
   plate: string;
@@ -20,24 +22,13 @@ interface VehicleCardProps {
   maintenanceId?: string;
 }
 
-const getStatusStyle = (status: `${VehicleStatus}`) => {
-  switch (status) {
-    case VehicleStatus.AVAILABLE:
-      return "bg-green-100 text-green-700 border-green-200";
-    case VehicleStatus.RENTED:
-      return "bg-blue-100 text-blue-700 border-blue-200";
-    case VehicleStatus.MAINTENANCE:
-      return "bg-amber-100 text-amber-700 border-amber-200";
-    default:
-      return "bg-slate-100 text-slate-700 border-slate-200";
-  }
-};
-
 export const VehicleCard = ({
   id,
   image_url,
   model,
-  status,
+  status_id,
+  statusName,
+  statusColor,
   year,
   brand,
   plate,
@@ -74,9 +65,14 @@ export const VehicleCard = ({
         {image_url ? <img src={image_url} alt={model} /> : null}
         <div className="absolute top-4 right-4">
           <span
-            className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${getStatusStyle(status)}`}
+            className="px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border"
+            style={{
+              backgroundColor: `${statusColor}20`,
+              color: statusColor,
+              borderColor: `${statusColor}40`,
+            }}
           >
-            {status}
+            {statusName}
           </span>
         </div>
       </div>
@@ -104,7 +100,7 @@ export const VehicleCard = ({
         </div>
 
         <div className="space-y-3">
-          {status === VehicleStatus.RENTED && current_renter_id ? (
+          {status_id === VEHICLE_STATUS_IDS.RENTED && current_renter_id ? (
             <div
               className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer"
               onClick={handleClientClick}
@@ -121,7 +117,7 @@ export const VehicleCard = ({
                 </p>
               </div>
             </div>
-          ) : status === VehicleStatus.MAINTENANCE && maintenanceId ? (
+          ) : status_id === VEHICLE_STATUS_IDS.MAINTENANCE && maintenanceId ? (
             <div
               className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl border border-amber-100 hover:bg-amber-100 transition-colors cursor-pointer"
               onClick={handleMaintenanceClick}

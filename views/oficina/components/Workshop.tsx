@@ -3,7 +3,7 @@ import {
   MaintenanceRecord,
   Vehicle,
   MaintenanceType,
-  VehicleStatus,
+  VEHICLE_STATUS_IDS,
 } from "../../../types";
 // Fixed: Added missing X icon to the lucide-react imports
 import {
@@ -119,7 +119,7 @@ export const Workshop: React.FC<WorkshopProps> = ({
                 >
                   <option value="">Selecione a placa...</option>
                   {vehicles
-                    .filter((v) => v.status !== VehicleStatus.MAINTENANCE)
+                    .filter((v) => v.status_id !== VEHICLE_STATUS_IDS.MAINTENANCE)
                     .map((v) => (
                       <option key={v.id} value={v.plate}>
                         {v.plate} - {v.model?.name || 'Modelo desconhecido'}

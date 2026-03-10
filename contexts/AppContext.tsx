@@ -4,7 +4,8 @@ import {
   Vehicle,
   MaintenanceRecord,
   Customer,
-  VehicleStatus,
+  VEHICLE_STATUS_IDS,
+  VehicleStatusRecord,
   AppUser,
   RentalContract,
   VehicleModel,
@@ -16,6 +17,7 @@ import {
   getMaintenanceApi,
   getUsersApi,
   getVehicleModelsApi,
+  getVehicleStatusesApi,
 } from "../lib/apiFactory";
 
 interface AppContextType {
@@ -25,6 +27,7 @@ interface AppContextType {
   setVehicles: React.Dispatch<React.SetStateAction<Vehicle[]>>;
   vehicleModels: VehicleModel[];
   setVehicleModels: React.Dispatch<React.SetStateAction<VehicleModel[]>>;
+  vehicleStatuses: VehicleStatusRecord[];
   maintenanceRecords: MaintenanceRecord[];
   setMaintenanceRecords: React.Dispatch<
     React.SetStateAction<MaintenanceRecord[]>
@@ -57,6 +60,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [user, setUser] = useState<AppUser | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [vehicleModels, setVehicleModels] = useState<VehicleModel[]>([]);
+  const [vehicleStatuses, setVehicleStatuses] = useState<VehicleStatusRecord[]>([]);
   const [maintenanceRecords, setMaintenanceRecords] = useState<
     MaintenanceRecord[]
   >([]);
@@ -95,7 +99,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setLoading(true);
       setError(null);
 
-      const [vehiclesData, modelsData, customersData, contractsData, maintenanceData] =
+      const [vehiclesData, modelsData, statusesData, customersData, contractsData, maintenanceData] =
         await Promise.all([
           getVehiclesApi().getAll().then(data => {
             return data;
@@ -106,6 +110,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             return data;
           }).catch(() => {
             return [] as VehicleModel[];
+          }),
+          getVehicleStatusesApi().getAll().then((data: VehicleStatusRecord[]) => {
+            return data;
+          }).catch(() => {
+            return [] as VehicleStatusRecord[];
           }),
           getCustomersApi().getAll().then(data => {
             return data;
@@ -126,6 +135,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       setVehicles(vehiclesData);
       setVehicleModels(modelsData);
+      setVehicleStatuses(statusesData);
       setCustomers(customersData);
       setRentalContracts(contractsData);
       setMaintenanceRecords(maintenanceData);
@@ -158,15 +168,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       // Atualizar status do veículo para "Em Manutenção"
       await getVehiclesApi().updateStatus(
         record.vehicle_id,
-        VehicleStatus.MAINTENANCE,
+        VEHICLE_STATUS_IDS.MAINTENANCE,
       );
+
+      const maintenanceStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.MAINTENANCE);
 
       // Atualizar estado local
       setMaintenanceRecords((prev) => [newRecord, ...prev]);
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === record.vehicle_id
-            ? { ...v, status: VehicleStatus.MAINTENANCE }
+            ? { ...v, status_id: VEHICLE_STATUS_IDS.MAINTENANCE, vehicleStatus: maintenanceStatus }
             : v,
         ),
       );
@@ -186,8 +198,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       // Atualizar status do veículo para "Disponível"
       await getVehiclesApi().updateStatus(
         record.vehicle_id,
-        VehicleStatus.AVAILABLE,
+        VEHICLE_STATUS_IDS.AVAILABLE,
       );
+
+      const availableStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.AVAILABLE);
 
       // Atualizar estado local
       setMaintenanceRecords((prev) =>
@@ -205,7 +219,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === record.vehicle_id
-            ? { ...v, status: VehicleStatus.AVAILABLE }
+            ? { ...v, status_id: VEHICLE_STATUS_IDS.AVAILABLE, vehicleStatus: availableStatus }
             : v,
         ),
       );
@@ -232,9 +246,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Atualizar veículo: status = Alugada e current_renter_id
       await getVehiclesApi().update(vehicleId, {
-        status: VehicleStatus.RENTED,
+        status_id: VEHICLE_STATUS_IDS.RENTED,
         current_renter_id: customerId,
       });
+
+      const rentedStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.RENTED);
 
       // Atualizar cliente: active_contract = true
       await getCustomersApi().update(customerId, { active_contract: true });
@@ -244,7 +260,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === vehicleId
-            ? { ...v, status: VehicleStatus.RENTED, current_renter_id: customerId }
+            ? { ...v, status_id: VEHICLE_STATUS_IDS.RENTED, vehicleStatus: rentedStatus, current_renter_id: customerId }
             : v,
         ),
       );
@@ -271,9 +287,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Atualizar veículo: status = Disponível e limpar current_renter_id
       await getVehiclesApi().update(vehicleId, {
-        status: VehicleStatus.AVAILABLE,
+        status_id: VEHICLE_STATUS_IDS.AVAILABLE,
         current_renter_id: null,
       });
+
+      const availableStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.AVAILABLE);
 
       // Verificar se o cliente tem outros contratos ativos
       const customerId = activeContract.customer_id;
@@ -299,7 +317,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === vehicleId
-            ? { ...v, status: VehicleStatus.AVAILABLE, current_renter_id: null }
+            ? { ...v, status_id: VEHICLE_STATUS_IDS.AVAILABLE, vehicleStatus: availableStatus, current_renter_id: null }
             : v,
         ),
       );
@@ -324,6 +342,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setVehicles,
         vehicleModels,
         setVehicleModels,
+        vehicleStatuses,
         maintenanceRecords,
         setMaintenanceRecords,
         customers,

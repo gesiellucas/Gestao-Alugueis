@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { MaintenanceType, MaintenanceRecord, VehicleStatus } from "../../../types";
+import { MaintenanceType, MaintenanceRecord, VEHICLE_STATUS_IDS } from "../../../types";
 import { ArrowLeft, Save } from "lucide-react";
 
 export const OficinaNovePage: React.FC = () => {
@@ -17,7 +17,7 @@ export const OficinaNovePage: React.FC = () => {
   });
 
   const availableVehicles = vehicles.filter(
-    (v) => v.status !== VehicleStatus.MAINTENANCE,
+    (v) => v.status_id !== VEHICLE_STATUS_IDS.MAINTENANCE,
   );
 
   const handleSubmit = async (e: React.FormEvent) => {

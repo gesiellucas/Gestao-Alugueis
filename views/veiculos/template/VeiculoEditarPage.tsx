@@ -2,15 +2,14 @@
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { getVehiclesApi } from "../../../lib/apiFactory";
-import { VehicleStatus } from "../../../types";
+import { VEHICLE_STATUS_IDS } from "../../../types";
 import { ArrowLeft, Save } from "lucide-react";
 
 export const VeiculoEditarPage: React.FC = () => {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
-  const { vehicles, setVehicles, vehicleModels } = useAppContext();
+  const { vehicles, setVehicles, vehicleModels, vehicleStatuses } = useAppContext();
 
   const vehicle = vehicles.find((v) => v.id === id);
 
@@ -19,7 +18,7 @@ export const VeiculoEditarPage: React.FC = () => {
     model_id: vehicle?.model_id || "",
     year: vehicle?.year || new Date().getFullYear(),
     mileage: vehicle?.mileage || 0,
-    status: vehicle?.status || VehicleStatus.AVAILABLE,
+    status_id: vehicle?.status_id || VEHICLE_STATUS_IDS.AVAILABLE,
     default_monthly_rate: vehicle?.default_monthly_rate || 800,
   });
   const [submitting, setSubmitting] = useState(false);
@@ -43,20 +42,24 @@ export const VeiculoEditarPage: React.FC = () => {
     );
   }
 
+  const { getVehiclesApi } = require("../../../lib/apiFactory");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
 
     try {
-      await getVehiclesApi().update(id, {
+      const updatedVehicle = await getVehiclesApi().update(id, {
         plate: form.plate,
         model_id: form.model_id,
         year: form.year,
         mileage: form.mileage,
-        status: form.status,
+        status_id: form.status_id,
         default_monthly_rate: form.default_monthly_rate,
       });
+
+      const selectedStatus = vehicleStatuses.find(s => s.id === form.status_id);
 
       setVehicles((prev) =>
         prev.map((v) =>
@@ -67,7 +70,8 @@ export const VeiculoEditarPage: React.FC = () => {
                 model_id: form.model_id,
                 year: form.year,
                 mileage: form.mileage,
-                status: form.status,
+                status_id: form.status_id,
+                vehicleStatus: selectedStatus,
                 default_monthly_rate: form.default_monthly_rate,
                 model: vehicleModels.find(m => m.id === form.model_id),
               }
@@ -174,14 +178,14 @@ export const VeiculoEditarPage: React.FC = () => {
               </label>
               <select
                 className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 border appearance-none"
-                value={form.status}
+                value={form.status_id}
                 onChange={(e) =>
-                  setForm({ ...form, status: e.target.value as VehicleStatus })
+                  setForm({ ...form, status_id: e.target.value })
                 }
               >
-                {Object.values(VehicleStatus).map((s) => (
-                  <option key={s} value={s}>
-                    {s}
+                {vehicleStatuses.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
                   </option>
                 ))}
               </select>

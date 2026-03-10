@@ -3,7 +3,6 @@ import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
-import { VehicleStatus } from "../../../types";
 import {
   ArrowLeft,
   Wrench,
@@ -46,18 +45,8 @@ export const OficinaDetalhePage: React.FC = () => {
     );
   }
 
-  const getStatusStyle = (status: `${VehicleStatus}`) => {
-    switch (status) {
-      case VehicleStatus.AVAILABLE:
-        return "bg-green-100 text-green-700 border-green-200";
-      case VehicleStatus.RENTED:
-        return "bg-blue-100 text-blue-700 border-blue-200";
-      case VehicleStatus.MAINTENANCE:
-        return "bg-amber-100 text-amber-700 border-amber-200";
-      default:
-        return "bg-slate-100 text-slate-700 border-slate-200";
-    }
-  };
+  const statusColor = vehicle.vehicleStatus?.color || "#6b7280";
+  const statusName = vehicle.vehicleStatus?.name || "Desconhecido";
 
   const activeRecords = vehicleRecords.filter((r) => r.status === "OPEN");
   const completedRecords = vehicleRecords.filter(
@@ -96,9 +85,14 @@ export const OficinaDetalhePage: React.FC = () => {
                 {vehicle.model?.name || 'Modelo desconhecido'}
               </h2>
               <span
-                className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusStyle(vehicle.status)}`}
+                className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border"
+                style={{
+                  backgroundColor: `${statusColor}20`,
+                  color: statusColor,
+                  borderColor: `${statusColor}40`,
+                }}
               >
-                {vehicle.status}
+                {statusName}
               </span>
             </div>
             <div className="grid grid-cols-3 gap-4">

@@ -1,10 +1,11 @@
 
-export enum VehicleStatus {
-  AVAILABLE = 'Disponível',
-  RENTED = 'Alugada',
-  MAINTENANCE = 'Em Manutenção',
-  UNAVAILABLE = 'Indisponível'
-}
+// Seed IDs for default vehicle statuses (match vehicle_statuses table)
+export const VEHICLE_STATUS_IDS = {
+  AVAILABLE: 'vs_available',
+  RENTED: 'vs_rented',
+  MAINTENANCE: 'vs_maintenance',
+  UNAVAILABLE: 'vs_unavailable',
+} as const;
 
 export enum MaintenanceType {
   PREVENTIVE = 'Revisão Periódica',
@@ -19,6 +20,15 @@ export interface Workshop {
   name: string;
   address?: string | null;
   status: 'ACTIVE' | 'INACTIVE';
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface VehicleStatusRecord {
+  id: string;
+  name: string;
+  color: string;
+  is_default: boolean | number;
   created_at?: string;
   updated_at?: string;
 }
@@ -71,7 +81,8 @@ export interface Vehicle {
   model_id: string;
   model?: VehicleModel; // Populated from join
   year: number;
-  status: `${VehicleStatus}`;
+  status_id: string;
+  vehicleStatus?: VehicleStatusRecord; // Populated from join
   mileage: number;
   current_renter_id?: string | null;
   default_monthly_rate: number;

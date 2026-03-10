@@ -3,17 +3,11 @@ import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { VehicleStatus } from "../../../types";
+import { VEHICLE_STATUS_IDS } from "../../../types";
 import { PlusCircle, Search, ChevronDown, ChevronUp, ChevronsUpDown, Wrench, User } from "lucide-react";
 
 type SortKey = "brand" | "model" | "year" | "plate" | "mileage" | "monthly_rate" | "status" | "renter";
 type SortDir = "asc" | "desc";
-
-const STATUS_STYLE: Record<string, string> = {
-  [VehicleStatus.AVAILABLE]:   "bg-green-100 text-green-700 border-green-200",
-  [VehicleStatus.RENTED]:      "bg-blue-100 text-blue-700 border-blue-200",
-  [VehicleStatus.MAINTENANCE]: "bg-amber-100 text-amber-700 border-amber-200",
-};
 
 function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; sortDir: SortDir }) {
   if (col !== sortKey) return <ChevronsUpDown size={13} className="text-slate-300" />;
@@ -23,7 +17,7 @@ function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; s
 }
 
 export const VeiculosPage: React.FC = () => {
-  const { vehicles, customers, rentalContracts, maintenanceRecords } = useAppContext();
+  const { vehicles, customers, rentalContracts, maintenanceRecords, vehicleStatuses } = useAppContext();
   const router = useRouter();
 
   const [statusFilter, setStatusFilter] = useState<string>("TODOS");
@@ -37,15 +31,28 @@ export const VeiculosPage: React.FC = () => {
     else { setSortKey(key); setSortDir("asc"); }
   };
 
-  const brands = useMemo(() => {
-    const set = new Set(vehicles.map((v) => v.model?.brand || "Desconhecida"));
-    return Array.from(set).sort();
-  }, [vehicles]);
+  // Build status style map from vehicleStatuses data
+  const statusStyleMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const s of vehicleStatuses) {
+      // Generate class based on color hex
+      map[s.id] = `border`;
+    }
+    return map;
+  }, [vehicleStatuses]);
+
+  const statusNameMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const s of vehicleStatuses) {
+      map[s.id] = s.name;
+    }
+    return map;
+  }, [vehicleStatuses]);
 
   const tableRows = useMemo(() => {
     const rows = vehicles
       .filter((v) => {
-        if (statusFilter !== "TODOS" && v.status !== statusFilter) return false;
+        if (statusFilter !== "TODOS" && v.status_id !== statusFilter) return false;
         if (plateFilter && !v.plate.toLowerCase().includes(plateFilter.toLowerCase())) return false;
         if (brandFilter !== "TODAS" && v.model?.brand !== brandFilter) return false;
         return true;
@@ -62,7 +69,9 @@ export const VeiculosPage: React.FC = () => {
           plate: v.plate,
           mileage: v.mileage,
           monthly_rate: contract?.monthly_rate ?? v.default_monthly_rate,
-          status: v.status,
+          status: v.vehicleStatus?.name || "Desconhecido",
+          status_id: v.status_id,
+          statusColor: v.vehicleStatus?.color || "#6b7280",
           renter: renter?.name ?? "",
           renterId: v.current_renter_id,
           maintenanceId: maintenance?.id,
@@ -80,7 +89,7 @@ export const VeiculosPage: React.FC = () => {
     });
 
     return rows;
-  }, [vehicles, customers, rentalContracts, maintenanceRecords, statusFilter, plateFilter, brandFilter, sortKey, sortDir]);
+  }, [vehicles, customers, rentalContracts, maintenanceRecords, statusFilter, plateFilter, brandFilter, sortKey, sortDir, vehicleStatuses]);
 
   const Th = ({ col, label }: { col: SortKey; label: string }) => (
     <th
@@ -116,17 +125,28 @@ export const VeiculosPage: React.FC = () => {
 
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 space-y-5">
         <div className="flex flex-wrap items-center gap-2">
-          {["TODOS", ...Object.values(VehicleStatus)].map((status) => (
+          <button
+            key="TODOS"
+            onClick={() => setStatusFilter("TODOS")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
+              statusFilter === "TODOS"
+                ? "bg-blue-600 text-white shadow-md shadow-blue-200"
+                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            TODOS
+          </button>
+          {vehicleStatuses.map((status) => (
             <button
-              key={status}
-              onClick={() => setStatusFilter(status)}
+              key={status.id}
+              onClick={() => setStatusFilter(status.id)}
               className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                statusFilter === status
+                statusFilter === status.id
                   ? "bg-blue-600 text-white shadow-md shadow-blue-200"
                   : "bg-slate-50 text-slate-500 hover:bg-slate-100"
               }`}
             >
-              {status}
+              {status.name}
             </button>
           ))}
         </div>
@@ -141,20 +161,6 @@ export const VeiculosPage: React.FC = () => {
               onChange={(e) => setPlateFilter(e.target.value)}
               className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
-          </div>
-
-          <div className="relative">
-            <select
-              value={brandFilter}
-              onChange={(e) => setBrandFilter(e.target.value)}
-              className="appearance-none w-full sm:w-48 pl-4 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all cursor-pointer"
-            >
-              <option value="TODAS">Todas as Marcas</option>
-              {brands.map((brand) => (
-                <option key={brand} value={brand}>{brand}</option>
-              ))}
-            </select>
-            <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
           </div>
         </div>
       </div>
@@ -188,7 +194,14 @@ export const VeiculosPage: React.FC = () => {
                     className="hover:bg-slate-50 cursor-pointer transition-colors"
                   >
                     <td className="px-4 py-3">
-                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${STATUS_STYLE[row.status] ?? "bg-slate-100 text-slate-600 border-slate-200"}`}>
+                      <span
+                        className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border"
+                        style={{
+                          backgroundColor: `${row.statusColor}20`,
+                          color: row.statusColor,
+                          borderColor: `${row.statusColor}40`,
+                        }}
+                      >
                         {row.status}
                       </span>
                     </td>
@@ -201,7 +214,7 @@ export const VeiculosPage: React.FC = () => {
                       R$ {row.monthly_rate.toFixed(2)}
                     </td>
                     <td className="px-4 py-3">
-                      {row.status === VehicleStatus.RENTED && row.renterId ? (
+                      {row.status_id === VEHICLE_STATUS_IDS.RENTED && row.renterId ? (
                         <button
                           onClick={(e) => { e.stopPropagation(); router.push(`/cliente/${row.renterId}`); }}
                           className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-semibold"
@@ -209,7 +222,7 @@ export const VeiculosPage: React.FC = () => {
                           <User size={13} />
                           {row.renter || "Ver locatário"}
                         </button>
-                      ) : row.status === VehicleStatus.MAINTENANCE && row.maintenanceId ? (
+                      ) : row.status_id === VEHICLE_STATUS_IDS.MAINTENANCE && row.maintenanceId ? (
                         <button
                           onClick={(e) => { e.stopPropagation(); router.push(`/oficina/${row.maintenanceId}`); }}
                           className="inline-flex items-center gap-1.5 text-amber-600 hover:text-amber-800 font-semibold"

@@ -3,7 +3,7 @@
  * Vehicles are shared across all users (no user_id filtering).
  */
 import { ipcInvoke } from '../../lib/ipc';
-import { Vehicle, VehicleStatus } from '../../types';
+import { Vehicle, VEHICLE_STATUS_IDS } from '../../types';
 import type { InsertDto, UpdateDto } from '../../types/database';
 
 export const localVehiclesApi = {
@@ -37,25 +37,25 @@ export const localVehiclesApi = {
     await ipcInvoke('db:vehicles:delete', { id });
   },
 
-  async getByStatus(status: VehicleStatus): Promise<Vehicle[]> {
+  async getByStatusId(statusId: string): Promise<Vehicle[]> {
     const all = await this.getAll();
-    return all.filter((v) => v.status === status);
+    return all.filter((v) => v.status_id === statusId);
   },
 
   async getAvailable(): Promise<Vehicle[]> {
-    return this.getByStatus(VehicleStatus.AVAILABLE);
+    return this.getByStatusId(VEHICLE_STATUS_IDS.AVAILABLE);
   },
 
   async getRented(): Promise<Vehicle[]> {
-    return this.getByStatus(VehicleStatus.RENTED);
+    return this.getByStatusId(VEHICLE_STATUS_IDS.RENTED);
   },
 
   async getInMaintenance(): Promise<Vehicle[]> {
-    return this.getByStatus(VehicleStatus.MAINTENANCE);
+    return this.getByStatusId(VEHICLE_STATUS_IDS.MAINTENANCE);
   },
 
-  async updateStatus(id: string, status: VehicleStatus): Promise<Vehicle> {
-    return this.update(id, { status });
+  async updateStatus(id: string, statusId: string): Promise<Vehicle> {
+    return this.update(id, { status_id: statusId });
   },
 
   async updateMileage(id: string, mileage: number): Promise<Vehicle> {

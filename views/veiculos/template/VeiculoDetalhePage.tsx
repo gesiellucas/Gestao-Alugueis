@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
-import { VehicleStatus } from "../../../types";
+import { VEHICLE_STATUS_IDS } from "../../../types";
 import {
   ArrowLeft,
   Pencil,
@@ -60,18 +60,8 @@ export const VeiculoDetalhePage: React.FC = () => {
     (c) => c.vehicle_id === vehicle.id && c.status === "ACTIVE",
   );
 
-  const getStatusStyle = (status: `${VehicleStatus}`) => {
-    switch (status) {
-      case VehicleStatus.AVAILABLE:
-        return "bg-green-100 text-green-700 border-green-200";
-      case VehicleStatus.RENTED:
-        return "bg-blue-100 text-blue-700 border-blue-200";
-      case VehicleStatus.MAINTENANCE:
-        return "bg-amber-100 text-amber-700 border-amber-200";
-      default:
-        return "bg-slate-100 text-slate-700 border-slate-200";
-    }
-  };
+  const statusColor = vehicle.vehicleStatus?.color || "#6b7280";
+  const statusName = vehicle.vehicleStatus?.name || "Desconhecido";
 
   const onEndRental = async () => {
     setEndingRental(true);
@@ -95,7 +85,7 @@ export const VeiculoDetalhePage: React.FC = () => {
           <ArrowLeft size={20} /> Voltar para Frota
         </button>
         <div className="flex items-center gap-3">
-          {vehicle.status === VehicleStatus.AVAILABLE && (
+          {vehicle.status_id === VEHICLE_STATUS_IDS.AVAILABLE && (
             <Link
               href={`/aluguel/novo/${vehicle.id}`}
               className="bg-green-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-700 transition-all flex items-center gap-2 text-sm"
@@ -103,7 +93,7 @@ export const VeiculoDetalhePage: React.FC = () => {
               <KeyRound size={16} /> Alugar Moto
             </Link>
           )}
-          {vehicle.status === VehicleStatus.RENTED && (
+          {vehicle.status_id === VEHICLE_STATUS_IDS.RENTED && (
             <button
               onClick={() => setShowEndConfirm(true)}
               className="bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700 transition-all flex items-center gap-2 text-sm"
@@ -186,9 +176,14 @@ export const VeiculoDetalhePage: React.FC = () => {
                   {vehicle.year}
                 </span>
                 <span
-                  className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${getStatusStyle(vehicle.status)}`}
+                  className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border"
+                  style={{
+                    backgroundColor: `${statusColor}20`,
+                    color: statusColor,
+                    borderColor: `${statusColor}40`,
+                  }}
                 >
-                  {vehicle.status}
+                  {statusName}
                 </span>
               </div>
               <h2 className="text-3xl font-extrabold text-[#0a2342] leading-tight">

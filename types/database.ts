@@ -129,13 +129,43 @@ export interface Database {
         };
         Relationships: [];
       };
+      vehicle_statuses: {
+        Row: {
+          id: string;
+          name: string;
+          color: string;
+          is_default: boolean;
+          created_at: string;
+          updated_at: string;
+          deleted_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          color?: string;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          color?: string;
+          is_default?: boolean;
+          created_at?: string;
+          updated_at?: string;
+          deleted_at?: string | null;
+        };
+        Relationships: [];
+      };
       vehicles: {
         Row: {
           id: string;
           plate: string;
           model_id: string;
           year: number;
-          status: 'Disponível' | 'Alugada' | 'Em Manutenção' | 'Indisponível';
+          status_id: string;
           mileage: number;
           current_renter_id: string | null;
           default_monthly_rate: number;
@@ -147,7 +177,7 @@ export interface Database {
           plate: string;
           model_id: string;
           year: number;
-          status?: 'Disponível' | 'Alugada' | 'Em Manutenção' | 'Indisponível';
+          status_id: string;
           mileage?: number;
           current_renter_id?: string | null;
           default_monthly_rate?: number;
@@ -159,7 +189,7 @@ export interface Database {
           plate?: string;
           model_id?: string;
           year?: number;
-          status?: 'Disponível' | 'Alugada' | 'Em Manutenção' | 'Indisponível';
+          status_id?: string;
           mileage?: number;
           current_renter_id?: string | null;
           default_monthly_rate?: number;
@@ -172,6 +202,13 @@ export interface Database {
             columns: ['model_id'];
             isOneToOne: false;
             referencedRelation: 'vehicle_models';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'vehicles_status_id_fkey';
+            columns: ['status_id'];
+            isOneToOne: false;
+            referencedRelation: 'vehicle_statuses';
             referencedColumns: ['id'];
           },
           {
@@ -357,7 +394,6 @@ export interface Database {
     Views: {};
     Functions: {};
     Enums: {
-      vehicle_status: 'Disponível' | 'Alugada' | 'Em Manutenção' | 'Indisponível';
       maintenance_type: 'Revisão Periódica' | 'Corretiva/Quebra' | 'Troca de Óleo' | 'Troca de Pneu' | 'Vistoria de Entrada';
       user_role: 'ADMIN' | 'MECHANIC' | 'BILLING';
       contract_status: 'ACTIVE' | 'ENDED';

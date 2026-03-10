@@ -1,5 +1,5 @@
 import { supabase } from '../../lib/supabase';
-import { Vehicle, VehicleStatus } from '../../types';
+import { Vehicle, VEHICLE_STATUS_IDS } from '../../types';
 import type { InsertDto, UpdateDto } from '../../types/database';
 
 export const vehiclesApi = {
@@ -7,7 +7,7 @@ export const vehiclesApi = {
   async getAll(): Promise<Vehicle[]> {
     const { data, error } = await supabase
       .from('vehicles')
-      .select('*, model:vehicle_models(*)')
+      .select('*, model:vehicle_models(*), vehicleStatus:vehicle_statuses(*)')
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -18,7 +18,7 @@ export const vehiclesApi = {
   async getById(id: string): Promise<Vehicle | null> {
     const { data, error } = await supabase
       .from('vehicles')
-      .select('*, model:vehicle_models(*)')
+      .select('*, model:vehicle_models(*), vehicleStatus:vehicle_statuses(*)')
       .eq('id', id)
       .single();
 
@@ -61,12 +61,12 @@ export const vehiclesApi = {
     if (error) throw error;
   },
 
-  // Buscar veículos por status
-  async getByStatus(status: VehicleStatus): Promise<Vehicle[]> {
+  // Buscar veículos por status_id
+  async getByStatusId(statusId: string): Promise<Vehicle[]> {
     const { data, error } = await supabase
       .from('vehicles')
-      .select('*, model:vehicle_models(*)')
-      .eq('status', status)
+      .select('*, model:vehicle_models(*), vehicleStatus:vehicle_statuses(*)')
+      .eq('status_id', statusId)
       .order('plate');
 
     if (error) throw error;
@@ -75,22 +75,22 @@ export const vehiclesApi = {
 
   // Buscar veículos disponíveis
   async getAvailable(): Promise<Vehicle[]> {
-    return this.getByStatus(VehicleStatus.AVAILABLE);
+    return this.getByStatusId(VEHICLE_STATUS_IDS.AVAILABLE);
   },
 
   // Buscar veículos alugados
   async getRented(): Promise<Vehicle[]> {
-    return this.getByStatus(VehicleStatus.RENTED);
+    return this.getByStatusId(VEHICLE_STATUS_IDS.RENTED);
   },
 
   // Buscar veículos em manutenção
   async getInMaintenance(): Promise<Vehicle[]> {
-    return this.getByStatus(VehicleStatus.MAINTENANCE);
+    return this.getByStatusId(VEHICLE_STATUS_IDS.MAINTENANCE);
   },
 
   // Atualizar status do veículo
-  async updateStatus(id: string, status: VehicleStatus): Promise<Vehicle> {
-    return this.update(id, { status });
+  async updateStatus(id: string, statusId: string): Promise<Vehicle> {
+    return this.update(id, { status_id: statusId });
   },
 
   // Atualizar quilometragem

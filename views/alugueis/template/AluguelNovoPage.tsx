@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { VehicleStatus } from "../../../types";
+import { VEHICLE_STATUS_IDS } from "../../../types";
 import {
   ArrowLeft,
   Save,
@@ -62,7 +62,7 @@ export const AluguelNovoPage: React.FC = () => {
     );
   }
 
-  if (vehicle.status !== VehicleStatus.AVAILABLE) {
+  if (vehicle.status_id !== VEHICLE_STATUS_IDS.AVAILABLE) {
     return (
       <div className="space-y-6">
         <button

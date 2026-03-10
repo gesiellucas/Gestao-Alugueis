@@ -62,6 +62,13 @@ const VALID_CHANNELS = [
   'db:documents:create',
   'db:documents:delete',
   'db:documents:upsertBatch',
+  // Vehicle Statuses
+  'db:vehicleStatuses:getAll',
+  'db:vehicleStatuses:getById',
+  'db:vehicleStatuses:create',
+  'db:vehicleStatuses:update',
+  'db:vehicleStatuses:delete',
+  'db:vehicleStatuses:upsertBatch',
   // Sync
   'sync:getMetadata',
   'sync:setMetadata',

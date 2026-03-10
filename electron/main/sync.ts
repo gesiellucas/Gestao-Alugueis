@@ -74,7 +74,7 @@ async function runSync() {
 // ─── PUSH ─────────────────────────────────────────────────────────────────────
 
 async function pushChanges() {
-    const tables = ['workshops', 'vehicle_models', 'customers', 'vehicles', 'rentals', 'contracts', 'maintenance_records', 'documents'];
+    const tables = ['workshops', 'vehicle_statuses', 'vehicle_models', 'customers', 'vehicles', 'rentals', 'contracts', 'maintenance_records', 'documents'];
 
     for (const table of tables) {
         // Get all dirty records for this table
@@ -91,14 +91,14 @@ async function pushChanges() {
 
             // Map legacy local user_id '1' to a valid UUID for Supabase
             // Only for tables that still have user_id (not vehicles/vehicle_models)
-            if (rest.user_id !== undefined && table !== 'vehicles' && table !== 'vehicle_models' && table !== 'workshops' && table !== 'contracts' && table !== 'documents') {
+            if (rest.user_id !== undefined && table !== 'vehicles' && table !== 'vehicle_models' && table !== 'workshops' && table !== 'contracts' && table !== 'documents' && table !== 'vehicle_statuses') {
                 if (rest.user_id === '1') {
                     rest.user_id = '00000000-0000-0000-0000-000000000000';
                 }
             }
 
             // Vehicles and vehicle_models no longer have user_id locally
-            if (table === 'vehicles' || table === 'vehicle_models' || table === 'workshops' || table === 'contracts' || table === 'documents') {
+            if (table === 'vehicles' || table === 'vehicle_models' || table === 'workshops' || table === 'contracts' || table === 'documents' || table === 'vehicle_statuses') {
                 delete rest.user_id;
             }
 
@@ -130,7 +130,7 @@ async function pushChanges() {
 // ─── PULL ─────────────────────────────────────────────────────────────────────
 
 async function pullChanges() {
-    const tables = ['workshops', 'vehicle_models', 'customers', 'vehicles', 'rentals', 'contracts', 'maintenance_records', 'documents'];
+    const tables = ['workshops', 'vehicle_statuses', 'vehicle_models', 'customers', 'vehicles', 'rentals', 'contracts', 'maintenance_records', 'documents'];
 
     for (const table of tables) {
         const lastSyncAt = getSyncMetadata(table) || new Date(0).toISOString();
@@ -174,7 +174,7 @@ function upsertLocally(table: string, records: any[]) {
     for (const record of records) {
         // Sanitize records to ensure compatibility with local NOT NULL constraints
         // Only apply user_id fallback for tables that still use user_id
-        if (table !== 'vehicles' && table !== 'vehicle_models' && table !== 'workshops' && table !== 'contracts' && table !== 'documents') {
+        if (table !== 'vehicles' && table !== 'vehicle_models' && table !== 'workshops' && table !== 'contracts' && table !== 'documents' && table !== 'vehicle_statuses') {
             if (record.user_id === undefined || record.user_id === null) {
                 record.user_id = '1'; // Default admin user ID fallback
             }

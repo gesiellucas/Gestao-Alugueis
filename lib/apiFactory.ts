@@ -25,6 +25,7 @@ import { localRentalsApi } from '../services/localApi/rentals';
 import { localMaintenanceApi } from '../services/localApi/maintenance';
 import { localUsersApi } from '../services/localApi/users';
 import { localRolesApi } from '../services/localApi/roles';
+import { localVehicleStatusesApi } from '../services/localApi/vehicleStatuses';
 
 export function getCustomersApi() {
   return isElectron() ? localCustomersApi : customersApi;
@@ -52,4 +53,8 @@ export function getRolesApi() {
 
 export function getVehicleModelsApi() {
   return isElectron() ? localVehicleModelsApi : vehicleModelsApi;
+}
+
+export function getVehicleStatusesApi() {
+  return isElectron() ? localVehicleStatusesApi : {} as any;
 }

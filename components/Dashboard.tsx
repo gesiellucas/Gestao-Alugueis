@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from "react";
-import { VehicleStatus } from "../types";
+import { VEHICLE_STATUS_IDS } from "../types";
 import { useAppContext } from "../contexts/AppContext";
 import {
   BarChart,
@@ -25,10 +25,10 @@ export const Dashboard: React.FC = () => {
 
   const totalVehicles = vehicles.length;
   const rentedVehicles = vehicles.filter(
-    (v) => v.status === VehicleStatus.RENTED,
+    (v) => v.status_id === VEHICLE_STATUS_IDS.RENTED,
   ).length;
   const inMaintenance = vehicles.filter(
-    (v) => v.status === VehicleStatus.MAINTENANCE,
+    (v) => v.status_id === VEHICLE_STATUS_IDS.MAINTENANCE,
   ).length;
 
   const today = new Date().toISOString().split("T")[0];

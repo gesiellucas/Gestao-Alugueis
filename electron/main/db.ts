@@ -129,6 +129,56 @@ function runMigrations(): void {
   } catch (err) {
   }
 
+  // Migration: convert vehicles.status (text) → status_id (FK to vehicle_statuses)
+  try {
+    const vColumns = db.prepare(`PRAGMA table_info(vehicles)`).all() as { name: string }[];
+    const hasStatus = vColumns.some(col => col.name === 'status');
+    const hasStatusId = vColumns.some(col => col.name === 'status_id');
+
+    if (hasStatus && !hasStatusId) {
+      // Build mapping from status name → vehicle_statuses.id
+      const statusRows = db.prepare('SELECT id, name FROM vehicle_statuses').all() as { id: string; name: string }[];
+      const statusMap = new Map(statusRows.map(s => [s.name, s.id]));
+      const defaultStatusId = statusMap.get('Disponível') || statusRows[0]?.id || 'vs_available';
+
+      db.transaction(() => {
+        db.exec(`
+          CREATE TABLE vehicles_new (
+            id                   TEXT PRIMARY KEY,
+            plate                TEXT NOT NULL,
+            model_id             TEXT REFERENCES vehicle_models(id),
+            year                 INTEGER NOT NULL,
+            status_id            TEXT NOT NULL REFERENCES vehicle_statuses(id),
+            mileage              INTEGER NOT NULL DEFAULT 0,
+            current_renter_id    TEXT REFERENCES customers(id),
+            default_monthly_rate REAL NOT NULL DEFAULT 0,
+            created_at           TEXT NOT NULL,
+            updated_at           TEXT NOT NULL,
+            dirty                INTEGER NOT NULL DEFAULT 1,
+            deleted_at           TEXT
+          );
+        `);
+
+        // Migrate data: map status text to status_id
+        const oldVehicles = db.prepare('SELECT * FROM vehicles').all() as any[];
+        const insertStmt = db.prepare(`
+          INSERT INTO vehicles_new (id, plate, model_id, year, status_id, mileage, current_renter_id, default_monthly_rate, created_at, updated_at, dirty, deleted_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        for (const v of oldVehicles) {
+          const statusId = statusMap.get(v.status) || defaultStatusId;
+          insertStmt.run(v.id, v.plate, v.model_id, v.year, statusId, v.mileage, v.current_renter_id, v.default_monthly_rate, v.created_at, v.updated_at, v.dirty, v.deleted_at);
+        }
+
+        db.exec(`DROP TABLE vehicles;`);
+        db.exec(`ALTER TABLE vehicles_new RENAME TO vehicles;`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_vehicles_plate ON vehicles(plate);`);
+        db.exec(`CREATE INDEX IF NOT EXISTS idx_vehicles_status_id ON vehicles(status_id);`);
+      })();
+    }
+  } catch (err) {
+  }
+
   // Migration: remove user_id from vehicle_models table (models are shared across all users)
   try {
     const vmColumns = db.prepare(`PRAGMA table_info(vehicle_models)`).all() as { name: string }[];
@@ -178,6 +228,18 @@ function createTables(): void {
       name       TEXT NOT NULL,
       address    TEXT,
       status     TEXT NOT NULL DEFAULT 'ACTIVE',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      dirty      INTEGER NOT NULL DEFAULT 1,
+      deleted_at TEXT
+    );
+
+    -- Vehicle Statuses (Status de Veículos)
+    CREATE TABLE IF NOT EXISTS vehicle_statuses (
+      id         TEXT PRIMARY KEY,
+      name       TEXT NOT NULL,
+      color      TEXT NOT NULL DEFAULT '#6b7280',
+      is_default INTEGER NOT NULL DEFAULT 0,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       dirty      INTEGER NOT NULL DEFAULT 1,
@@ -248,11 +310,11 @@ function createTables(): void {
     CREATE TABLE IF NOT EXISTS vehicles (
       id                   TEXT PRIMARY KEY,
       plate                TEXT NOT NULL,
-      model_id             TEXT,
+      model_id             TEXT REFERENCES vehicle_models(id),
       year                 INTEGER NOT NULL,
-      status               TEXT NOT NULL,
+      status_id            TEXT NOT NULL REFERENCES vehicle_statuses(id),
       mileage              INTEGER NOT NULL DEFAULT 0,
-      current_renter_id    TEXT,
+      current_renter_id    TEXT REFERENCES customers(id),
       default_monthly_rate REAL NOT NULL DEFAULT 0,
       created_at           TEXT NOT NULL,
       updated_at           TEXT NOT NULL,
@@ -260,13 +322,14 @@ function createTables(): void {
       deleted_at           TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_vehicles_plate ON vehicles(plate);
+    CREATE INDEX IF NOT EXISTS idx_vehicles_status_id ON vehicles(status_id);
 
     -- Rentals (Alugueis)
     CREATE TABLE IF NOT EXISTS rentals (
       id           TEXT PRIMARY KEY,
       user_id      TEXT NOT NULL,
-      vehicle_id   TEXT NOT NULL,
-      customer_id  TEXT NOT NULL,
+      vehicle_id   TEXT NOT NULL REFERENCES vehicles(id),
+      customer_id  TEXT NOT NULL REFERENCES customers(id),
       start_date   TEXT NOT NULL,
       end_date     TEXT,
       monthly_rate REAL NOT NULL,
@@ -296,7 +359,7 @@ function createTables(): void {
     CREATE TABLE IF NOT EXISTS maintenance_records (
       id               TEXT PRIMARY KEY,
       user_id          TEXT NOT NULL,
-      vehicle_id       TEXT NOT NULL,
+      vehicle_id       TEXT NOT NULL REFERENCES vehicles(id),
       workshop_id      TEXT,
       vehicle_plate    TEXT NOT NULL,
       entry_date       TEXT NOT NULL,
@@ -331,6 +394,22 @@ function createTables(): void {
 }
 
 function seedData(): void {
+  // Seed default vehicle statuses if empty
+  const statusCount = db.prepare('SELECT COUNT(*) as count FROM vehicle_statuses').get() as { count: number };
+  if (statusCount.count === 0) {
+    const now = new Date().toISOString();
+    const defaults = [
+      { id: 'vs_available', name: 'Disponível', color: '#22c55e', is_default: 1 },
+      { id: 'vs_rented', name: 'Alugada', color: '#3b82f6', is_default: 1 },
+      { id: 'vs_maintenance', name: 'Em Manutenção', color: '#f59e0b', is_default: 1 },
+      { id: 'vs_unavailable', name: 'Indisponível', color: '#ef4444', is_default: 1 },
+    ];
+    const stmt = db.prepare(`INSERT INTO vehicle_statuses (id, name, color, is_default, created_at, updated_at, dirty) VALUES (?, ?, ?, ?, ?, ?, 0)`);
+    for (const s of defaults) {
+      stmt.run(s.id, s.name, s.color, s.is_default, now, now);
+    }
+  }
+
   // Semente inicial de roles e usuários caso vazio
   const rolesCount = db.prepare('SELECT COUNT(*) as count FROM roles').get() as { count: number };
   if (rolesCount.count === 0) {
@@ -417,9 +496,9 @@ function upsertVehicleModels(rows: Record<string, unknown>[]): void {
 function upsertVehicles(rows: Record<string, unknown>[]): void {
   const stmt = db.prepare(`
     INSERT OR REPLACE INTO vehicles
-      (id, plate, model_id, year, status, mileage, current_renter_id, default_monthly_rate, created_at, updated_at, dirty)
+      (id, plate, model_id, year, status_id, mileage, current_renter_id, default_monthly_rate, created_at, updated_at, dirty)
     VALUES
-      (@id, @plate, @model_id, @year, @status, @mileage, @current_renter_id, @default_monthly_rate, @created_at, @updated_at, 0)
+      (@id, @plate, @model_id, @year, @status_id, @mileage, @current_renter_id, @default_monthly_rate, @created_at, @updated_at, 0)
   `);
   const insertMany = db.transaction((items: Record<string, unknown>[]) => {
     for (const item of items) stmt.run(item);
@@ -492,6 +571,19 @@ function upsertDocuments(rows: Record<string, unknown>[]): void {
   insertMany(rows);
 }
 
+function upsertVehicleStatuses(rows: Record<string, unknown>[]): void {
+  const stmt = db.prepare(`
+    INSERT OR REPLACE INTO vehicle_statuses
+      (id, name, color, is_default, created_at, updated_at, dirty)
+    VALUES
+      (@id, @name, @color, @is_default, @created_at, @updated_at, 0)
+  `);
+  const insertMany = db.transaction((items: Record<string, unknown>[]) => {
+    for (const item of items) stmt.run(item);
+  });
+  insertMany(rows);
+}
+
 // ─── IPC Handlers ─────────────────────────────────────────────────────────────
 
 export function registerIpcHandlers(): void {
@@ -531,7 +623,8 @@ export function registerIpcHandlers(): void {
         countDirty('contracts') +
         countDirty('maintenance_records') +
         countDirty('workshops') +
-        countDirty('documents'),
+        countDirty('documents') +
+        countDirty('vehicle_statuses'),
     };
   });
 
@@ -559,6 +652,9 @@ export function registerIpcHandlers(): void {
   });
   ipcMain.handle('db:documents:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
     upsertDocuments(args.rows);
+  });
+  ipcMain.handle('db:vehicleStatuses:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
+    upsertVehicleStatuses(args.rows);
   });
 
   // ── Customers CRUD ──
@@ -658,30 +754,38 @@ export function registerIpcHandlers(): void {
     const rawVehicles = db.prepare('SELECT * FROM vehicles WHERE deleted_at IS NULL ORDER BY created_at DESC').all();
     const models = db.prepare('SELECT * FROM vehicle_models WHERE deleted_at IS NULL').all();
     const modelMap = new Map(models.map((m: any) => [m.id, m]));
-    return rawVehicles.map((v: any) => ({ ...v, model: modelMap.get(v.model_id) || null }));
+    const statuses = db.prepare('SELECT * FROM vehicle_statuses WHERE deleted_at IS NULL').all();
+    const statusMap = new Map(statuses.map((s: any) => [s.id, s]));
+    return rawVehicles.map((v: any) => ({
+      ...v,
+      model: modelMap.get(v.model_id) || null,
+      vehicleStatus: statusMap.get(v.status_id) || null,
+    }));
   });
 
   ipcMain.handle('db:vehicles:getById', (_e, args: { id: string }) => {
     const v: any = db.prepare('SELECT * FROM vehicles WHERE id = ? AND deleted_at IS NULL').get(args.id);
     if (!v) return null;
     const model = db.prepare('SELECT * FROM vehicle_models WHERE id = ?').get(v.model_id) ?? null;
-    return { ...v, model };
+    const vehicleStatus = db.prepare('SELECT * FROM vehicle_statuses WHERE id = ?').get(v.status_id) ?? null;
+    return { ...v, model, vehicleStatus };
   });
 
   ipcMain.handle('db:vehicles:create', (_e, args: Record<string, unknown>) => {
     const now = new Date().toISOString();
     const id = randomUUID();
     db.prepare(`
-      INSERT INTO vehicles (id, plate, model_id, year, status, mileage, current_renter_id, default_monthly_rate, created_at, updated_at, dirty)
+      INSERT INTO vehicles (id, plate, model_id, year, status_id, mileage, current_renter_id, default_monthly_rate, created_at, updated_at, dirty)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
     `).run(
       id, args.plate, args.model_id, args.year,
-      args.status, args.mileage ?? 0, args.current_renter_id ?? null,
+      args.status_id, args.mileage ?? 0, args.current_renter_id ?? null,
       args.default_monthly_rate ?? 0, now, now
     );
     const v: any = db.prepare('SELECT * FROM vehicles WHERE id = ?').get(id);
     const model = db.prepare('SELECT * FROM vehicle_models WHERE id = ?').get(v.model_id) ?? null;
-    return { ...v, model };
+    const vehicleStatus = db.prepare('SELECT * FROM vehicle_statuses WHERE id = ?').get(v.status_id) ?? null;
+    return { ...v, model, vehicleStatus };
   });
 
   ipcMain.handle('db:vehicles:update', (_e, args: Record<string, unknown> & { id: string }) => {
@@ -689,7 +793,7 @@ export function registerIpcHandlers(): void {
     const fields: string[] = [];
     const values: unknown[] = [];
 
-    const updateable = ['plate', 'model_id', 'year', 'status', 'mileage', 'current_renter_id', 'default_monthly_rate'] as const;
+    const updateable = ['plate', 'model_id', 'year', 'status_id', 'mileage', 'current_renter_id', 'default_monthly_rate'] as const;
     for (const field of updateable) {
       if (field in args) {
         fields.push(`${field} = ?`);
@@ -702,7 +806,8 @@ export function registerIpcHandlers(): void {
     db.prepare(`UPDATE vehicles SET ${fields.join(', ')} WHERE id = ?`).run(...values);
     const v: any = db.prepare('SELECT * FROM vehicles WHERE id = ?').get(args.id);
     const model = db.prepare('SELECT * FROM vehicle_models WHERE id = ?').get(v.model_id) ?? null;
-    return { ...v, model };
+    const vehicleStatus = db.prepare('SELECT * FROM vehicle_statuses WHERE id = ?').get(v.status_id) ?? null;
+    return { ...v, model, vehicleStatus };
   });
 
   ipcMain.handle('db:vehicles:delete', (_e, args: { id: string }) => {
@@ -847,6 +952,47 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('db:workshops:delete', (_e, args: { id: string }) => {
     const now = new Date().toISOString();
     db.prepare('UPDATE workshops SET deleted_at = ?, dirty = 1 WHERE id = ?').run(now, args.id);
+  });
+
+  // ── Vehicle Statuses CRUD ──
+  ipcMain.handle('db:vehicleStatuses:getAll', () => {
+    return db.prepare('SELECT * FROM vehicle_statuses WHERE deleted_at IS NULL ORDER BY name').all();
+  });
+
+  ipcMain.handle('db:vehicleStatuses:getById', (_e, args: { id: string }) => {
+    return db.prepare('SELECT * FROM vehicle_statuses WHERE id = ? AND deleted_at IS NULL').get(args.id) ?? null;
+  });
+
+  ipcMain.handle('db:vehicleStatuses:create', (_e, args: Record<string, unknown>) => {
+    const now = new Date().toISOString();
+    const id = randomUUID();
+    db.prepare(`
+      INSERT INTO vehicle_statuses (id, name, color, is_default, created_at, updated_at, dirty)
+      VALUES (?, ?, ?, ?, ?, ?, 1)
+    `).run(id, args.name, args.color ?? '#6b7280', args.is_default ? 1 : 0, now, now);
+    return db.prepare('SELECT * FROM vehicle_statuses WHERE id = ?').get(id);
+  });
+
+  ipcMain.handle('db:vehicleStatuses:update', (_e, args: Record<string, unknown> & { id: string }) => {
+    const now = new Date().toISOString();
+    const fields: string[] = [];
+    const values: unknown[] = [];
+    const updateable = ['name', 'color', 'is_default'] as const;
+    for (const field of updateable) {
+      if (field in args) {
+        fields.push(`${field} = ?`);
+        values.push(field === 'is_default' ? (args[field] ? 1 : 0) : args[field]);
+      }
+    }
+    fields.push('updated_at = ?', 'dirty = 1');
+    values.push(now, args.id);
+    db.prepare(`UPDATE vehicle_statuses SET ${fields.join(', ')} WHERE id = ?`).run(...values);
+    return db.prepare('SELECT * FROM vehicle_statuses WHERE id = ?').get(args.id);
+  });
+
+  ipcMain.handle('db:vehicleStatuses:delete', (_e, args: { id: string }) => {
+    const now = new Date().toISOString();
+    db.prepare('UPDATE vehicle_statuses SET deleted_at = ?, dirty = 1 WHERE id = ?').run(now, args.id);
   });
 
   // ── Contracts CRUD ──

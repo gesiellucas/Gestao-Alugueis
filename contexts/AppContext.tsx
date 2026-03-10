@@ -10,15 +10,13 @@ import {
   RentalContract,
   VehicleModel,
 } from "../types";
-import {
-  getVehiclesApi,
-  getCustomersApi,
-  getRentalsApi,
-  getMaintenanceApi,
-  getUsersApi,
-  getVehicleModelsApi,
-  getVehicleStatusesApi,
-} from "../lib/apiFactory";
+import { localVehiclesApi } from "../services/localApi/vehicles";
+import { localCustomersApi } from "../services/localApi/customers";
+import { localRentalsApi } from "../services/localApi/rentals";
+import { localMaintenanceApi } from "../services/localApi/maintenance";
+import { localUsersApi } from "../services/localApi/users";
+import { localVehicleModelsApi } from "../services/localApi/vehicleModels";
+import { localVehicleStatusesApi } from "../services/localApi/vehicleStatuses";
 
 interface AppContextType {
   user: AppUser | null;
@@ -74,7 +72,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     if (typeof window !== "undefined") {
       const storedEmail = localStorage.getItem("electron_user_email");
       if (storedEmail) {
-        getUsersApi().login(storedEmail).then((u: AppUser | null) => {
+        localUsersApi.login(storedEmail).then((u: AppUser | null) => {
           if (u) {
             setUser(u);
           } else {
@@ -101,36 +99,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const [vehiclesData, modelsData, statusesData, customersData, contractsData, maintenanceData] =
         await Promise.all([
-          getVehiclesApi().getAll().then(data => {
-            return data;
-          }).catch(() => {
-            return [] as Vehicle[];
-          }),
-          getVehicleModelsApi().getAll().then(data => {
-            return data;
-          }).catch(() => {
-            return [] as VehicleModel[];
-          }),
-          getVehicleStatusesApi().getAll().then((data: VehicleStatusRecord[]) => {
-            return data;
-          }).catch(() => {
-            return [] as VehicleStatusRecord[];
-          }),
-          getCustomersApi().getAll().then(data => {
-            return data;
-          }).catch(() => {
-            return [] as Customer[];
-          }),
-          getRentalsApi().getAll().then(data => {
-            return data;
-          }).catch(() => {
-            return [] as RentalContract[];
-          }),
-          getMaintenanceApi().getAll().then(data => {
-            return data;
-          }).catch(() => {
-            return [] as MaintenanceRecord[];
-          }),
+          localVehiclesApi.getAll().catch(() => [] as Vehicle[]),
+          localVehicleModelsApi.getAll().catch(() => [] as VehicleModel[]),
+          localVehicleStatusesApi.getAll().catch(() => [] as VehicleStatusRecord[]),
+          localCustomersApi.getAll().catch(() => [] as Customer[]),
+          localRentalsApi.getAll().catch(() => [] as RentalContract[]),
+          localMaintenanceApi.getAll().catch(() => [] as MaintenanceRecord[]),
         ]);
 
       setVehicles(vehiclesData);
@@ -153,8 +127,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleAddMaintenanceRecord = async (record: MaintenanceRecord) => {
     try {
-      // Criar na API correspondente (Local ou Supabase)
-      const newRecord = await getMaintenanceApi().create({
+      const newRecord = await localMaintenanceApi.create({
         vehicle_id: record.vehicle_id,
         vehicle_plate: record.vehicle_plate,
         entry_date: record.entry_date,
@@ -165,15 +138,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         status: record.status,
       });
 
-      // Atualizar status do veículo para "Em Manutenção"
-      await getVehiclesApi().updateStatus(
+      await localVehiclesApi.updateStatus(
         record.vehicle_id,
         VEHICLE_STATUS_IDS.MAINTENANCE,
       );
 
       const maintenanceStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.MAINTENANCE);
 
-      // Atualizar estado local
       setMaintenanceRecords((prev) => [newRecord, ...prev]);
       setVehicles((prev) =>
         prev.map((v) =>
@@ -192,18 +163,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const record = maintenanceRecords.find((r) => r.id === recordId);
       if (!record) return;
 
-      // Finalizar manutenção
-      await getMaintenanceApi().complete(recordId);
+      await localMaintenanceApi.complete(recordId);
 
-      // Atualizar status do veículo para "Disponível"
-      await getVehiclesApi().updateStatus(
+      await localVehiclesApi.updateStatus(
         record.vehicle_id,
         VEHICLE_STATUS_IDS.AVAILABLE,
       );
 
       const availableStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.AVAILABLE);
 
-      // Atualizar estado local
       setMaintenanceRecords((prev) =>
         prev.map((r) =>
           r.id === recordId
@@ -235,8 +203,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     startDate: string,
   ) => {
     try {
-      // Criar contrato
-      const newContract = await getRentalsApi().create({
+      const newContract = await localRentalsApi.create({
         vehicle_id: vehicleId,
         customer_id: customerId,
         monthly_rate: monthlyRate,
@@ -244,18 +211,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         status: "ACTIVE",
       });
 
-      // Atualizar veículo: status = Alugada e current_renter_id
-      await getVehiclesApi().update(vehicleId, {
+      await localVehiclesApi.update(vehicleId, {
         status_id: VEHICLE_STATUS_IDS.RENTED,
         current_renter_id: customerId,
       });
 
       const rentedStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.RENTED);
 
-      // Atualizar cliente: active_contract = true
-      await getCustomersApi().update(customerId, { active_contract: true });
+      await localCustomersApi.update(customerId, { active_contract: true });
 
-      // Atualizar estado local
       setRentalContracts((prev) => [newContract, ...prev]);
       setVehicles((prev) =>
         prev.map((v) =>
@@ -276,24 +240,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const handleEndRental = async (vehicleId: string) => {
     try {
-      // Buscar contrato ativo desse veículo
       const activeContract = rentalContracts.find(
         (c) => c.vehicle_id === vehicleId && c.status === "ACTIVE",
       );
       if (!activeContract) return;
 
-      // Encerrar contrato
-      await getRentalsApi().end(activeContract.id);
+      await localRentalsApi.end(activeContract.id);
 
-      // Atualizar veículo: status = Disponível e limpar current_renter_id
-      await getVehiclesApi().update(vehicleId, {
+      await localVehiclesApi.update(vehicleId, {
         status_id: VEHICLE_STATUS_IDS.AVAILABLE,
         current_renter_id: null,
       });
 
       const availableStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.AVAILABLE);
 
-      // Verificar se o cliente tem outros contratos ativos
       const customerId = activeContract.customer_id;
       const otherActiveContracts = rentalContracts.filter(
         (c) =>
@@ -303,10 +263,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       );
 
       if (otherActiveContracts.length === 0) {
-        await getCustomersApi().update(customerId, { active_contract: false });
+        await localCustomersApi.update(customerId, { active_contract: false });
       }
 
-      // Atualizar estado local
       setRentalContracts((prev) =>
         prev.map((c) =>
           c.id === activeContract.id

@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { AppUser } from "../types";
 import { ShieldCheck, LogIn, Lock, Mail, AlertCircle } from "lucide-react";
-import { getUsersApi } from "../lib/apiFactory";
+import { localUsersApi } from "../services/localApi/users";
 
 interface LoginProps {
   onLogin: (user: AppUser) => void;
@@ -27,7 +27,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         setSuccess("Instruções de recuperação enviadas para o seu e-mail.");
         setTimeout(() => setIsRecovering(false), 3000);
       } else {
-        const user = await getUsersApi().login(email, password);
+        const user = await localUsersApi.login(email, password);
         if (user) {
           if (typeof window !== 'undefined') {
             localStorage.setItem('electron_user_id', user.id);

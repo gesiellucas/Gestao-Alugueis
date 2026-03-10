@@ -1,7 +1,8 @@
 import { app, BrowserWindow, shell, protocol, ipcMain } from 'electron';
 import path from 'path';
 import 'dotenv/config';
-import { initDatabase, registerIpcHandlers, db } from './db';
+import { initDatabase, registerIpcHandlers } from './db';
+import { getRawDb } from '../../db/index';
 import { initSyncEngine } from './sync';
 
 // Prevent multiple instances
@@ -33,14 +34,15 @@ app.whenReady().then(() => {
 
   initDatabase();
 
-  // Inject Supabase credentials into local SQLite config
+  // Inject Supabase credentials into local SQLite config (from .env, se disponível)
   if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    db.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').run('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL);
-    db.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').run('NEXT_PUBLIC_SUPABASE_ANON_KEY', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+    const rawDb = getRawDb();
+    rawDb.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').run('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    rawDb.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').run('NEXT_PUBLIC_SUPABASE_ANON_KEY', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   }
 
   registerIpcHandlers();
-  initSyncEngine(db);
+  initSyncEngine();
   createWindow();
 
   app.on('activate', () => {

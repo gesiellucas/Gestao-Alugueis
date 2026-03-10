@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import { VehicleModel } from "../../../types";
-import { getVehicleModelsApi } from "../../../lib/apiFactory";
+import { localVehicleModelsApi } from "../../../services/localApi/vehicleModels";
 import { Car, Plus, Edit2, Trash2, Check, X } from "lucide-react";
 
 type FormData = { name: string; brand: string; status: 'ACTIVE' | 'INACTIVE' };
@@ -16,7 +16,7 @@ export const VehicleModelsTab: React.FC = () => {
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
-  const api = getVehicleModelsApi();
+  const api = localVehicleModelsApi;
 
   const load = async () => {
     try {

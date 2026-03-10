@@ -23,7 +23,9 @@
       "Bash(xargs sed -i '/^\\\\s*console\\\\.\\\\\\(log\\\\|error\\\\|warn\\\\|info\\\\|debug\\\\\\)/d')",
       "Bash(npx skills find nextjs structure)",
       "Bash(npx skills find nextjs best-practices)",
-      "Bash(npx skills find electron nextjs)"
+      "Bash(npx skills find electron nextjs)",
+      "Bash(npx drizzle-kit generate)",
+      "Bash(npx drizzle-kit generate --config=drizzle.pg.config.ts)"
     ]
   }
 }

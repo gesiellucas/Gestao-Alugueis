@@ -1,584 +1,104 @@
 import { app, ipcMain } from 'electron';
-import Database from 'better-sqlite3';
 import path from 'path';
 import { randomUUID } from 'crypto';
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
+import { initDb, getDb, getRawDb } from '../../db/index';
+import {
+  appUsers,
+  config,
+  contracts,
+  customers,
+  documents,
+  maintenanceRecords,
+  rentals,
+  roles,
+  syncMetadata,
+  vehicleModels,
+  vehicles,
+  vehicleStatuses,
+  workshops,
+} from '../../db/schema';
 
-export let db: Database.Database;
-
-// ─── Initialization ──────────────────────────────────────────────────────────
+// ─── Initialization ───────────────────────────────────────────────────────────
 
 export function initDatabase(): void {
   const dbPath = path.join(app.getPath('userData'), 'gc-loca-moto.sqlite');
-  db = new Database(dbPath);
-  db.pragma('journal_mode = WAL');
-  db.pragma('foreign_keys = ON');
-  createTables();
-  runMigrations();
+  // Em desenvolvimento: migrations estão em db/migrations/sqlite (raiz do projeto)
+  // Em produção (electron-builder): empacotadas junto com o app
+  const migrationsFolder = app.isPackaged
+    ? path.join(process.resourcesPath, 'db/migrations/sqlite')
+    : path.join(app.getAppPath(), 'db/migrations/sqlite');
+
+  initDb(dbPath, migrationsFolder);
   seedData();
 }
 
-function runMigrations(): void {
-  // Array of tables to ensure deleted_at exists for existing SQLite database files
-  const tablesWithUserId = ['customers', 'maintenance_records'];
-
-  // Check if old rental_contracts table still exists and needs renaming
-  const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as { name: string }[];
-  const hasOldRentals = tables.some(t => t.name === 'rental_contracts');
-  const hasNewRentals = tables.some(t => t.name === 'rentals');
-
-  // Also add rental_contracts to migration targets if it still exists (for deleted_at/user_id)
-  const migrationTargets = hasOldRentals
-    ? [...tablesWithUserId, 'rental_contracts', 'vehicles', 'vehicle_models']
-    : [...tablesWithUserId, 'rentals', 'vehicles', 'vehicle_models'];
-
-  for (const table of migrationTargets) {
-    try {
-      const columns = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
-      const hasDeletedAt = columns.some(col => col.name === 'deleted_at');
-
-      if (!hasDeletedAt) {
-        db.exec(`ALTER TABLE ${table} ADD COLUMN deleted_at TEXT`);
-      }
-
-      // Only add user_id to tables that still need it
-      const needsUserId = tablesWithUserId.includes(table) || table === 'rental_contracts' || table === 'rentals';
-      if (needsUserId) {
-        const hasUserId = columns.some(col => col.name === 'user_id');
-        if (!hasUserId) {
-          db.exec(`ALTER TABLE ${table} ADD COLUMN user_id TEXT DEFAULT '1'`);
-        }
-      }
-    } catch (err) {
-    }
-  }
-
-  // Migration: rename rental_contracts → rentals
-  if (hasOldRentals && !hasNewRentals) {
-    try {
-      db.transaction(() => {
-        db.exec(`ALTER TABLE rental_contracts RENAME TO rentals;`);
-      })();
-    } catch (err) {
-    }
-  }
-
-  // Migration: add workshop_id to roles if missing
-  try {
-    const rolesColumns = db.prepare(`PRAGMA table_info(roles)`).all() as { name: string }[];
-    const hasWorkshopId = rolesColumns.some(col => col.name === 'workshop_id');
-    if (!hasWorkshopId) {
-      db.exec(`ALTER TABLE roles ADD COLUMN workshop_id TEXT`);
-    }
-  } catch (err) {
-  }
-
-  // Migration: add workshop_id to maintenance_records if missing
-  try {
-    const mColumns = db.prepare(`PRAGMA table_info(maintenance_records)`).all() as { name: string }[];
-    const hasWorkshopId = mColumns.some(col => col.name === 'workshop_id');
-    if (!hasWorkshopId) {
-      db.exec(`ALTER TABLE maintenance_records ADD COLUMN workshop_id TEXT`);
-    }
-    db.exec(`CREATE INDEX IF NOT EXISTS idx_maintenance_workshop_id ON maintenance_records(workshop_id)`);
-  } catch (err) {
-  }
-
-  // Migration: remove user_id from vehicles table (vehicles are shared across all users)
-  try {
-    const vColumns = db.prepare(`PRAGMA table_info(vehicles)`).all() as { name: string }[];
-    const hasModelId = vColumns.some(col => col.name === 'model_id');
-    const hasModel = vColumns.some(col => col.name === 'model');
-    const hasBrand = vColumns.some(col => col.name === 'brand');
-    const hasUserId = vColumns.some(col => col.name === 'user_id');
-
-    if (!hasModelId) {
-      db.exec(`ALTER TABLE vehicles ADD COLUMN model_id TEXT`);
-    }
-
-    // Recreate vehicles table to remove legacy columns (model, brand) and user_id
-    if (hasModel || hasBrand || hasUserId) {
-      db.transaction(() => {
-        db.exec(`
-          CREATE TABLE vehicles_new (
-            id                   TEXT PRIMARY KEY,
-            plate                TEXT NOT NULL,
-            model_id             TEXT,
-            year                 INTEGER NOT NULL,
-            status               TEXT NOT NULL,
-            mileage              INTEGER NOT NULL DEFAULT 0,
-            current_renter_id    TEXT,
-            default_monthly_rate REAL NOT NULL DEFAULT 0,
-            created_at           TEXT NOT NULL,
-            updated_at           TEXT NOT NULL,
-            dirty                INTEGER NOT NULL DEFAULT 1,
-            deleted_at           TEXT
-          );
-        `);
-
-        db.exec(`
-          INSERT INTO vehicles_new (id, plate, model_id, year, status, mileage, current_renter_id, default_monthly_rate, created_at, updated_at, dirty, deleted_at)
-          SELECT id, plate, model_id, year, status, mileage, current_renter_id, default_monthly_rate, created_at, updated_at, dirty, deleted_at
-          FROM vehicles;
-        `);
-
-        db.exec(`DROP TABLE vehicles;`);
-        db.exec(`ALTER TABLE vehicles_new RENAME TO vehicles;`);
-        db.exec(`CREATE INDEX idx_vehicles_plate ON vehicles(plate);`);
-      })();
-    }
-  } catch (err) {
-  }
-
-  // Migration: convert vehicles.status (text) → status_id (FK to vehicle_statuses)
-  try {
-    const vColumns = db.prepare(`PRAGMA table_info(vehicles)`).all() as { name: string }[];
-    const hasStatus = vColumns.some(col => col.name === 'status');
-    const hasStatusId = vColumns.some(col => col.name === 'status_id');
-
-    if (hasStatus && !hasStatusId) {
-      // Build mapping from status name → vehicle_statuses.id
-      const statusRows = db.prepare('SELECT id, name FROM vehicle_statuses').all() as { id: string; name: string }[];
-      const statusMap = new Map(statusRows.map(s => [s.name, s.id]));
-      const defaultStatusId = statusMap.get('Disponível') || statusRows[0]?.id || 'vs_available';
-
-      db.transaction(() => {
-        db.exec(`
-          CREATE TABLE vehicles_new (
-            id                   TEXT PRIMARY KEY,
-            plate                TEXT NOT NULL,
-            model_id             TEXT REFERENCES vehicle_models(id),
-            year                 INTEGER NOT NULL,
-            status_id            TEXT NOT NULL REFERENCES vehicle_statuses(id),
-            mileage              INTEGER NOT NULL DEFAULT 0,
-            current_renter_id    TEXT REFERENCES customers(id),
-            default_monthly_rate REAL NOT NULL DEFAULT 0,
-            created_at           TEXT NOT NULL,
-            updated_at           TEXT NOT NULL,
-            dirty                INTEGER NOT NULL DEFAULT 1,
-            deleted_at           TEXT
-          );
-        `);
-
-        // Migrate data: map status text to status_id
-        const oldVehicles = db.prepare('SELECT * FROM vehicles').all() as any[];
-        const insertStmt = db.prepare(`
-          INSERT INTO vehicles_new (id, plate, model_id, year, status_id, mileage, current_renter_id, default_monthly_rate, created_at, updated_at, dirty, deleted_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-        for (const v of oldVehicles) {
-          const statusId = statusMap.get(v.status) || defaultStatusId;
-          insertStmt.run(v.id, v.plate, v.model_id, v.year, statusId, v.mileage, v.current_renter_id, v.default_monthly_rate, v.created_at, v.updated_at, v.dirty, v.deleted_at);
-        }
-
-        db.exec(`DROP TABLE vehicles;`);
-        db.exec(`ALTER TABLE vehicles_new RENAME TO vehicles;`);
-        db.exec(`CREATE INDEX IF NOT EXISTS idx_vehicles_plate ON vehicles(plate);`);
-        db.exec(`CREATE INDEX IF NOT EXISTS idx_vehicles_status_id ON vehicles(status_id);`);
-      })();
-    }
-  } catch (err) {
-  }
-
-  // Migration: remove user_id from vehicle_models table (models are shared across all users)
-  try {
-    const vmColumns = db.prepare(`PRAGMA table_info(vehicle_models)`).all() as { name: string }[];
-    const hasUserId = vmColumns.some(col => col.name === 'user_id');
-
-    if (hasUserId) {
-      db.transaction(() => {
-        db.exec(`
-          CREATE TABLE vehicle_models_new (
-            id         TEXT PRIMARY KEY,
-            name       TEXT NOT NULL,
-            brand      TEXT NOT NULL,
-            image_url  TEXT,
-            status     TEXT NOT NULL DEFAULT 'ACTIVE',
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            dirty      INTEGER NOT NULL DEFAULT 1,
-            deleted_at TEXT
-          );
-        `);
-
-        db.exec(`
-          INSERT INTO vehicle_models_new (id, name, brand, image_url, status, created_at, updated_at, dirty, deleted_at)
-          SELECT id, name, brand, image_url, status, created_at, updated_at, dirty, deleted_at
-          FROM vehicle_models;
-        `);
-
-        db.exec(`DROP TABLE vehicle_models;`);
-        db.exec(`ALTER TABLE vehicle_models_new RENAME TO vehicle_models;`);
-      })();
-    }
-  } catch (err) {
-  }
-}
-
-function createTables(): void {
-  db.exec(`
-    -- Configuration (Supabase credentials stored locally)
-    CREATE TABLE IF NOT EXISTS config (
-      key   TEXT PRIMARY KEY,
-      value TEXT NOT NULL
-    );
-
-    -- Workshops (Oficinas)
-    CREATE TABLE IF NOT EXISTS workshops (
-      id         TEXT PRIMARY KEY,
-      name       TEXT NOT NULL,
-      address    TEXT,
-      status     TEXT NOT NULL DEFAULT 'ACTIVE',
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      dirty      INTEGER NOT NULL DEFAULT 1,
-      deleted_at TEXT
-    );
-
-    -- Vehicle Statuses (Status de Veículos)
-    CREATE TABLE IF NOT EXISTS vehicle_statuses (
-      id         TEXT PRIMARY KEY,
-      name       TEXT NOT NULL,
-      color      TEXT NOT NULL DEFAULT '#6b7280',
-      is_default INTEGER NOT NULL DEFAULT 0,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      dirty      INTEGER NOT NULL DEFAULT 1,
-      deleted_at TEXT
-    );
-
-    CREATE TABLE IF NOT EXISTS roles (
-      id          TEXT PRIMARY KEY,
-      workshop_id TEXT,
-      name        TEXT NOT NULL,
-      permissions TEXT NOT NULL,
-      created_at  TEXT NOT NULL,
-      updated_at  TEXT NOT NULL,
-      deleted_at  TEXT,
-      FOREIGN KEY (workshop_id) REFERENCES workshops(id)
-    );
-
-    CREATE TABLE IF NOT EXISTS app_users (
-      id          TEXT PRIMARY KEY,
-      name        TEXT NOT NULL,
-      email       TEXT UNIQUE NOT NULL,
-      password    TEXT NOT NULL,
-      role_id     TEXT NOT NULL,
-      created_at  TEXT NOT NULL,
-      updated_at  TEXT NOT NULL,
-      deleted_at  TEXT,
-      FOREIGN KEY (role_id) REFERENCES roles(id)
-    );
-
-    -- Sync metadata (tracks last successful sync per table)
-    CREATE TABLE IF NOT EXISTS sync_metadata (
-      table_name  TEXT PRIMARY KEY,
-      last_sync_at TEXT
-    );
-
-    -- Customers
-    CREATE TABLE IF NOT EXISTS customers (
-      id                 TEXT PRIMARY KEY,
-      user_id            TEXT NOT NULL,
-      name               TEXT NOT NULL,
-      phone              TEXT,
-      cpf                TEXT,
-      active_contract    INTEGER NOT NULL DEFAULT 0,
-      balance_due        REAL    NOT NULL DEFAULT 0,
-      last_payment_date  TEXT,
-      created_at         TEXT NOT NULL,
-      updated_at         TEXT NOT NULL,
-      dirty              INTEGER NOT NULL DEFAULT 1,
-      deleted_at         TEXT
-    );
-    CREATE INDEX IF NOT EXISTS idx_customers_user_id ON customers(user_id);
-    CREATE INDEX IF NOT EXISTS idx_customers_cpf     ON customers(cpf);
-
-    -- Vehicle Models (shared across all users)
-    CREATE TABLE IF NOT EXISTS vehicle_models (
-      id         TEXT PRIMARY KEY,
-      name       TEXT NOT NULL,
-      brand      TEXT NOT NULL,
-      image_url  TEXT,
-      status     TEXT NOT NULL DEFAULT 'ACTIVE',
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      dirty      INTEGER NOT NULL DEFAULT 1,
-      deleted_at TEXT
-    );
-
-    -- Vehicles (shared across all users)
-    CREATE TABLE IF NOT EXISTS vehicles (
-      id                   TEXT PRIMARY KEY,
-      plate                TEXT NOT NULL,
-      model_id             TEXT REFERENCES vehicle_models(id),
-      year                 INTEGER NOT NULL,
-      status_id            TEXT NOT NULL REFERENCES vehicle_statuses(id),
-      mileage              INTEGER NOT NULL DEFAULT 0,
-      current_renter_id    TEXT REFERENCES customers(id),
-      default_monthly_rate REAL NOT NULL DEFAULT 0,
-      created_at           TEXT NOT NULL,
-      updated_at           TEXT NOT NULL,
-      dirty                INTEGER NOT NULL DEFAULT 1,
-      deleted_at           TEXT
-    );
-    CREATE INDEX IF NOT EXISTS idx_vehicles_plate ON vehicles(plate);
-    CREATE INDEX IF NOT EXISTS idx_vehicles_status_id ON vehicles(status_id);
-
-    -- Rentals (Alugueis)
-    CREATE TABLE IF NOT EXISTS rentals (
-      id           TEXT PRIMARY KEY,
-      user_id      TEXT NOT NULL,
-      vehicle_id   TEXT NOT NULL REFERENCES vehicles(id),
-      customer_id  TEXT NOT NULL REFERENCES customers(id),
-      start_date   TEXT NOT NULL,
-      end_date     TEXT,
-      monthly_rate REAL NOT NULL,
-      status       TEXT NOT NULL DEFAULT 'ACTIVE',
-      created_at   TEXT NOT NULL,
-      updated_at   TEXT NOT NULL,
-      dirty        INTEGER NOT NULL DEFAULT 1,
-      deleted_at   TEXT
-    );
-    CREATE INDEX IF NOT EXISTS idx_rentals_user_id     ON rentals(user_id);
-    CREATE INDEX IF NOT EXISTS idx_rentals_vehicle_id  ON rentals(vehicle_id);
-    CREATE INDEX IF NOT EXISTS idx_rentals_customer_id ON rentals(customer_id);
-
-    -- Contracts (Contratos) — generated from a rental (1:0..1)
-    CREATE TABLE IF NOT EXISTS contracts (
-      id         TEXT PRIMARY KEY,
-      rental_id  TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      dirty      INTEGER NOT NULL DEFAULT 1,
-      deleted_at TEXT,
-      FOREIGN KEY (rental_id) REFERENCES rentals(id)
-    );
-    CREATE INDEX IF NOT EXISTS idx_contracts_rental_id ON contracts(rental_id);
-
-    -- Maintenance records
-    CREATE TABLE IF NOT EXISTS maintenance_records (
-      id               TEXT PRIMARY KEY,
-      user_id          TEXT NOT NULL,
-      vehicle_id       TEXT NOT NULL REFERENCES vehicles(id),
-      workshop_id      TEXT,
-      vehicle_plate    TEXT NOT NULL,
-      entry_date       TEXT NOT NULL,
-      completion_date  TEXT,
-      mechanic_name    TEXT NOT NULL,
-      description      TEXT NOT NULL,
-      type             TEXT NOT NULL,
-      cost             REAL NOT NULL DEFAULT 0,
-      status           TEXT NOT NULL DEFAULT 'OPEN',
-      created_at       TEXT NOT NULL,
-      updated_at       TEXT NOT NULL,
-      dirty            INTEGER NOT NULL DEFAULT 1,
-      deleted_at       TEXT,
-      FOREIGN KEY (workshop_id) REFERENCES workshops(id)
-    );
-    CREATE INDEX IF NOT EXISTS idx_maintenance_user_id    ON maintenance_records(user_id);
-    CREATE INDEX IF NOT EXISTS idx_maintenance_vehicle_id ON maintenance_records(vehicle_id);
-
-    -- Documents (Documentos) — polymorphic attachments for contracts or maintenance
-    CREATE TABLE IF NOT EXISTS documents (
-      id          TEXT PRIMARY KEY,
-      parent_id   TEXT NOT NULL,
-      origin_type TEXT NOT NULL,
-      file_url    TEXT NOT NULL,
-      created_at  TEXT NOT NULL,
-      updated_at  TEXT NOT NULL,
-      dirty       INTEGER NOT NULL DEFAULT 1,
-      deleted_at  TEXT
-    );
-    CREATE INDEX IF NOT EXISTS idx_documents_parent ON documents(parent_id, origin_type);
-  `);
-}
-
 function seedData(): void {
-  // Seed default vehicle statuses if empty
-  const statusCount = db.prepare('SELECT COUNT(*) as count FROM vehicle_statuses').get() as { count: number };
-  if (statusCount.count === 0) {
-    const now = new Date().toISOString();
-    const defaults = [
-      { id: 'vs_available', name: 'Disponível', color: '#22c55e', is_default: 1 },
-      { id: 'vs_rented', name: 'Alugada', color: '#3b82f6', is_default: 1 },
-      { id: 'vs_maintenance', name: 'Em Manutenção', color: '#f59e0b', is_default: 1 },
-      { id: 'vs_unavailable', name: 'Indisponível', color: '#ef4444', is_default: 1 },
-    ];
-    const stmt = db.prepare(`INSERT INTO vehicle_statuses (id, name, color, is_default, created_at, updated_at, dirty) VALUES (?, ?, ?, ?, ?, ?, 0)`);
-    for (const s of defaults) {
-      stmt.run(s.id, s.name, s.color, s.is_default, now, now);
-    }
+  const db = getDb();
+  const now = new Date().toISOString();
+
+  // Status de veículos padrão
+  const statusCount = db.select({ n: sql<number>`count(*)` }).from(vehicleStatuses).get();
+  if ((statusCount?.n ?? 0) === 0) {
+    db.insert(vehicleStatuses).values([
+      { id: 'vs_available',    name: 'Disponível',      color: '#22c55e', isDefault: 1, createdAt: now, updatedAt: now, dirty: 0 },
+      { id: 'vs_rented',      name: 'Alugada',          color: '#3b82f6', isDefault: 1, createdAt: now, updatedAt: now, dirty: 0 },
+      { id: 'vs_maintenance', name: 'Em Manutenção',    color: '#f59e0b', isDefault: 1, createdAt: now, updatedAt: now, dirty: 0 },
+      { id: 'vs_unavailable', name: 'Indisponível',     color: '#ef4444', isDefault: 1, createdAt: now, updatedAt: now, dirty: 0 },
+    ]).onConflictDoNothing().run();
   }
 
-  // Semente inicial de roles e usuários caso vazio
-  const rolesCount = db.prepare('SELECT COUNT(*) as count FROM roles').get() as { count: number };
-  if (rolesCount.count === 0) {
-    const now = new Date().toISOString();
+  // Roles e usuários padrão
+  const rolesCount = db.select({ n: sql<number>`count(*)` }).from(roles).get();
+  if ((rolesCount?.n ?? 0) === 0) {
+    db.insert(roles).values([
+      { id: 'role_admin',    workshopId: null, name: 'Gerente',     permissions: JSON.stringify(['*']),                                                      createdAt: now, updatedAt: now },
+      { id: 'role_mechanic', workshopId: null, name: 'Oficina',     permissions: JSON.stringify(['veiculos_view', 'oficina_view', 'oficina_edit']),           createdAt: now, updatedAt: now },
+      { id: 'role_billing',  workshopId: null, name: 'Financeiro',  permissions: JSON.stringify(['financeiro_view', 'financeiro_edit']),                      createdAt: now, updatedAt: now },
+    ]).onConflictDoNothing().run();
 
-    // Gerente (Admin) — no workshop
-    db.prepare(`INSERT INTO roles (id, workshop_id, name, permissions, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`).run(
-      'role_admin', null, 'Gerente', JSON.stringify(['*']), now, now
-    );
-    // Oficina — workshop_id null until a workshop is created
-    db.prepare(`INSERT INTO roles (id, workshop_id, name, permissions, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`).run(
-      'role_mechanic', null, 'Oficina', JSON.stringify(['veiculos_view', 'oficina_view', 'oficina_edit']), now, now
-    );
-    // Financeiro — no workshop
-    db.prepare(`INSERT INTO roles (id, workshop_id, name, permissions, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)`).run(
-      'role_billing', null, 'Financeiro', JSON.stringify(['financeiro_view', 'financeiro_edit']), now, now
-    );
-
-    // Usuário admin padrão
-    db.prepare(`INSERT INTO app_users (id, name, email, password, role_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`).run(
-      '1', 'Gestor Master', 'admin@gclocamoto.com.br', 'admin123', 'role_admin', now, now
-    );
-    // Mecânico
-    db.prepare(`INSERT INTO app_users (id, name, email, password, role_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`).run(
-      '2', 'Roberto Mecânico', 'oficina@gclocamoto.com.br', 'oficina123', 'role_mechanic', now, now
-    );
-    // Financeiro
-    db.prepare(`INSERT INTO app_users (id, name, email, password, role_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`).run(
-      '3', 'Clara Financeiro', 'financeiro@gclocamoto.com.br', 'financas123', 'role_billing', now, now
-    );
+    db.insert(appUsers).values([
+      { id: '1', name: 'Gestor Master',    email: 'admin@gclocamoto.com.br',      password: 'admin123',    roleId: 'role_admin',    createdAt: now, updatedAt: now },
+      { id: '2', name: 'Roberto Mecânico', email: 'oficina@gclocamoto.com.br',    password: 'oficina123',  roleId: 'role_mechanic', createdAt: now, updatedAt: now },
+      { id: '3', name: 'Clara Financeiro', email: 'financeiro@gclocamoto.com.br', password: 'financas123', roleId: 'role_billing',  createdAt: now, updatedAt: now },
+    ]).onConflictDoNothing().run();
   }
 }
 
 // ─── Config helpers ───────────────────────────────────────────────────────────
 
 function getConfig(key: string): string | null {
-  const row = db.prepare('SELECT value FROM config WHERE key = ?').get(key) as { value: string } | undefined;
+  const row = getDb().select({ value: config.value }).from(config).where(eq(config.key, key)).get();
   return row?.value ?? null;
 }
 
 function setConfig(key: string, value: string): void {
-  db.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').run(key, value);
+  getDb().insert(config).values({ key, value }).onConflictDoUpdate({ target: config.key, set: { value } }).run();
 }
 
 // ─── Sync metadata helpers ────────────────────────────────────────────────────
 
 function getSyncMetadata(tableName: string): string | null {
-  const row = db.prepare('SELECT last_sync_at FROM sync_metadata WHERE table_name = ?').get(tableName) as { last_sync_at: string } | undefined;
-  return row?.last_sync_at ?? null;
+  const row = getDb().select({ lastSyncAt: syncMetadata.lastSyncAt }).from(syncMetadata).where(eq(syncMetadata.tableName, tableName)).get();
+  return row?.lastSyncAt ?? null;
 }
 
 function setSyncMetadata(tableName: string, timestamp: string): void {
-  db.prepare('INSERT OR REPLACE INTO sync_metadata (table_name, last_sync_at) VALUES (?, ?)').run(tableName, timestamp);
+  getDb().insert(syncMetadata).values({ tableName, lastSyncAt: timestamp }).onConflictDoUpdate({ target: syncMetadata.tableName, set: { lastSyncAt: timestamp } }).run();
 }
 
-// ─── Generic upsert batch (used by sync) ─────────────────────────────────────
+// ─── Upsert batch helpers (usados pelo sync — recebem dados snake_case do Supabase) ─
 
-function upsertCustomers(rows: Record<string, unknown>[]): void {
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO customers
-      (id, user_id, name, phone, cpf, active_contract, balance_due, last_payment_date, created_at, updated_at, dirty)
-    VALUES
-      (@id, @user_id, @name, @phone, @cpf, @active_contract, @balance_due, @last_payment_date, @created_at, @updated_at, 0)
-  `);
-  const insertMany = db.transaction((items: Record<string, unknown>[]) => {
-    for (const item of items) stmt.run(item);
-  });
-  insertMany(rows);
-}
+// Nota: estas funções usam SQL raw intencionalmente pois recebem dados dinâmicos
+// do Supabase (snake_case) e precisam de INSERT OR REPLACE para eficiência.
 
-function upsertVehicleModels(rows: Record<string, unknown>[]): void {
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO vehicle_models
-      (id, name, brand, image_url, status, created_at, updated_at, dirty)
-    VALUES
-      (@id, @name, @brand, @image_url, @status, @created_at, @updated_at, 0)
-  `);
-  const insertMany = db.transaction((items: Record<string, unknown>[]) => {
-    for (const item of items) stmt.run(item);
-  });
-  insertMany(rows);
-}
-
-function upsertVehicles(rows: Record<string, unknown>[]): void {
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO vehicles
-      (id, plate, model_id, year, status_id, mileage, current_renter_id, default_monthly_rate, created_at, updated_at, dirty)
-    VALUES
-      (@id, @plate, @model_id, @year, @status_id, @mileage, @current_renter_id, @default_monthly_rate, @created_at, @updated_at, 0)
-  `);
-  const insertMany = db.transaction((items: Record<string, unknown>[]) => {
-    for (const item of items) stmt.run(item);
-  });
-  insertMany(rows);
-}
-
-function upsertRentals(rows: Record<string, unknown>[]): void {
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO rentals
-      (id, user_id, vehicle_id, customer_id, start_date, end_date, monthly_rate, status, created_at, updated_at, dirty)
-    VALUES
-      (@id, @user_id, @vehicle_id, @customer_id, @start_date, @end_date, @monthly_rate, @status, @created_at, @updated_at, 0)
-  `);
-  const insertMany = db.transaction((items: Record<string, unknown>[]) => {
-    for (const item of items) stmt.run(item);
-  });
-  insertMany(rows);
-}
-
-function upsertMaintenance(rows: Record<string, unknown>[]): void {
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO maintenance_records
-      (id, user_id, vehicle_id, workshop_id, vehicle_plate, entry_date, completion_date, mechanic_name, description, type, cost, status, created_at, updated_at, dirty)
-    VALUES
-      (@id, @user_id, @vehicle_id, @workshop_id, @vehicle_plate, @entry_date, @completion_date, @mechanic_name, @description, @type, @cost, @status, @created_at, @updated_at, 0)
-  `);
-  const insertMany = db.transaction((items: Record<string, unknown>[]) => {
-    for (const item of items) stmt.run(item);
-  });
-  insertMany(rows);
-}
-
-function upsertWorkshops(rows: Record<string, unknown>[]): void {
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO workshops
-      (id, name, address, status, created_at, updated_at, dirty)
-    VALUES
-      (@id, @name, @address, @status, @created_at, @updated_at, 0)
-  `);
-  const insertMany = db.transaction((items: Record<string, unknown>[]) => {
-    for (const item of items) stmt.run(item);
-  });
-  insertMany(rows);
-}
-
-function upsertContracts(rows: Record<string, unknown>[]): void {
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO contracts
-      (id, rental_id, created_at, updated_at, dirty)
-    VALUES
-      (@id, @rental_id, @created_at, @updated_at, 0)
-  `);
-  const insertMany = db.transaction((items: Record<string, unknown>[]) => {
-    for (const item of items) stmt.run(item);
-  });
-  insertMany(rows);
-}
-
-function upsertDocuments(rows: Record<string, unknown>[]): void {
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO documents
-      (id, parent_id, origin_type, file_url, created_at, updated_at, dirty)
-    VALUES
-      (@id, @parent_id, @origin_type, @file_url, @created_at, @updated_at, 0)
-  `);
-  const insertMany = db.transaction((items: Record<string, unknown>[]) => {
-    for (const item of items) stmt.run(item);
-  });
-  insertMany(rows);
-}
-
-function upsertVehicleStatuses(rows: Record<string, unknown>[]): void {
-  const stmt = db.prepare(`
-    INSERT OR REPLACE INTO vehicle_statuses
-      (id, name, color, is_default, created_at, updated_at, dirty)
-    VALUES
-      (@id, @name, @color, @is_default, @created_at, @updated_at, 0)
-  `);
-  const insertMany = db.transaction((items: Record<string, unknown>[]) => {
+function upsertBatchRaw(table: string, columns: string[], rows: Record<string, unknown>[]): void {
+  if (rows.length === 0) return;
+  const sqlite = getRawDb();
+  const colList = columns.join(', ');
+  const placeholders = columns.map(c => `@${c}`).join(', ');
+  const stmt = sqlite.prepare(`INSERT OR REPLACE INTO ${table} (${colList}) VALUES (${placeholders})`);
+  const insertMany = sqlite.transaction((items: Record<string, unknown>[]) => {
     for (const item of items) stmt.run(item);
   });
   insertMany(rows);
@@ -587,326 +107,335 @@ function upsertVehicleStatuses(rows: Record<string, unknown>[]): void {
 // ─── IPC Handlers ─────────────────────────────────────────────────────────────
 
 export function registerIpcHandlers(): void {
+  const db = getDb();
 
   // ── Config ──
-  ipcMain.handle('db:config:get', (_e, args: { key: string }) => {
-    return getConfig(args.key);
-  });
-
-  ipcMain.handle('db:config:set', (_e, args: { key: string; value: string }) => {
-    setConfig(args.key, args.value);
-  });
-
-  ipcMain.handle('db:config:getAll', () => {
-    return db.prepare('SELECT key, value FROM config').all();
-  });
+  ipcMain.handle('db:config:get', (_e, args: { key: string }) => getConfig(args.key));
+  ipcMain.handle('db:config:set', (_e, args: { key: string; value: string }) => setConfig(args.key, args.value));
+  ipcMain.handle('db:config:getAll', () => db.select().from(config).all());
 
   // ── Sync metadata ──
-  ipcMain.handle('sync:getMetadata', (_e, args: { table: string }) => {
-    return getSyncMetadata(args.table);
-  });
-
-  ipcMain.handle('sync:setMetadata', (_e, args: { table: string; timestamp: string }) => {
-    setSyncMetadata(args.table, args.timestamp);
-  });
+  ipcMain.handle('sync:getMetadata', (_e, args: { table: string }) => getSyncMetadata(args.table));
+  ipcMain.handle('sync:setMetadata', (_e, args: { table: string; timestamp: string }) => setSyncMetadata(args.table, args.timestamp));
 
   ipcMain.handle('sync:status', () => {
-    const countDirty = (table: string) =>
-      (db.prepare(`SELECT COUNT(*) as n FROM ${table} WHERE dirty = 1`).get() as { n: number }).n;
+    const countDirty = (t: typeof customers | typeof vehicleModels | typeof vehicles | typeof rentals | typeof contracts | typeof maintenanceRecords | typeof workshops | typeof documents | typeof vehicleStatuses) => {
+      const r = db.select({ n: sql<number>`count(*)` }).from(t).where(eq((t as any).dirty, 1)).get();
+      return r?.n ?? 0;
+    };
     return {
       lastSync: getConfig('last_sync_at'),
       pendingCount:
-        countDirty('customers') +
-        countDirty('vehicle_models') +
-        countDirty('vehicles') +
-        countDirty('rentals') +
-        countDirty('contracts') +
-        countDirty('maintenance_records') +
-        countDirty('workshops') +
-        countDirty('documents') +
-        countDirty('vehicle_statuses'),
+        countDirty(customers) +
+        countDirty(vehicleModels) +
+        countDirty(vehicles) +
+        countDirty(rentals) +
+        countDirty(contracts) +
+        countDirty(maintenanceRecords) +
+        countDirty(workshops) +
+        countDirty(documents) +
+        countDirty(vehicleStatuses),
     };
   });
 
-  // ── Upsert batches (used by sync from Supabase) ──
+  // ── Upsert batches (usados pelo sync) ──
   ipcMain.handle('db:customers:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertCustomers(args.rows);
+    upsertBatchRaw('customers', ['id', 'user_id', 'name', 'phone', 'cpf', 'active_contract', 'balance_due', 'last_payment_date', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
   });
   ipcMain.handle('db:vehicleModels:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertVehicleModels(args.rows);
+    upsertBatchRaw('vehicle_models', ['id', 'name', 'brand', 'image_url', 'status', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
   });
   ipcMain.handle('db:vehicles:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertVehicles(args.rows);
+    upsertBatchRaw('vehicles', ['id', 'plate', 'model_id', 'year', 'status_id', 'mileage', 'current_renter_id', 'default_monthly_rate', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
   });
   ipcMain.handle('db:rentals:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertRentals(args.rows);
+    upsertBatchRaw('rentals', ['id', 'user_id', 'vehicle_id', 'customer_id', 'start_date', 'end_date', 'monthly_rate', 'status', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
   });
   ipcMain.handle('db:maintenance:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertMaintenance(args.rows);
+    upsertBatchRaw('maintenance_records', ['id', 'user_id', 'vehicle_id', 'workshop_id', 'vehicle_plate', 'entry_date', 'completion_date', 'mechanic_name', 'description', 'type', 'cost', 'status', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
   });
   ipcMain.handle('db:workshops:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertWorkshops(args.rows);
+    upsertBatchRaw('workshops', ['id', 'name', 'address', 'status', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
   });
   ipcMain.handle('db:contracts:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertContracts(args.rows);
+    upsertBatchRaw('contracts', ['id', 'rental_id', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
   });
   ipcMain.handle('db:documents:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertDocuments(args.rows);
+    upsertBatchRaw('documents', ['id', 'parent_id', 'origin_type', 'file_url', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
   });
   ipcMain.handle('db:vehicleStatuses:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertVehicleStatuses(args.rows);
+    upsertBatchRaw('vehicle_statuses', ['id', 'name', 'color', 'is_default', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
   });
 
   // ── Customers CRUD ──
   ipcMain.handle('db:customers:getAll', (_e, args: { userId: string }) => {
-    return db.prepare('SELECT * FROM customers WHERE user_id = ? AND deleted_at IS NULL ORDER BY name').all(args.userId);
+    return db.select().from(customers)
+      .where(and(eq(customers.userId, args.userId), isNull(customers.deletedAt)))
+      .orderBy(customers.name)
+      .all();
   });
 
   ipcMain.handle('db:customers:getById', (_e, args: { id: string; userId: string }) => {
-    return db.prepare('SELECT * FROM customers WHERE id = ? AND user_id = ? AND deleted_at IS NULL').get(args.id, args.userId) ?? null;
+    return db.select().from(customers)
+      .where(and(eq(customers.id, args.id), eq(customers.userId, args.userId), isNull(customers.deletedAt)))
+      .get() ?? null;
   });
 
   ipcMain.handle('db:customers:create', (_e, args: Record<string, unknown> & { userId: string }) => {
     const now = new Date().toISOString();
     const id = randomUUID();
-    db.prepare(`
-      INSERT INTO customers (id, user_id, name, phone, cpf, active_contract, balance_due, last_payment_date, created_at, updated_at, dirty)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-    `).run(
-      id, args.userId, args.name, args.phone ?? null, args.cpf ?? null,
-      args.active_contract ? 1 : 0, args.balance_due ?? 0, args.last_payment_date ?? null,
-      now, now
-    );
-    return db.prepare('SELECT * FROM customers WHERE id = ?').get(id);
+    db.insert(customers).values({
+      id,
+      userId: args.userId,
+      name: args.name as string,
+      phone: (args.phone as string) ?? null,
+      cpf: (args.cpf as string) ?? null,
+      activeContract: args.active_contract ? 1 : 0,
+      balanceDue: (args.balance_due as number) ?? 0,
+      lastPaymentDate: (args.last_payment_date as string) ?? null,
+      createdAt: now,
+      updatedAt: now,
+    }).run();
+    return db.select().from(customers).where(eq(customers.id, id)).get();
   });
 
   ipcMain.handle('db:customers:update', (_e, args: Record<string, unknown> & { id: string; userId: string }) => {
     const now = new Date().toISOString();
-    const fields: string[] = [];
-    const values: unknown[] = [];
+    const set: Partial<typeof customers.$inferInsert> = { updatedAt: now, dirty: 1 };
+    if ('name' in args)              set.name = args.name as string;
+    if ('phone' in args)             set.phone = args.phone as string;
+    if ('cpf' in args)               set.cpf = args.cpf as string;
+    if ('active_contract' in args)   set.activeContract = args.active_contract ? 1 : 0;
+    if ('balance_due' in args)       set.balanceDue = args.balance_due as number;
+    if ('last_payment_date' in args) set.lastPaymentDate = args.last_payment_date as string;
 
-    const updateable = ['name', 'phone', 'cpf', 'active_contract', 'balance_due', 'last_payment_date'] as const;
-    for (const field of updateable) {
-      if (field in args) {
-        fields.push(`${field} = ?`);
-        values.push(field === 'active_contract' ? (args[field] ? 1 : 0) : args[field]);
-      }
-    }
-    fields.push('updated_at = ?', 'dirty = 1');
-    values.push(now, args.id, args.userId);
-
-    db.prepare(`UPDATE customers SET ${fields.join(', ')} WHERE id = ? AND user_id = ?`).run(...values);
-    return db.prepare('SELECT * FROM customers WHERE id = ?').get(args.id);
+    db.update(customers).set(set)
+      .where(and(eq(customers.id, args.id), eq(customers.userId, args.userId)))
+      .run();
+    return db.select().from(customers).where(eq(customers.id, args.id)).get();
   });
 
   ipcMain.handle('db:customers:delete', (_e, args: { id: string; userId: string }) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE customers SET deleted_at = ?, dirty = 1 WHERE id = ? AND user_id = ?').run(now, args.id, args.userId);
+    db.update(customers).set({ deletedAt: new Date().toISOString(), dirty: 1 })
+      .where(and(eq(customers.id, args.id), eq(customers.userId, args.userId)))
+      .run();
   });
 
-  // ── Vehicle Models CRUD (shared, no user_id) ──
+  // ── Vehicle Models CRUD ──
   ipcMain.handle('db:vehicleModels:getAll', () => {
-    return db.prepare('SELECT * FROM vehicle_models WHERE deleted_at IS NULL ORDER BY name').all();
+    return db.select().from(vehicleModels).where(isNull(vehicleModels.deletedAt)).orderBy(vehicleModels.name).all();
   });
 
   ipcMain.handle('db:vehicleModels:getById', (_e, args: { id: string }) => {
-    return db.prepare('SELECT * FROM vehicle_models WHERE id = ? AND deleted_at IS NULL').get(args.id) ?? null;
+    return db.select().from(vehicleModels).where(and(eq(vehicleModels.id, args.id), isNull(vehicleModels.deletedAt))).get() ?? null;
   });
 
   ipcMain.handle('db:vehicleModels:create', (_e, args: Record<string, unknown>) => {
     const now = new Date().toISOString();
     const id = randomUUID();
-    db.prepare(`
-      INSERT INTO vehicle_models (id, name, brand, image_url, status, created_at, updated_at, dirty)
-      VALUES (?, ?, ?, ?, ?, ?, ?, 1)
-    `).run(
-      id, args.name, args.brand, args.image_url ?? null, args.status ?? 'ACTIVE', now, now
-    );
-    return db.prepare('SELECT * FROM vehicle_models WHERE id = ?').get(id);
+    db.insert(vehicleModels).values({
+      id,
+      name: args.name as string,
+      brand: args.brand as string,
+      imageUrl: (args.image_url as string) ?? null,
+      status: (args.status as string) ?? 'ACTIVE',
+      createdAt: now,
+      updatedAt: now,
+    }).run();
+    return db.select().from(vehicleModels).where(eq(vehicleModels.id, id)).get();
   });
 
   ipcMain.handle('db:vehicleModels:update', (_e, args: Record<string, unknown> & { id: string }) => {
     const now = new Date().toISOString();
-    const fields: string[] = [];
-    const values: unknown[] = [];
+    const set: Partial<typeof vehicleModels.$inferInsert> = { updatedAt: now, dirty: 1 };
+    if ('name' in args)      set.name = args.name as string;
+    if ('brand' in args)     set.brand = args.brand as string;
+    if ('image_url' in args) set.imageUrl = args.image_url as string;
+    if ('status' in args)    set.status = args.status as string;
 
-    const updateable = ['name', 'brand', 'image_url', 'status'] as const;
-    for (const field of updateable) {
-      if (field in args) {
-        fields.push(`${field} = ?`);
-        values.push(args[field]);
-      }
-    }
-    fields.push('updated_at = ?', 'dirty = 1');
-    values.push(now, args.id);
-
-    db.prepare(`UPDATE vehicle_models SET ${fields.join(', ')} WHERE id = ?`).run(...values);
-    return db.prepare('SELECT * FROM vehicle_models WHERE id = ?').get(args.id);
+    db.update(vehicleModels).set(set).where(eq(vehicleModels.id, args.id)).run();
+    return db.select().from(vehicleModels).where(eq(vehicleModels.id, args.id)).get();
   });
 
   ipcMain.handle('db:vehicleModels:delete', (_e, args: { id: string }) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE vehicle_models SET deleted_at = ?, dirty = 1 WHERE id = ?').run(now, args.id);
+    db.update(vehicleModels).set({ deletedAt: new Date().toISOString(), dirty: 1 }).where(eq(vehicleModels.id, args.id)).run();
   });
 
-  // ── Vehicles CRUD (shared, no user_id) ──
+  // ── Vehicles CRUD (inclui join com model e status) ──
+  const vehicleWithRelations = (vehicleRow: typeof vehicles.$inferSelect) => {
+    const model = vehicleRow.modelId
+      ? db.select().from(vehicleModels).where(eq(vehicleModels.id, vehicleRow.modelId)).get() ?? null
+      : null;
+    const vehicleStatus = db.select().from(vehicleStatuses).where(eq(vehicleStatuses.id, vehicleRow.statusId)).get() ?? null;
+    return { ...vehicleRow, model, vehicleStatus };
+  };
+
   ipcMain.handle('db:vehicles:getAll', () => {
-    const rawVehicles = db.prepare('SELECT * FROM vehicles WHERE deleted_at IS NULL ORDER BY created_at DESC').all();
-    const models = db.prepare('SELECT * FROM vehicle_models WHERE deleted_at IS NULL').all();
-    const modelMap = new Map(models.map((m: any) => [m.id, m]));
-    const statuses = db.prepare('SELECT * FROM vehicle_statuses WHERE deleted_at IS NULL').all();
-    const statusMap = new Map(statuses.map((s: any) => [s.id, s]));
-    return rawVehicles.map((v: any) => ({
-      ...v,
-      model: modelMap.get(v.model_id) || null,
-      vehicleStatus: statusMap.get(v.status_id) || null,
-    }));
+    const rows = db.select().from(vehicles).where(isNull(vehicles.deletedAt)).orderBy(desc(vehicles.createdAt)).all();
+    const allModels = db.select().from(vehicleModels).where(isNull(vehicleModels.deletedAt)).all();
+    const allStatuses = db.select().from(vehicleStatuses).where(isNull(vehicleStatuses.deletedAt)).all();
+    const modelMap = new Map(allModels.map(m => [m.id, m]));
+    const statusMap = new Map(allStatuses.map(s => [s.id, s]));
+    return rows.map(v => ({ ...v, model: modelMap.get(v.modelId ?? '') ?? null, vehicleStatus: statusMap.get(v.statusId) ?? null }));
   });
 
   ipcMain.handle('db:vehicles:getById', (_e, args: { id: string }) => {
-    const v: any = db.prepare('SELECT * FROM vehicles WHERE id = ? AND deleted_at IS NULL').get(args.id);
+    const v = db.select().from(vehicles).where(and(eq(vehicles.id, args.id), isNull(vehicles.deletedAt))).get();
     if (!v) return null;
-    const model = db.prepare('SELECT * FROM vehicle_models WHERE id = ?').get(v.model_id) ?? null;
-    const vehicleStatus = db.prepare('SELECT * FROM vehicle_statuses WHERE id = ?').get(v.status_id) ?? null;
-    return { ...v, model, vehicleStatus };
+    return vehicleWithRelations(v);
   });
 
   ipcMain.handle('db:vehicles:create', (_e, args: Record<string, unknown>) => {
     const now = new Date().toISOString();
     const id = randomUUID();
-    db.prepare(`
-      INSERT INTO vehicles (id, plate, model_id, year, status_id, mileage, current_renter_id, default_monthly_rate, created_at, updated_at, dirty)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-    `).run(
-      id, args.plate, args.model_id, args.year,
-      args.status_id, args.mileage ?? 0, args.current_renter_id ?? null,
-      args.default_monthly_rate ?? 0, now, now
-    );
-    const v: any = db.prepare('SELECT * FROM vehicles WHERE id = ?').get(id);
-    const model = db.prepare('SELECT * FROM vehicle_models WHERE id = ?').get(v.model_id) ?? null;
-    const vehicleStatus = db.prepare('SELECT * FROM vehicle_statuses WHERE id = ?').get(v.status_id) ?? null;
-    return { ...v, model, vehicleStatus };
+    db.insert(vehicles).values({
+      id,
+      plate: args.plate as string,
+      modelId: (args.model_id as string) ?? null,
+      year: args.year as number,
+      statusId: args.status_id as string,
+      mileage: (args.mileage as number) ?? 0,
+      currentRenterId: (args.current_renter_id as string) ?? null,
+      defaultMonthlyRate: (args.default_monthly_rate as number) ?? 0,
+      createdAt: now,
+      updatedAt: now,
+    }).run();
+    const v = db.select().from(vehicles).where(eq(vehicles.id, id)).get()!;
+    return vehicleWithRelations(v);
   });
 
   ipcMain.handle('db:vehicles:update', (_e, args: Record<string, unknown> & { id: string }) => {
     const now = new Date().toISOString();
-    const fields: string[] = [];
-    const values: unknown[] = [];
+    const set: Partial<typeof vehicles.$inferInsert> = { updatedAt: now, dirty: 1 };
+    if ('plate' in args)                set.plate = args.plate as string;
+    if ('model_id' in args)             set.modelId = args.model_id as string;
+    if ('year' in args)                 set.year = args.year as number;
+    if ('status_id' in args)            set.statusId = args.status_id as string;
+    if ('mileage' in args)              set.mileage = args.mileage as number;
+    if ('current_renter_id' in args)    set.currentRenterId = args.current_renter_id as string;
+    if ('default_monthly_rate' in args) set.defaultMonthlyRate = args.default_monthly_rate as number;
 
-    const updateable = ['plate', 'model_id', 'year', 'status_id', 'mileage', 'current_renter_id', 'default_monthly_rate'] as const;
-    for (const field of updateable) {
-      if (field in args) {
-        fields.push(`${field} = ?`);
-        values.push(args[field]);
-      }
-    }
-    fields.push('updated_at = ?', 'dirty = 1');
-    values.push(now, args.id);
-
-    db.prepare(`UPDATE vehicles SET ${fields.join(', ')} WHERE id = ?`).run(...values);
-    const v: any = db.prepare('SELECT * FROM vehicles WHERE id = ?').get(args.id);
-    const model = db.prepare('SELECT * FROM vehicle_models WHERE id = ?').get(v.model_id) ?? null;
-    const vehicleStatus = db.prepare('SELECT * FROM vehicle_statuses WHERE id = ?').get(v.status_id) ?? null;
-    return { ...v, model, vehicleStatus };
+    db.update(vehicles).set(set).where(eq(vehicles.id, args.id)).run();
+    const v = db.select().from(vehicles).where(eq(vehicles.id, args.id)).get()!;
+    return vehicleWithRelations(v);
   });
 
   ipcMain.handle('db:vehicles:delete', (_e, args: { id: string }) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE vehicles SET deleted_at = ?, dirty = 1 WHERE id = ?').run(now, args.id);
+    db.update(vehicles).set({ deletedAt: new Date().toISOString(), dirty: 1 }).where(eq(vehicles.id, args.id)).run();
   });
 
   // ── Rentals CRUD ──
   ipcMain.handle('db:rentals:getAll', (_e, args: { userId: string }) => {
-    return db.prepare('SELECT * FROM rentals WHERE user_id = ? AND deleted_at IS NULL ORDER BY start_date DESC').all(args.userId);
+    return db.select().from(rentals)
+      .where(and(eq(rentals.userId, args.userId), isNull(rentals.deletedAt)))
+      .orderBy(desc(rentals.startDate))
+      .all();
   });
 
   ipcMain.handle('db:rentals:getById', (_e, args: { id: string; userId: string }) => {
-    return db.prepare('SELECT * FROM rentals WHERE id = ? AND user_id = ? AND deleted_at IS NULL').get(args.id, args.userId) ?? null;
+    return db.select().from(rentals)
+      .where(and(eq(rentals.id, args.id), eq(rentals.userId, args.userId), isNull(rentals.deletedAt)))
+      .get() ?? null;
   });
 
   ipcMain.handle('db:rentals:create', (_e, args: Record<string, unknown> & { userId: string }) => {
     const now = new Date().toISOString();
     const id = randomUUID();
-    db.prepare(`
-      INSERT INTO rentals (id, user_id, vehicle_id, customer_id, start_date, end_date, monthly_rate, status, created_at, updated_at, dirty)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-    `).run(
-      id, args.userId, args.vehicle_id, args.customer_id, args.start_date,
-      args.end_date ?? null, args.monthly_rate, args.status ?? 'ACTIVE', now, now
-    );
-    return db.prepare('SELECT * FROM rentals WHERE id = ?').get(id);
+    db.insert(rentals).values({
+      id,
+      userId: args.userId,
+      vehicleId: args.vehicle_id as string,
+      customerId: args.customer_id as string,
+      startDate: args.start_date as string,
+      endDate: (args.end_date as string) ?? null,
+      monthlyRate: args.monthly_rate as number,
+      status: (args.status as string) ?? 'ACTIVE',
+      createdAt: now,
+      updatedAt: now,
+    }).run();
+    return db.select().from(rentals).where(eq(rentals.id, id)).get();
   });
 
   ipcMain.handle('db:rentals:update', (_e, args: Record<string, unknown> & { id: string; userId: string }) => {
     const now = new Date().toISOString();
-    const fields: string[] = [];
-    const values: unknown[] = [];
+    const set: Partial<typeof rentals.$inferInsert> = { updatedAt: now, dirty: 1 };
+    if ('vehicle_id' in args)   set.vehicleId = args.vehicle_id as string;
+    if ('customer_id' in args)  set.customerId = args.customer_id as string;
+    if ('start_date' in args)   set.startDate = args.start_date as string;
+    if ('end_date' in args)     set.endDate = args.end_date as string;
+    if ('monthly_rate' in args) set.monthlyRate = args.monthly_rate as number;
+    if ('status' in args)       set.status = args.status as string;
 
-    const updateable = ['vehicle_id', 'customer_id', 'start_date', 'end_date', 'monthly_rate', 'status'] as const;
-    for (const field of updateable) {
-      if (field in args) {
-        fields.push(`${field} = ?`);
-        values.push(args[field]);
-      }
-    }
-    fields.push('updated_at = ?', 'dirty = 1');
-    values.push(now, args.id, args.userId);
-
-    db.prepare(`UPDATE rentals SET ${fields.join(', ')} WHERE id = ? AND user_id = ?`).run(...values);
-    return db.prepare('SELECT * FROM rentals WHERE id = ?').get(args.id);
+    db.update(rentals).set(set).where(and(eq(rentals.id, args.id), eq(rentals.userId, args.userId))).run();
+    return db.select().from(rentals).where(eq(rentals.id, args.id)).get();
   });
 
   ipcMain.handle('db:rentals:delete', (_e, args: { id: string; userId: string }) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE rentals SET deleted_at = ?, dirty = 1 WHERE id = ? AND user_id = ?').run(now, args.id, args.userId);
+    db.update(rentals).set({ deletedAt: new Date().toISOString(), dirty: 1 })
+      .where(and(eq(rentals.id, args.id), eq(rentals.userId, args.userId)))
+      .run();
   });
 
   // ── Maintenance Records CRUD ──
   ipcMain.handle('db:maintenance:getAll', (_e, args: { userId: string }) => {
-    return db.prepare('SELECT * FROM maintenance_records WHERE user_id = ? AND deleted_at IS NULL ORDER BY entry_date DESC').all(args.userId);
+    return db.select().from(maintenanceRecords)
+      .where(and(eq(maintenanceRecords.userId, args.userId), isNull(maintenanceRecords.deletedAt)))
+      .orderBy(desc(maintenanceRecords.entryDate))
+      .all();
   });
 
   ipcMain.handle('db:maintenance:getById', (_e, args: { id: string; userId: string }) => {
-    return db.prepare('SELECT * FROM maintenance_records WHERE id = ? AND user_id = ? AND deleted_at IS NULL').get(args.id, args.userId) ?? null;
+    return db.select().from(maintenanceRecords)
+      .where(and(eq(maintenanceRecords.id, args.id), eq(maintenanceRecords.userId, args.userId), isNull(maintenanceRecords.deletedAt)))
+      .get() ?? null;
   });
 
   ipcMain.handle('db:maintenance:create', (_e, args: Record<string, unknown> & { userId: string }) => {
     const now = new Date().toISOString();
     const id = randomUUID();
-    db.prepare(`
-      INSERT INTO maintenance_records
-        (id, user_id, vehicle_id, workshop_id, vehicle_plate, entry_date, completion_date, mechanic_name, description, type, cost, status, created_at, updated_at, dirty)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
-    `).run(
-      id, args.userId, args.vehicle_id, args.workshop_id ?? null, args.vehicle_plate, args.entry_date,
-      args.completion_date ?? null, args.mechanic_name, args.description, args.type,
-      args.cost ?? 0, args.status ?? 'OPEN', now, now
-    );
-    return db.prepare('SELECT * FROM maintenance_records WHERE id = ?').get(id);
+    db.insert(maintenanceRecords).values({
+      id,
+      userId: args.userId,
+      vehicleId: args.vehicle_id as string,
+      workshopId: (args.workshop_id as string) ?? null,
+      vehiclePlate: args.vehicle_plate as string,
+      entryDate: args.entry_date as string,
+      completionDate: (args.completion_date as string) ?? null,
+      mechanicName: args.mechanic_name as string,
+      description: args.description as string,
+      type: args.type as string,
+      cost: (args.cost as number) ?? 0,
+      status: (args.status as string) ?? 'OPEN',
+      createdAt: now,
+      updatedAt: now,
+    }).run();
+    return db.select().from(maintenanceRecords).where(eq(maintenanceRecords.id, id)).get();
   });
 
   ipcMain.handle('db:maintenance:update', (_e, args: Record<string, unknown> & { id: string; userId: string }) => {
     const now = new Date().toISOString();
-    const fields: string[] = [];
-    const values: unknown[] = [];
+    const set: Partial<typeof maintenanceRecords.$inferInsert> = { updatedAt: now, dirty: 1 };
+    if ('vehicle_id' in args)      set.vehicleId = args.vehicle_id as string;
+    if ('workshop_id' in args)     set.workshopId = args.workshop_id as string;
+    if ('vehicle_plate' in args)   set.vehiclePlate = args.vehicle_plate as string;
+    if ('entry_date' in args)      set.entryDate = args.entry_date as string;
+    if ('completion_date' in args) set.completionDate = args.completion_date as string;
+    if ('mechanic_name' in args)   set.mechanicName = args.mechanic_name as string;
+    if ('description' in args)     set.description = args.description as string;
+    if ('type' in args)            set.type = args.type as string;
+    if ('cost' in args)            set.cost = args.cost as number;
+    if ('status' in args)          set.status = args.status as string;
 
-    const updateable = ['vehicle_id', 'workshop_id', 'vehicle_plate', 'entry_date', 'completion_date', 'mechanic_name', 'description', 'type', 'cost', 'status'] as const;
-    for (const field of updateable) {
-      if (field in args) {
-        fields.push(`${field} = ?`);
-        values.push(args[field]);
-      }
-    }
-    fields.push('updated_at = ?', 'dirty = 1');
-    values.push(now, args.id, args.userId);
-
-    db.prepare(`UPDATE maintenance_records SET ${fields.join(', ')} WHERE id = ? AND user_id = ?`).run(...values);
-    return db.prepare('SELECT * FROM maintenance_records WHERE id = ?').get(args.id);
+    db.update(maintenanceRecords).set(set)
+      .where(and(eq(maintenanceRecords.id, args.id), eq(maintenanceRecords.userId, args.userId)))
+      .run();
+    return db.select().from(maintenanceRecords).where(eq(maintenanceRecords.id, args.id)).get();
   });
 
   ipcMain.handle('db:maintenance:delete', (_e, args: { id: string; userId: string }) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE maintenance_records SET deleted_at = ?, dirty = 1 WHERE id = ? AND user_id = ?').run(now, args.id, args.userId);
+    db.update(maintenanceRecords).set({ deletedAt: new Date().toISOString(), dirty: 1 })
+      .where(and(eq(maintenanceRecords.id, args.id), eq(maintenanceRecords.userId, args.userId)))
+      .run();
   });
 
   // ── App info ──
@@ -915,263 +444,235 @@ export function registerIpcHandlers(): void {
 
   // ── Workshops CRUD ──
   ipcMain.handle('db:workshops:getAll', () => {
-    return db.prepare('SELECT * FROM workshops WHERE deleted_at IS NULL ORDER BY name').all();
+    return db.select().from(workshops).where(isNull(workshops.deletedAt)).orderBy(workshops.name).all();
   });
 
   ipcMain.handle('db:workshops:getById', (_e, args: { id: string }) => {
-    return db.prepare('SELECT * FROM workshops WHERE id = ? AND deleted_at IS NULL').get(args.id) ?? null;
+    return db.select().from(workshops).where(and(eq(workshops.id, args.id), isNull(workshops.deletedAt))).get() ?? null;
   });
 
   ipcMain.handle('db:workshops:create', (_e, args: Record<string, unknown>) => {
     const now = new Date().toISOString();
     const id = randomUUID();
-    db.prepare(`
-      INSERT INTO workshops (id, name, address, status, created_at, updated_at, dirty)
-      VALUES (?, ?, ?, ?, ?, ?, 1)
-    `).run(id, args.name, args.address ?? null, args.status ?? 'ACTIVE', now, now);
-    return db.prepare('SELECT * FROM workshops WHERE id = ?').get(id);
+    db.insert(workshops).values({
+      id,
+      name: args.name as string,
+      address: (args.address as string) ?? null,
+      status: (args.status as string) ?? 'ACTIVE',
+      createdAt: now,
+      updatedAt: now,
+    }).run();
+    return db.select().from(workshops).where(eq(workshops.id, id)).get();
   });
 
   ipcMain.handle('db:workshops:update', (_e, args: Record<string, unknown> & { id: string }) => {
     const now = new Date().toISOString();
-    const fields: string[] = [];
-    const values: unknown[] = [];
-    const updateable = ['name', 'address', 'status'] as const;
-    for (const field of updateable) {
-      if (field in args) {
-        fields.push(`${field} = ?`);
-        values.push(args[field]);
-      }
-    }
-    fields.push('updated_at = ?', 'dirty = 1');
-    values.push(now, args.id);
-    db.prepare(`UPDATE workshops SET ${fields.join(', ')} WHERE id = ?`).run(...values);
-    return db.prepare('SELECT * FROM workshops WHERE id = ?').get(args.id);
+    const set: Partial<typeof workshops.$inferInsert> = { updatedAt: now, dirty: 1 };
+    if ('name' in args)    set.name = args.name as string;
+    if ('address' in args) set.address = args.address as string;
+    if ('status' in args)  set.status = args.status as string;
+
+    db.update(workshops).set(set).where(eq(workshops.id, args.id)).run();
+    return db.select().from(workshops).where(eq(workshops.id, args.id)).get();
   });
 
   ipcMain.handle('db:workshops:delete', (_e, args: { id: string }) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE workshops SET deleted_at = ?, dirty = 1 WHERE id = ?').run(now, args.id);
+    db.update(workshops).set({ deletedAt: new Date().toISOString(), dirty: 1 }).where(eq(workshops.id, args.id)).run();
   });
 
   // ── Vehicle Statuses CRUD ──
   ipcMain.handle('db:vehicleStatuses:getAll', () => {
-    return db.prepare('SELECT * FROM vehicle_statuses WHERE deleted_at IS NULL ORDER BY name').all();
+    return db.select().from(vehicleStatuses).where(isNull(vehicleStatuses.deletedAt)).orderBy(vehicleStatuses.name).all();
   });
 
   ipcMain.handle('db:vehicleStatuses:getById', (_e, args: { id: string }) => {
-    return db.prepare('SELECT * FROM vehicle_statuses WHERE id = ? AND deleted_at IS NULL').get(args.id) ?? null;
+    return db.select().from(vehicleStatuses).where(and(eq(vehicleStatuses.id, args.id), isNull(vehicleStatuses.deletedAt))).get() ?? null;
   });
 
   ipcMain.handle('db:vehicleStatuses:create', (_e, args: Record<string, unknown>) => {
     const now = new Date().toISOString();
     const id = randomUUID();
-    db.prepare(`
-      INSERT INTO vehicle_statuses (id, name, color, is_default, created_at, updated_at, dirty)
-      VALUES (?, ?, ?, ?, ?, ?, 1)
-    `).run(id, args.name, args.color ?? '#6b7280', args.is_default ? 1 : 0, now, now);
-    return db.prepare('SELECT * FROM vehicle_statuses WHERE id = ?').get(id);
+    db.insert(vehicleStatuses).values({
+      id,
+      name: args.name as string,
+      color: (args.color as string) ?? '#6b7280',
+      isDefault: args.is_default ? 1 : 0,
+      createdAt: now,
+      updatedAt: now,
+    }).run();
+    return db.select().from(vehicleStatuses).where(eq(vehicleStatuses.id, id)).get();
   });
 
   ipcMain.handle('db:vehicleStatuses:update', (_e, args: Record<string, unknown> & { id: string }) => {
     const now = new Date().toISOString();
-    const fields: string[] = [];
-    const values: unknown[] = [];
-    const updateable = ['name', 'color', 'is_default'] as const;
-    for (const field of updateable) {
-      if (field in args) {
-        fields.push(`${field} = ?`);
-        values.push(field === 'is_default' ? (args[field] ? 1 : 0) : args[field]);
-      }
-    }
-    fields.push('updated_at = ?', 'dirty = 1');
-    values.push(now, args.id);
-    db.prepare(`UPDATE vehicle_statuses SET ${fields.join(', ')} WHERE id = ?`).run(...values);
-    return db.prepare('SELECT * FROM vehicle_statuses WHERE id = ?').get(args.id);
+    const set: Partial<typeof vehicleStatuses.$inferInsert> = { updatedAt: now, dirty: 1 };
+    if ('name' in args)       set.name = args.name as string;
+    if ('color' in args)      set.color = args.color as string;
+    if ('is_default' in args) set.isDefault = args.is_default ? 1 : 0;
+
+    db.update(vehicleStatuses).set(set).where(eq(vehicleStatuses.id, args.id)).run();
+    return db.select().from(vehicleStatuses).where(eq(vehicleStatuses.id, args.id)).get();
   });
 
   ipcMain.handle('db:vehicleStatuses:delete', (_e, args: { id: string }) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE vehicle_statuses SET deleted_at = ?, dirty = 1 WHERE id = ?').run(now, args.id);
+    db.update(vehicleStatuses).set({ deletedAt: new Date().toISOString(), dirty: 1 }).where(eq(vehicleStatuses.id, args.id)).run();
   });
 
   // ── Contracts CRUD ──
   ipcMain.handle('db:contracts:getAll', () => {
-    return db.prepare('SELECT * FROM contracts WHERE deleted_at IS NULL ORDER BY created_at DESC').all();
+    return db.select().from(contracts).where(isNull(contracts.deletedAt)).orderBy(desc(contracts.createdAt)).all();
   });
 
   ipcMain.handle('db:contracts:getById', (_e, args: { id: string }) => {
-    return db.prepare('SELECT * FROM contracts WHERE id = ? AND deleted_at IS NULL').get(args.id) ?? null;
+    return db.select().from(contracts).where(and(eq(contracts.id, args.id), isNull(contracts.deletedAt))).get() ?? null;
   });
 
   ipcMain.handle('db:contracts:getByRental', (_e, args: { rentalId: string }) => {
-    return db.prepare('SELECT * FROM contracts WHERE rental_id = ? AND deleted_at IS NULL').get(args.rentalId) ?? null;
+    return db.select().from(contracts).where(and(eq(contracts.rentalId, args.rentalId), isNull(contracts.deletedAt))).get() ?? null;
   });
 
   ipcMain.handle('db:contracts:create', (_e, args: Record<string, unknown>) => {
     const now = new Date().toISOString();
     const id = randomUUID();
-    db.prepare(`
-      INSERT INTO contracts (id, rental_id, created_at, updated_at, dirty)
-      VALUES (?, ?, ?, ?, 1)
-    `).run(id, args.rental_id, now, now);
-    return db.prepare('SELECT * FROM contracts WHERE id = ?').get(id);
+    db.insert(contracts).values({ id, rentalId: args.rental_id as string, createdAt: now, updatedAt: now }).run();
+    return db.select().from(contracts).where(eq(contracts.id, id)).get();
   });
 
   ipcMain.handle('db:contracts:update', (_e, args: Record<string, unknown> & { id: string }) => {
     const now = new Date().toISOString();
-    const fields: string[] = [];
-    const values: unknown[] = [];
-    const updateable = ['rental_id'] as const;
-    for (const field of updateable) {
-      if (field in args) {
-        fields.push(`${field} = ?`);
-        values.push(args[field]);
-      }
-    }
-    fields.push('updated_at = ?', 'dirty = 1');
-    values.push(now, args.id);
-    db.prepare(`UPDATE contracts SET ${fields.join(', ')} WHERE id = ?`).run(...values);
-    return db.prepare('SELECT * FROM contracts WHERE id = ?').get(args.id);
+    const set: Partial<typeof contracts.$inferInsert> = { updatedAt: now, dirty: 1 };
+    if ('rental_id' in args) set.rentalId = args.rental_id as string;
+
+    db.update(contracts).set(set).where(eq(contracts.id, args.id)).run();
+    return db.select().from(contracts).where(eq(contracts.id, args.id)).get();
   });
 
   ipcMain.handle('db:contracts:delete', (_e, args: { id: string }) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE contracts SET deleted_at = ?, dirty = 1 WHERE id = ?').run(now, args.id);
+    db.update(contracts).set({ deletedAt: new Date().toISOString(), dirty: 1 }).where(eq(contracts.id, args.id)).run();
   });
 
   // ── Documents CRUD ──
   ipcMain.handle('db:documents:getAll', () => {
-    return db.prepare('SELECT * FROM documents WHERE deleted_at IS NULL ORDER BY created_at DESC').all();
+    return db.select().from(documents).where(isNull(documents.deletedAt)).orderBy(desc(documents.createdAt)).all();
   });
 
   ipcMain.handle('db:documents:getByParent', (_e, args: { parentId: string; originType: string }) => {
-    return db.prepare('SELECT * FROM documents WHERE parent_id = ? AND origin_type = ? AND deleted_at IS NULL ORDER BY created_at DESC').all(args.parentId, args.originType);
+    return db.select().from(documents)
+      .where(and(eq(documents.parentId, args.parentId), eq(documents.originType, args.originType), isNull(documents.deletedAt)))
+      .orderBy(desc(documents.createdAt))
+      .all();
   });
 
   ipcMain.handle('db:documents:create', (_e, args: Record<string, unknown>) => {
     const now = new Date().toISOString();
     const id = randomUUID();
-    db.prepare(`
-      INSERT INTO documents (id, parent_id, origin_type, file_url, created_at, updated_at, dirty)
-      VALUES (?, ?, ?, ?, ?, ?, 1)
-    `).run(id, args.parent_id, args.origin_type, args.file_url, now, now);
-    return db.prepare('SELECT * FROM documents WHERE id = ?').get(id);
+    db.insert(documents).values({
+      id,
+      parentId: args.parent_id as string,
+      originType: args.origin_type as string,
+      fileUrl: args.file_url as string,
+      createdAt: now,
+      updatedAt: now,
+    }).run();
+    return db.select().from(documents).where(eq(documents.id, id)).get();
   });
 
   ipcMain.handle('db:documents:delete', (_e, args: { id: string }) => {
-    const now = new Date().toISOString();
-    db.prepare('UPDATE documents SET deleted_at = ?, dirty = 1 WHERE id = ?').run(now, args.id);
+    db.update(documents).set({ deletedAt: new Date().toISOString(), dirty: 1 }).where(eq(documents.id, args.id)).run();
   });
 
   // ── Roles CRUD ──
   ipcMain.handle('db:roles:getAll', () => {
-    return db.prepare("SELECT * FROM roles WHERE deleted_at IS NULL ORDER BY name").all()
-      .map((r: any) => ({ ...r, permissions: JSON.parse(r.permissions) }));
+    return db.select().from(roles).where(isNull(roles.deletedAt)).orderBy(roles.name).all()
+      .map(r => ({ ...r, permissions: JSON.parse(r.permissions) }));
   });
 
-  ipcMain.handle('db:roles:create', (_e, args: any) => {
+  ipcMain.handle('db:roles:create', (_e, args: Record<string, unknown>) => {
     const id = randomUUID();
     const now = new Date().toISOString();
-    db.prepare("INSERT INTO roles (id, workshop_id, name, permissions, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)").run(
-      id, args.workshop_id ?? null, args.name, JSON.stringify(args.permissions), now, now
-    );
-    const r: any = db.prepare("SELECT * FROM roles WHERE id = ?").get(id);
+    db.insert(roles).values({
+      id,
+      workshopId: (args.workshop_id as string) ?? null,
+      name: args.name as string,
+      permissions: JSON.stringify(args.permissions),
+      createdAt: now,
+      updatedAt: now,
+    }).run();
+    const r = db.select().from(roles).where(eq(roles.id, id)).get()!;
     return { ...r, permissions: JSON.parse(r.permissions) };
   });
 
-  ipcMain.handle('db:roles:update', (_e, args: any) => {
+  ipcMain.handle('db:roles:update', (_e, args: Record<string, unknown> & { id: string }) => {
     const now = new Date().toISOString();
-    db.prepare("UPDATE roles SET workshop_id = ?, name = ?, permissions = ?, updated_at = ? WHERE id = ?").run(
-      args.workshop_id ?? null, args.name, JSON.stringify(args.permissions), now, args.id
-    );
-    const r: any = db.prepare("SELECT * FROM roles WHERE id = ?").get(args.id);
+    db.update(roles).set({
+      workshopId: (args.workshop_id as string) ?? null,
+      name: args.name as string,
+      permissions: JSON.stringify(args.permissions),
+      updatedAt: now,
+    }).where(eq(roles.id, args.id)).run();
+    const r = db.select().from(roles).where(eq(roles.id, args.id)).get()!;
     return { ...r, permissions: JSON.parse(r.permissions) };
   });
 
   ipcMain.handle('db:roles:delete', (_e, args: { id: string }) => {
-    const now = new Date().toISOString();
-    db.prepare("UPDATE roles SET deleted_at = ? WHERE id = ?").run(now, args.id);
+    db.update(roles).set({ deletedAt: new Date().toISOString() }).where(eq(roles.id, args.id)).run();
   });
 
   // ── Users CRUD ──
   ipcMain.handle('db:users:getAll', () => {
-    const users: any[] = db.prepare(`
-      SELECT 
-        u.id, u.name, u.email, u.role_id, u.created_at, u.updated_at,
-        r.id as r_id, r.name as r_name, r.permissions as r_permissions
-      FROM app_users u
-      LEFT JOIN roles r ON u.role_id = r.id
-      WHERE u.deleted_at IS NULL
-      ORDER BY u.name
-    `).all();
-
-    return users.map(u => ({
-      id: u.id,
-      name: u.name,
-      email: u.email,
-      role_id: u.role_id,
-      created_at: u.created_at,
-      updated_at: u.updated_at,
-      role: u.r_id ? {
-        id: u.r_id,
-        name: u.r_name,
-        permissions: JSON.parse(u.r_permissions)
-      } : undefined
-    }));
+    const users = db.select().from(appUsers).where(isNull(appUsers.deletedAt)).orderBy(appUsers.name).all();
+    const allRoles = db.select().from(roles).all();
+    const roleMap = new Map(allRoles.map(r => [r.id, r]));
+    return users.map(u => {
+      const role = roleMap.get(u.roleId);
+      return { ...u, role: role ? { ...role, permissions: JSON.parse(role.permissions) } : undefined };
+    });
   });
 
-  ipcMain.handle('db:users:create', (_e, args: any) => {
+  ipcMain.handle('db:users:create', (_e, args: Record<string, unknown>) => {
     const id = randomUUID();
     const now = new Date().toISOString();
-    db.prepare("INSERT INTO app_users (id, name, email, password, role_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)").run(
-      id, args.name, args.email, args.password, args.role_id, now, now
-    );
-    return db.prepare("SELECT * FROM app_users WHERE id = ?").get(id);
+    db.insert(appUsers).values({
+      id,
+      name: args.name as string,
+      email: args.email as string,
+      password: args.password as string,
+      roleId: args.role_id as string,
+      createdAt: now,
+      updatedAt: now,
+    }).run();
+    return db.select().from(appUsers).where(eq(appUsers.id, id)).get();
   });
 
-  ipcMain.handle('db:users:update', (_e, args: any) => {
+  ipcMain.handle('db:users:update', (_e, args: Record<string, unknown> & { id: string }) => {
     const now = new Date().toISOString();
-    const fields: string[] = [];
-    const values: unknown[] = [];
-    const updateable = ['name', 'email', 'password', 'role_id'] as const;
-    for (const field of updateable) {
-      if (args[field]) {
-        fields.push(`${field} = ?`);
-        values.push(args[field]);
-      }
-    }
-    if (fields.length > 0) {
-      fields.push('updated_at = ?');
-      values.push(now, args.id);
-      db.prepare(`UPDATE app_users SET ${fields.join(', ')} WHERE id = ?`).run(...values);
-    }
+    const set: Partial<typeof appUsers.$inferInsert> = { updatedAt: now };
+    if ('name' in args)     set.name = args.name as string;
+    if ('email' in args)    set.email = args.email as string;
+    if ('password' in args) set.password = args.password as string;
+    if ('role_id' in args)  set.roleId = args.role_id as string;
+
+    db.update(appUsers).set(set).where(eq(appUsers.id, args.id)).run();
   });
 
   ipcMain.handle('db:users:delete', (_e, args: { id: string }) => {
-    const now = new Date().toISOString();
-    db.prepare("UPDATE app_users SET deleted_at = ? WHERE id = ?").run(now, args.id);
+    db.update(appUsers).set({ deletedAt: new Date().toISOString() }).where(eq(appUsers.id, args.id)).run();
   });
 
   ipcMain.handle('db:users:login', (_e, args: { email: string; password?: string }) => {
-    // If no password is provided, just get the user by email (for re-hydration/mocking). 
-    // In MVP password might be verified here.
-    let userRow: any;
-    if (args.password) {
-      userRow = db.prepare("SELECT * FROM app_users WHERE email = ? AND password = ? AND deleted_at IS NULL").get(args.email, args.password);
-    } else {
-      userRow = db.prepare("SELECT * FROM app_users WHERE email = ? AND deleted_at IS NULL").get(args.email);
-    }
+    let user = args.password
+      ? db.select().from(appUsers).where(and(eq(appUsers.email, args.email), eq(appUsers.password, args.password), isNull(appUsers.deletedAt))).get()
+      : db.select().from(appUsers).where(and(eq(appUsers.email, args.email), isNull(appUsers.deletedAt))).get();
 
-    if (!userRow) return null;
+    if (!user) return null;
 
-    const r: any = db.prepare("SELECT * FROM roles WHERE id = ?").get(userRow.role_id);
+    const role = db.select().from(roles).where(eq(roles.id, user.roleId)).get();
     return {
-      id: userRow.id,
-      name: userRow.name,
-      email: userRow.email,
-      role_id: userRow.role_id,
-      role: r ? { id: r.id, name: r.name, permissions: JSON.parse(r.permissions) } : undefined
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role_id: user.roleId,
+      role: role ? { id: role.id, name: role.name, permissions: JSON.parse(role.permissions) } : undefined,
     };
   });
 }

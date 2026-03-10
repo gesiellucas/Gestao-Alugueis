@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { getVehiclesApi, getVehicleModelsApi } from "../../../lib/apiFactory";
+import { localVehiclesApi } from "../../../services/localApi/vehicles";
+import { localVehicleModelsApi } from "../../../services/localApi/vehicleModels";
 import { ArrowLeft, Save, PlusCircle } from "lucide-react";
 
 export const VeiculoNovoPage: React.FC = () => {
@@ -43,7 +44,7 @@ export const VeiculoNovoPage: React.FC = () => {
           setSubmitting(false);
           return;
         }
-        const createdModel = await getVehicleModelsApi().create({
+        const createdModel = await localVehicleModelsApi.create({
           name: newModel.name,
           brand: newModel.brand,
           status: 'ACTIVE',
@@ -59,10 +60,11 @@ export const VeiculoNovoPage: React.FC = () => {
         return;
       }
 
-      const newVehicle = await getVehiclesApi().create({
+      const newVehicle = await localVehiclesApi.create({
         plate: form.plate,
         model_id: finalModelId,
         year: form.year,
+        status_id: 'vs_available',
         mileage: form.mileage,
         default_monthly_rate: form.default_monthly_rate,
       });

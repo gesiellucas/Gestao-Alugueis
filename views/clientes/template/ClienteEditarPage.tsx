@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { getCustomersApi } from "../../../lib/apiFactory";
+import { localCustomersApi } from "../../../services/localApi/customers";
 import { ArrowLeft, Save } from "lucide-react";
 
 export const ClienteEditarPage: React.FC = () => {
@@ -46,7 +46,7 @@ export const ClienteEditarPage: React.FC = () => {
     setSubmitting(true);
     setError(null);
     try {
-      await getCustomersApi().update(id, {
+      await localCustomersApi.update(id, {
         name: form.name,
         phone: form.phone,
         cpf: form.cpf,

@@ -1,7 +1,8 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import { AppUser, Role } from "../../../types";
-import { getUsersApi, getRolesApi } from "../../../lib/apiFactory";
+import { localUsersApi } from "../../../services/localApi/users";
+import { localRolesApi } from "../../../services/localApi/roles";
 import { Users, Shield, Plus, Edit2, Trash2, X, Check } from "lucide-react";
 
 export const AccessControl: React.FC = () => {
@@ -36,7 +37,7 @@ export const AccessControl: React.FC = () => {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [u, r] = await Promise.all([getUsersApi().getAll(), getRolesApi().getAll()]);
+      const [u, r] = await Promise.all([localUsersApi.getAll(), localRolesApi.getAll()]);
       setUsers(u);
       setRoles(r);
     } catch (e) {
@@ -50,11 +51,11 @@ export const AccessControl: React.FC = () => {
   const handleSaveUser = async () => {
     if (!formDataUser.name || !formDataUser.email || !formDataUser.role_id) return alert('Preencha os campos.');
     if (isEditingUser) {
-      await getUsersApi().update(isEditingUser.id, formDataUser);
+      await localUsersApi.update(isEditingUser.id, formDataUser);
       setIsEditingUser(null);
     } else {
       if (!formDataUser.password) return alert('Senha é obrigatória.');
-      await getUsersApi().create(formDataUser);
+      await localUsersApi.create(formDataUser);
       setIsCreatingUser(false);
     }
     loadData();
@@ -63,10 +64,10 @@ export const AccessControl: React.FC = () => {
   const handleSaveRole = async () => {
     if (!formDataRole.name) return alert('Nome do cargo obrigatório.');
     if (isEditingRole) {
-      await getRolesApi().update(isEditingRole.id, formDataRole);
+      await localRolesApi.update(isEditingRole.id, formDataRole);
       setIsEditingRole(null);
     } else {
-      await getRolesApi().create(formDataRole);
+      await localRolesApi.create(formDataRole);
       setIsCreatingRole(false);
     }
     loadData();
@@ -74,14 +75,14 @@ export const AccessControl: React.FC = () => {
 
   const handleDeleteUser = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir o usuário?')) {
-      await getUsersApi().delete(id);
+      await localUsersApi.delete(id);
       loadData();
     }
   };
 
   const handleDeleteRole = async (id: string) => {
     if (confirm('Atenção! Ao excluir este cargo, os usuários com ele perderão os acessos até que outro seja atribuído. Confirmar?')) {
-      await getRolesApi().delete(id);
+      await localRolesApi.delete(id);
       loadData();
     }
   };

@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { VEHICLE_STATUS_IDS } from "../../../types";
+import { localVehiclesApi } from "../../../services/localApi/vehicles";
 import { ArrowLeft, Save } from "lucide-react";
 
 export const VeiculoEditarPage: React.FC = () => {
@@ -42,15 +43,13 @@ export const VeiculoEditarPage: React.FC = () => {
     );
   }
 
-  const { getVehiclesApi } = require("../../../lib/apiFactory");
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError(null);
 
     try {
-      const updatedVehicle = await getVehiclesApi().update(id, {
+      const updatedVehicle = await localVehiclesApi.update(id, {
         plate: form.plate,
         model_id: form.model_id,
         year: form.year,

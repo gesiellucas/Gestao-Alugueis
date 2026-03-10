@@ -113,7 +113,7 @@ export const VehicleCard = ({
                   Locatário Atual
                 </p>
                 <p className="text-xs font-black text-blue-900 truncate">
-                  {renterName || "Parceiro Ativo"}
+                  {renterName || "Cliente Ativo"}
                 </p>
               </div>
             </div>

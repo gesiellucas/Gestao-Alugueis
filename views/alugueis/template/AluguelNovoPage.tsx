@@ -141,7 +141,7 @@ export const AluguelNovoPage: React.FC = () => {
           <div>
             <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
               <User size={12} className="inline mr-1" />
-              Selecionar Parceiro
+              Selecionar Cliente
             </label>
 
             {selectedCustomer ? (
@@ -181,7 +181,7 @@ export const AluguelNovoPage: React.FC = () => {
                 <div className="max-h-64 overflow-y-auto rounded-xl border border-slate-200">
                   {availableCustomers.length === 0 ? (
                     <div className="p-6 text-center text-slate-400 font-medium">
-                      Nenhum parceiro encontrado.
+                      Nenhum Cliente encontrado.
                     </div>
                   ) : (
                     availableCustomers.map((customer) => (

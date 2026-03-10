@@ -30,15 +30,15 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
           <h2 className="text-3xl font-extrabold text-[#0a2342] uppercase tracking-tight">
-            Parceiros GC
+            Clientes
           </h2>
           <p className="text-slate-500 font-medium">
-            Gestão de entregadores e contratos ativos.
+            Gestão de clientes e contratos ativos.
           </p>
         </div>
         <button className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2 uppercase tracking-widest text-xs">
           <PlusCircle size={18} />
-          Novo Parceiro
+          Novo Cliente
         </button>
       </div>
 
@@ -49,7 +49,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
         />
         <input
           type="text"
-          placeholder="Buscar parceiro por nome, CPF ou placa..."
+          placeholder="Buscar Cliente por nome, CPF ou placa..."
           className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-xl shadow-sm outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700"
         />
       </div>

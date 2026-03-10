@@ -21,7 +21,7 @@ export const OficinaPage: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
           <h2 className="text-3xl font-extrabold text-[#0a2342] uppercase tracking-tight">
-            Oficina GC
+            Oficina
           </h2>
           <p className="text-slate-500 font-medium">
             Controle de manutenção preventiva e corretiva.

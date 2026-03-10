@@ -86,7 +86,7 @@ export const ClienteEditarPage: React.FC = () => {
           <ArrowLeft size={20} /> Voltar
         </button>
         <h2 className="text-3xl font-extrabold text-[#0a2342] uppercase tracking-tight">
-          Editar Parceiro
+          Editar Cliente
         </h2>
       </div>
 

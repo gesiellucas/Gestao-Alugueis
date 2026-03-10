@@ -29,7 +29,7 @@ export const ClienteDetalhePage: React.FC = () => {
           onClick={() => router.push("/clientes")}
           className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
         >
-          <ArrowLeft size={20} /> Voltar para Parceiros
+          <ArrowLeft size={20} /> Voltar para Clientes
         </button>
         <div className="bg-white rounded-[2.5rem] p-12 text-center shadow-sm">
           <p className="text-slate-500 font-medium text-lg">
@@ -50,7 +50,7 @@ export const ClienteDetalhePage: React.FC = () => {
           onClick={() => router.push("/clientes")}
           className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
         >
-          <ArrowLeft size={20} /> Voltar para Parceiros
+          <ArrowLeft size={20} /> Voltar para Clientes
         </button>
         <Link
           href={`/cliente/editar/${customer.id}`}

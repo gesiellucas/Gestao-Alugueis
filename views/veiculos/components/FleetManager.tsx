@@ -96,7 +96,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
                         Locatário Atual
                       </p>
                       <p className="text-xs font-black text-blue-900 truncate">
-                        Parceiro Ativo
+                        Cliente Ativo
                       </p>
                     </div>
                   </div>

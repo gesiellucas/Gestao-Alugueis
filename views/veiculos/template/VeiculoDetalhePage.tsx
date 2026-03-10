@@ -60,6 +60,10 @@ export const VeiculoDetalhePage: React.FC = () => {
     (c) => c.vehicle_id === vehicle.id && c.status === "ACTIVE",
   );
 
+  const vehicleRentals = rentalContracts
+    .filter((c) => c.vehicle_id === vehicle.id)
+    .sort((a, b) => new Date(b.start_date).getTime() - new Date(a.start_date).getTime());
+
   const statusColor = vehicle.vehicleStatus?.color || "#6b7280";
   const statusName = vehicle.vehicleStatus?.name || "Desconhecido";
 
@@ -158,25 +162,22 @@ export const VeiculoDetalhePage: React.FC = () => {
 
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2">
-          <div className="h-72 lg:h-auto bg-[#f8fafc] flex items-center justify-center p-10">
+          <div className="h-48 lg:h-auto bg-[#f8fafc] flex items-center justify-center p-6">
             <img
               src={vehicle.model?.image_url || undefined}
               alt={vehicle.model?.name || 'Moto'}
-              className="max-w-full max-h-full object-contain drop-shadow-2xl"
+              className="max-w-full max-h-40 object-contain drop-shadow-xl"
             />
           </div>
 
-          <div className="p-10 space-y-8">
+          <div className="p-8 flex flex-col justify-center gap-6">
             <div>
-              <div className="flex items-center gap-3 mb-2">
+              <div className="flex items-center gap-2 mb-2">
                 <span className="text-xs font-black text-blue-600 bg-blue-50 px-3 py-1 rounded uppercase">
                   {vehicle.model?.brand || "Marca"}
                 </span>
-                <span className="text-sm font-bold text-slate-400">
-                  {vehicle.year}
-                </span>
                 <span
-                  className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border"
+                  className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border"
                   style={{
                     backgroundColor: `${statusColor}20`,
                     color: statusColor,
@@ -191,110 +192,188 @@ export const VeiculoDetalhePage: React.FC = () => {
               </h2>
             </div>
 
-            <div className="grid grid-cols-2 gap-6">
-              <div className="bg-slate-50 p-5 rounded-xl">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+            <div className="divide-y divide-slate-100">
+              <div className="flex items-center justify-between py-3">
+                <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
                   <Hash size={12} /> Placa
-                </p>
-                <p className="text-xl font-black text-slate-700 font-mono tracking-tighter">
-                  {vehicle.plate}
-                </p>
+                </span>
+                <span className="font-black text-slate-700 font-mono tracking-tight">{vehicle.plate}</span>
               </div>
-              <div className="bg-slate-50 p-5 rounded-xl">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
-                  <Circle size={12} /> Quilometragem
-                </p>
-                <p className="text-xl font-black text-slate-700">
-                  {vehicle.mileage.toLocaleString()} km
-                </p>
-              </div>
-              <div className="bg-slate-50 p-5 rounded-xl">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+              <div className="flex items-center justify-between py-3">
+                <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
                   <Calendar size={12} /> Ano
-                </p>
-                <p className="text-xl font-black text-slate-700">
-                  {vehicle.year}
-                </p>
+                </span>
+                <span className="font-bold text-slate-700">{vehicle.year}</span>
               </div>
-              <div className="bg-slate-50 p-5 rounded-xl">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1">
+              <div className="flex items-center justify-between py-3">
+                <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                  <Circle size={12} /> Quilometragem
+                </span>
+                <span className="font-bold text-slate-700">{vehicle.mileage.toLocaleString()} km</span>
+              </div>
+              <div className="flex items-center justify-between py-3">
+                <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
                   <User size={12} /> Locatário
-                </p>
-                <p className="text-xl font-black text-slate-700">
-                  {renter ? renter.name : "Nenhum"}
-                </p>
+                </span>
+                {renter ? (
+                  <Link
+                    href={`/cliente/${renter.id}`}
+                    className="font-bold text-blue-600 hover:text-blue-800 transition-colors"
+                  >
+                    {renter.name}
+                  </Link>
+                ) : (
+                  <span className="font-bold text-slate-400">Nenhum</span>
+                )}
               </div>
+              {renter && (
+                <div className="flex items-center justify-between py-3">
+                  <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                    <User size={12} /> Telefone
+                  </span>
+                  <span className="font-bold text-slate-700">{renter.phone}</span>
+                </div>
+              )}
             </div>
-
-            {renter && (
-              <Link
-                href={`/cliente/${renter.id}`}
-                className="block p-5 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors"
-              >
-                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-1">
-                  Parceiro Vinculado
-                </p>
-                <p className="font-extrabold text-blue-900 text-lg">
-                  {renter.name}
-                </p>
-                <p className="text-sm text-blue-600 font-medium">
-                  {renter.phone}
-                </p>
-              </Link>
-            )}
           </div>
         </div>
       </div>
 
-      {vehicleRecords.length > 0 && (
-        <div>
-          <h3 className="text-xl font-extrabold text-[#0a2342] mb-4 uppercase tracking-tight">
+      {/* Rental History Table */}
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-blue-50">
+          <KeyRound size={18} className="text-blue-600" />
+          <h3 className="font-black text-[#0a2342] uppercase tracking-tight text-sm">
+            Histórico de Aluguéis
+          </h3>
+          <span className="ml-auto bg-blue-600 text-white text-xs font-black px-2.5 py-0.5 rounded-full">
+            {vehicleRentals.length}
+          </span>
+        </div>
+        {vehicleRentals.length === 0 ? (
+          <div className="py-10 text-center text-slate-400 font-medium text-sm">
+            Nenhum aluguel registrado para este veículo.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50">
+                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Cliente</th>
+                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Início</th>
+                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Término</th>
+                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Valor/mês</th>
+                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Situação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vehicleRentals.map((contract) => {
+                  const contractCustomer = customers.find((c) => c.id === contract.customer_id);
+                  return (
+                    <tr key={contract.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
+                      <td className="px-6 py-4">
+                        {contractCustomer ? (
+                          <Link
+                            href={`/cliente/${contractCustomer.id}`}
+                            className="font-bold text-[#0a2342] hover:text-blue-600 transition-colors"
+                          >
+                            {contractCustomer.name}
+                          </Link>
+                        ) : (
+                          <span className="text-slate-400">—</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 font-medium">
+                        {new Date(contract.start_date).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 text-slate-500 font-medium">
+                        {contract.end_date
+                          ? new Date(contract.end_date).toLocaleDateString()
+                          : "—"}
+                      </td>
+                      <td className="px-6 py-4 font-bold text-slate-700">
+                        {contract.monthly_rate.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                      </td>
+                      <td className="px-6 py-4">
+                        {contract.status === "ACTIVE" ? (
+                          <span className="bg-green-100 text-green-700 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-200 inline-flex items-center gap-1">
+                            <CheckCircle size={10} /> Ativo
+                          </span>
+                        ) : (
+                          <span className="bg-slate-100 text-slate-500 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-slate-200">
+                            Encerrado
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Maintenance History Table */}
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+        <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50">
+          <Wrench size={18} className="text-slate-500" />
+          <h3 className="font-black text-[#0a2342] uppercase tracking-tight text-sm">
             Histórico de Manutenção
           </h3>
-          <div className="space-y-4">
-            {vehicleRecords.map((record) => (
-              <div
-                key={record.id}
-                className={`bg-white rounded-xl p-6 shadow-sm border-l-4 ${record.status === "OPEN" ? "border-amber-500" : "border-green-500"}`}
-              >
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      {record.status === "OPEN" ? (
-                        <Wrench size={16} className="text-amber-500" />
-                      ) : (
-                        <CheckCircle size={16} className="text-green-500" />
-                      )}
-                      <span
-                        className={`text-xs font-black uppercase ${record.status === "OPEN" ? "text-amber-600" : "text-green-600"}`}
-                      >
-                        {record.status === "OPEN"
-                          ? "Em Andamento"
-                          : "Concluído"}
-                      </span>
-                    </div>
-                    <p className="font-bold text-[#0a2342]">{record.type}</p>
-                    <p className="text-sm text-slate-500 mt-1">
-                      {record.description}
-                    </p>
-                  </div>
-                  <div className="text-right text-sm">
-                    <p className="text-slate-400 font-medium">
-                      Entrada: {new Date(record.entry_date).toLocaleDateString()}
-                    </p>
-                    {record.completion_date && (
-                      <p className="text-green-600 font-medium">
-                        Saída:{" "}
-                        {new Date(record.completion_date).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+          <span className="ml-auto bg-slate-200 text-slate-600 text-xs font-black px-2.5 py-0.5 rounded-full">
+            {vehicleRecords.length}
+          </span>
         </div>
-      )}
+        {vehicleRecords.length === 0 ? (
+          <div className="py-10 text-center text-slate-400 font-medium text-sm">
+            Nenhuma manutenção registrada para este veículo.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50">
+                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Tipo</th>
+                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Mecânico</th>
+                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Observação</th>
+                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Entrada</th>
+                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Conclusão</th>
+                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Situação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {vehicleRecords.map((record) => (
+                  <tr key={record.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
+                    <td className="px-6 py-4 font-bold text-[#0a2342]">{record.type}</td>
+                    <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name}</td>
+                    <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description}</td>
+                    <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
+                      {new Date(record.entry_date).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
+                      {record.completion_date
+                        ? new Date(record.completion_date).toLocaleDateString()
+                        : "—"}
+                    </td>
+                    <td className="px-6 py-4">
+                      {record.status === "OPEN" ? (
+                        <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-amber-200 inline-flex items-center gap-1">
+                          <Wrench size={10} /> Em andamento
+                        </span>
+                      ) : (
+                        <span className="bg-green-100 text-green-700 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-200 inline-flex items-center gap-1">
+                          <CheckCircle size={10} /> Concluído
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

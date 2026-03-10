@@ -34,7 +34,7 @@ export const ClienteNovoPage: React.FC = () => {
       setCustomers((prev) => [newCustomer, ...prev]);
       router.push("/clientes");
     } catch (err) {
-      setError("Erro ao cadastrar parceiro. Verifique se o CPF já não está cadastrado.");
+      setError("Erro ao cadastrar Cliente. Verifique se o CPF já não está cadastrado.");
     } finally {
       setSubmitting(false);
     }
@@ -50,14 +50,14 @@ export const ClienteNovoPage: React.FC = () => {
           <ArrowLeft size={20} /> Voltar
         </button>
         <h2 className="text-3xl font-extrabold text-[#0a2342] uppercase tracking-tight">
-          Novo Parceiro
+          Novo Cliente
         </h2>
       </div>
 
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="bg-[#0a2342] p-8">
           <h3 className="font-black text-xl uppercase tracking-tighter text-white">
-            Cadastro de Parceiro
+            Cadastro de Cliente
           </h3>
         </div>
         <form onSubmit={handleSubmit} className="p-10 space-y-6">
@@ -75,7 +75,7 @@ export const ClienteNovoPage: React.FC = () => {
               className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Nome do parceiro"
+              placeholder="Nome do Cliente"
               required
             />
           </div>

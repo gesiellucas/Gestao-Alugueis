@@ -9,6 +9,7 @@ import {
   AppUser,
   RentalContract,
   VehicleModel,
+  Workshop,
 } from "../types";
 import { localVehiclesApi } from "../services/localApi/vehicles";
 import { localCustomersApi } from "../services/localApi/customers";
@@ -17,6 +18,7 @@ import { localMaintenanceApi } from "../services/localApi/maintenance";
 import { localUsersApi } from "../services/localApi/users";
 import { localVehicleModelsApi } from "../services/localApi/vehicleModels";
 import { localVehicleStatusesApi } from "../services/localApi/vehicleStatuses";
+import { localWorkshopsApi } from "../services/localApi/workshops";
 
 interface AppContextType {
   user: AppUser | null;
@@ -26,6 +28,7 @@ interface AppContextType {
   vehicleModels: VehicleModel[];
   setVehicleModels: React.Dispatch<React.SetStateAction<VehicleModel[]>>;
   vehicleStatuses: VehicleStatusRecord[];
+  workshops: Workshop[];
   maintenanceRecords: MaintenanceRecord[];
   setMaintenanceRecords: React.Dispatch<
     React.SetStateAction<MaintenanceRecord[]>
@@ -59,6 +62,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [vehicleModels, setVehicleModels] = useState<VehicleModel[]>([]);
   const [vehicleStatuses, setVehicleStatuses] = useState<VehicleStatusRecord[]>([]);
+  const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [maintenanceRecords, setMaintenanceRecords] = useState<
     MaintenanceRecord[]
   >([]);
@@ -97,7 +101,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setLoading(true);
       setError(null);
 
-      const [vehiclesData, modelsData, statusesData, customersData, contractsData, maintenanceData] =
+      const [vehiclesData, modelsData, statusesData, customersData, contractsData, maintenanceData, workshopsData] =
         await Promise.all([
           localVehiclesApi.getAll().catch(() => [] as Vehicle[]),
           localVehicleModelsApi.getAll().catch(() => [] as VehicleModel[]),
@@ -105,6 +109,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           localCustomersApi.getAll().catch(() => [] as Customer[]),
           localRentalsApi.getAll().catch(() => [] as RentalContract[]),
           localMaintenanceApi.getAll().catch(() => [] as MaintenanceRecord[]),
+          localWorkshopsApi.getAll().catch(() => [] as Workshop[]),
         ]);
 
       setVehicles(vehiclesData);
@@ -113,6 +118,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setCustomers(customersData);
       setRentalContracts(contractsData);
       setMaintenanceRecords(maintenanceData);
+      setWorkshops(workshopsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao carregar dados");
     } finally {
@@ -129,6 +135,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       const newRecord = await localMaintenanceApi.create({
         vehicle_id: record.vehicle_id,
+        workshop_id: record.workshop_id ?? null,
         vehicle_plate: record.vehicle_plate,
         entry_date: record.entry_date,
         mechanic_name: record.mechanic_name,
@@ -302,6 +309,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         vehicleModels,
         setVehicleModels,
         vehicleStatuses,
+        workshops,
         maintenanceRecords,
         setMaintenanceRecords,
         customers,

@@ -2,7 +2,6 @@
 import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { VEHICLE_STATUS_IDS } from "../../../types";
 import { localVehiclesApi } from "../../../services/localApi/vehicles";
 import { ArrowLeft, Save } from "lucide-react";
 
@@ -10,7 +9,7 @@ export const VeiculoEditarPage: React.FC = () => {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
-  const { vehicles, setVehicles, vehicleModels, vehicleStatuses } = useAppContext();
+  const { vehicles, setVehicles, vehicleModels } = useAppContext();
 
   const vehicle = vehicles.find((v) => v.id === id);
 
@@ -19,8 +18,6 @@ export const VeiculoEditarPage: React.FC = () => {
     model_id: vehicle?.model_id || "",
     year: vehicle?.year || new Date().getFullYear(),
     mileage: vehicle?.mileage || 0,
-    status_id: vehicle?.status_id || VEHICLE_STATUS_IDS.AVAILABLE,
-    default_monthly_rate: vehicle?.default_monthly_rate || 800,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,16 +46,12 @@ export const VeiculoEditarPage: React.FC = () => {
     setError(null);
 
     try {
-      const updatedVehicle = await localVehiclesApi.update(id, {
+      await localVehiclesApi.update(id, {
         plate: form.plate,
         model_id: form.model_id,
         year: form.year,
         mileage: form.mileage,
-        status_id: form.status_id,
-        default_monthly_rate: form.default_monthly_rate,
       });
-
-      const selectedStatus = vehicleStatuses.find(s => s.id === form.status_id);
 
       setVehicles((prev) =>
         prev.map((v) =>
@@ -69,9 +62,6 @@ export const VeiculoEditarPage: React.FC = () => {
                 model_id: form.model_id,
                 year: form.year,
                 mileage: form.mileage,
-                status_id: form.status_id,
-                vehicleStatus: selectedStatus,
-                default_monthly_rate: form.default_monthly_rate,
                 model: vehicleModels.find(m => m.id === form.model_id),
               }
             : v,
@@ -171,45 +161,7 @@ export const VeiculoEditarPage: React.FC = () => {
                 min={0}
               />
             </div>
-            <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                Status
-              </label>
-              <select
-                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 border appearance-none"
-                value={form.status_id}
-                onChange={(e) =>
-                  setForm({ ...form, status_id: e.target.value })
-                }
-              >
-                {vehicleStatuses.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                Valor Mensal (R$)
-              </label>
-              <input
-                type="number"
-                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border"
-                value={form.default_monthly_rate}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    default_monthly_rate: parseFloat(e.target.value) || 0,
-                  })
-                }
-                min={0}
-                step={0.01}
-                required
-              />
-            </div>
           </div>
-
 
           <div className="pt-4 flex gap-4">
             <button

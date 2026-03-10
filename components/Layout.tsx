@@ -17,6 +17,10 @@ import {
   Settings,
   Minus,
   Maximize2,
+  ChevronRight,
+  Car,
+  Palette,
+  Database,
 } from "lucide-react";
 import { SyncIndicator } from "./SyncIndicator";
 import { useAutoSync } from "../hooks/useSync";
@@ -79,13 +83,17 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
       icon: MessageSquare,
       show: hasPerm('financeiro_view'),
     },
-    {
-      to: "/configuracoes",
-      label: "Configurações",
-      icon: Settings,
-      show: hasPerm('configuracoes'),
-    },
   ].filter((item) => item.show);
+
+  const settingsSubItems = [
+    { to: "/configuracoes/acesso", label: "Controle de Acesso", icon: ShieldCheck },
+    { to: "/configuracoes/modelos", label: "Modelos de Veículos", icon: Car },
+    { to: "/configuracoes/status", label: "Status de Veículos", icon: Palette },
+    { to: "/configuracoes/oficinas", label: "Gestão de Oficinas", icon: Wrench },
+    { to: "/configuracoes/banco-de-dados", label: "Banco de Dados", icon: Database },
+  ];
+
+  const isSettingsOpen = pathname.startsWith('/configuracoes');
 
   const isActive = (to: string) => {
     if (to === "/") return pathname === "/";
@@ -112,7 +120,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
           </div>
         </div>
 
-        <nav className="flex-1 py-8 px-4 space-y-2">
+        <nav className="flex-1 py-8 px-4 space-y-2 overflow-y-auto">
           {navItems.map((item) => (
             <Link
               key={item.to}
@@ -130,6 +138,51 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
               {item.label}
             </Link>
           ))}
+
+          {/* Settings submenu */}
+          {hasPerm('configuracoes') && (
+            <div>
+              <Link
+                href="/configuracoes"
+                className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all text-sm font-semibold ${
+                  isSettingsOpen
+                    ? "text-white bg-white/5"
+                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                }`}
+              >
+                <Settings
+                  size={20}
+                  className={isSettingsOpen ? "text-yellow-400" : ""}
+                />
+                Configurações
+                <ChevronRight
+                  size={15}
+                  className={`ml-auto transition-transform duration-200 ${isSettingsOpen ? "rotate-90 text-yellow-400" : "text-slate-600"}`}
+                />
+              </Link>
+              {isSettingsOpen && (
+                <div className="mt-1 ml-4 space-y-1 border-l border-white/10 pl-3">
+                  {settingsSubItems.map((item) => (
+                    <Link
+                      key={item.to}
+                      href={item.to}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                        pathname === item.to
+                          ? "bg-blue-600 text-white shadow-xl shadow-blue-900/30 ring-1 ring-white/20"
+                          : "text-slate-400 hover:text-white hover:bg-white/5"
+                      }`}
+                    >
+                      <item.icon
+                        size={16}
+                        className={pathname === item.to ? "text-yellow-400" : ""}
+                      />
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </nav>
 
         <div className="p-6 border-t border-white/10 bg-[#071a33]">
@@ -217,6 +270,31 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
                   {item.label}
                 </Link>
               ))}
+              {hasPerm('configuracoes') && (
+                <div className="space-y-2">
+                  <div className={`flex items-center gap-4 px-5 py-3 text-sm font-black uppercase tracking-widest ${isSettingsOpen ? "text-yellow-400" : "text-slate-500"}`}>
+                    <Settings size={18} />
+                    Configurações
+                  </div>
+                  <div className="ml-4 space-y-2 border-l border-white/10 pl-4">
+                    {settingsSubItems.map((item) => (
+                      <Link
+                        key={item.to}
+                        href={item.to}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold ${
+                          pathname === item.to
+                            ? "bg-blue-600 text-white shadow-lg"
+                            : "bg-white/5 text-slate-300"
+                        }`}
+                      >
+                        <item.icon size={20} />
+                        {item.label}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
               <button
                 onClick={onLogout}
                 className="w-full flex items-center gap-4 px-5 py-5 rounded-xl text-lg font-bold bg-red-600/20 text-red-500 mt-8 border border-red-600/30"

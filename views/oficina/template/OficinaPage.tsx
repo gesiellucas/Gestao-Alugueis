@@ -1,15 +1,21 @@
 'use client';
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
-import { PlusCircle, ShieldAlert, Clock, CheckCircle } from "lucide-react";
+import { PlusCircle, ShieldAlert, Clock, CheckCircle, Building2 } from "lucide-react";
 
 export const OficinaPage: React.FC = () => {
-  const { maintenanceRecords: records, handleFinishMaintenance } =
+  const { maintenanceRecords: records, workshops, handleFinishMaintenance } =
     useAppContext();
 
-  const activeRecords = records.filter((r) => r.status === "OPEN");
-  const historyRecords = records
+  const [selectedWorkshopId, setSelectedWorkshopId] = useState<string>("");
+
+  const filteredRecords = selectedWorkshopId
+    ? records.filter((r) => r.workshop_id === selectedWorkshopId)
+    : records;
+
+  const activeRecords = filteredRecords.filter((r) => r.status === "OPEN");
+  const historyRecords = filteredRecords
     .filter((r) => r.status === "COMPLETED")
     .sort(
       (a, b) =>
@@ -34,6 +40,23 @@ export const OficinaPage: React.FC = () => {
           <PlusCircle size={20} />
           Registrar Entrada
         </Link>
+      </div>
+
+      {/* Workshop Filter */}
+      <div className="flex items-center gap-3">
+        <Building2 size={18} className="text-slate-400 shrink-0" />
+        <select
+          className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all appearance-none min-w-[220px]"
+          value={selectedWorkshopId}
+          onChange={(e) => setSelectedWorkshopId(e.target.value)}
+        >
+          <option value="">Todas as oficinas</option>
+          {workshops.map((w) => (
+            <option key={w.id} value={w.id}>
+              {w.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Active Maintenance Table */}

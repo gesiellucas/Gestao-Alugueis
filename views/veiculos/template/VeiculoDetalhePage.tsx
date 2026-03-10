@@ -105,6 +105,14 @@ export const VeiculoDetalhePage: React.FC = () => {
               <XCircle size={16} /> Encerrar Contrato
             </button>
           )}
+          {vehicle.status_id !== VEHICLE_STATUS_IDS.MAINTENANCE && (
+            <Link
+              href={`/oficina/novo_entrada?plate=${vehicle.plate}`}
+              className="bg-amber-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-amber-600 transition-all flex items-center gap-2 text-sm"
+            >
+              <Wrench size={16} /> Enviar para Oficina
+            </Link>
+          )}
           <Link
             href={`/veiculo/editar/${vehicle.id}`}
             className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"

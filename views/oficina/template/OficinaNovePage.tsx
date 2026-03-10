@@ -1,15 +1,17 @@
 'use client';
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { MaintenanceType, MaintenanceRecord, VEHICLE_STATUS_IDS } from "../../../types";
 import { ArrowLeft, Save } from "lucide-react";
 
 export const OficinaNovePage: React.FC = () => {
   const router = useRouter();
-  const { vehicles, handleAddMaintenanceRecord } = useAppContext();
+  const searchParams = useSearchParams();
+  const { vehicles, workshops, handleAddMaintenanceRecord } = useAppContext();
 
-  const [selectedPlate, setSelectedPlate] = useState("");
+  const [selectedPlate, setSelectedPlate] = useState(searchParams.get("plate") ?? "");
+  const [selectedWorkshopId, setSelectedWorkshopId] = useState("");
   const [form, setForm] = useState({
     type: MaintenanceType.PREVENTIVE,
     description: "",
@@ -28,6 +30,7 @@ export const OficinaNovePage: React.FC = () => {
     const record: MaintenanceRecord = {
       id: "",
       vehicle_id: vehicle.id,
+      workshop_id: selectedWorkshopId || null,
       vehicle_plate: vehicle.plate,
       entry_date: new Date().toISOString(),
       status: "OPEN",
@@ -79,6 +82,25 @@ export const OficinaNovePage: React.FC = () => {
               {availableVehicles.map((v) => (
                 <option key={v.id} value={v.plate}>
                   {v.plate} - {v.model?.name || 'Modelo desconhecido'}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              Oficina
+            </label>
+            <select
+              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border appearance-none"
+              value={selectedWorkshopId}
+              onChange={(e) => setSelectedWorkshopId(e.target.value)}
+              required
+            >
+              <option value="">Selecione a oficina...</option>
+              {workshops.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.name}
                 </option>
               ))}
             </select>

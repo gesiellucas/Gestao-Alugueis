@@ -111,7 +111,7 @@ export const VeiculosPage: React.FC = () => {
             Frota Ativa
           </h2>
           <p className="text-slate-500 font-medium">
-            Gestão completa das motocicletas GC Loca Moto.
+            Gestão completa das motocicletas GC Locamoto.
           </p>
         </div>
         <Link
@@ -123,34 +123,7 @@ export const VeiculosPage: React.FC = () => {
         </Link>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 space-y-5">
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            key="TODOS"
-            onClick={() => setStatusFilter("TODOS")}
-            className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-              statusFilter === "TODOS"
-                ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-            }`}
-          >
-            TODOS
-          </button>
-          {vehicleStatuses.map((status) => (
-            <button
-              key={status.id}
-              onClick={() => setStatusFilter(status.id)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                statusFilter === status.id
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-              }`}
-            >
-              {status.name}
-            </button>
-          ))}
-        </div>
-
+      <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 flex items-center gap-3">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -162,6 +135,21 @@ export const VeiculosPage: React.FC = () => {
               className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
             />
           </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+          >
+            <option value="TODOS">Todos os status</option>
+            {vehicleStatuses.map((status) => (
+              <option key={status.id} value={status.id}>
+                {status.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
@@ -176,14 +164,12 @@ export const VeiculosPage: React.FC = () => {
             <table className="w-full text-sm">
               <thead className="bg-slate-50 border-b border-slate-100">
                 <tr>
-                  <Th col="status"       label="Status" />
-                  <Th col="brand"        label="Marca" />
+                  <Th col="plate"        label="Placa" />
                   <Th col="model"        label="Modelo" />
                   <Th col="year"         label="Ano" />
-                  <Th col="plate"        label="Placa" />
                   <Th col="mileage"      label="Km" />
-                  <Th col="monthly_rate" label="Valor/mês" />
                   <Th col="renter"       label="Locatário / Situação" />
+                  <Th col="status"       label="Status" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -193,26 +179,10 @@ export const VeiculosPage: React.FC = () => {
                     onClick={() => router.push(`/veiculo/${row.id}`)}
                     className="hover:bg-slate-50 cursor-pointer transition-colors"
                   >
-                    <td className="px-4 py-3">
-                      <span
-                        className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border"
-                        style={{
-                          backgroundColor: `${row.statusColor}20`,
-                          color: row.statusColor,
-                          borderColor: `${row.statusColor}40`,
-                        }}
-                      >
-                        {row.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 font-bold text-blue-600">{row.brand}</td>
+                    <td className="px-4 py-3 font-mono font-bold text-slate-700">{row.plate}</td>
                     <td className="px-4 py-3 font-semibold text-[#0a2342]">{row.model}</td>
                     <td className="px-4 py-3 text-slate-500">{row.year}</td>
-                    <td className="px-4 py-3 font-mono font-bold text-slate-700">{row.plate}</td>
                     <td className="px-4 py-3 text-slate-600">{row.mileage.toLocaleString("pt-BR")} km</td>
-                    <td className="px-4 py-3 font-semibold text-slate-700">
-                      R$ {row.monthly_rate.toFixed(2)}
-                    </td>
                     <td className="px-4 py-3">
                       {row.status_id === VEHICLE_STATUS_IDS.RENTED && row.renterId ? (
                         <button
@@ -233,6 +203,18 @@ export const VeiculosPage: React.FC = () => {
                       ) : (
                         <span className="text-green-600 font-semibold text-xs">Disponível</span>
                       )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border"
+                        style={{
+                          backgroundColor: `${row.statusColor}20`,
+                          color: row.statusColor,
+                          borderColor: `${row.statusColor}40`,
+                        }}
+                      >
+                        {row.status}
+                      </span>
                     </td>
                   </tr>
                 ))}

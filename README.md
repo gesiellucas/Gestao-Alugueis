@@ -1,4 +1,4 @@
-# GC Loca Moto - Gestão de Locação de Motos
+# GC Locamoto - Gestão de Locação de Motos
 
 Sistema completo de gestão para locadora de motocicletas com integração Supabase, IA (Google Gemini) e WhatsApp.
 

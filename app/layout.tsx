@@ -3,7 +3,7 @@ import './globals.css';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'GC Loca Moto',
+  title: 'GC Locamoto',
   description: 'Sistema de Gestão de Aluguéis de Motocicletas',
 };
 

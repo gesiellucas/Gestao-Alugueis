@@ -1,7 +1,11 @@
 {
-  "name": "gc-loca-moto---gestão-pro",
+  "name": "gc-locamoto-pro",
   "private": true,
-  "version": "1.0.0",
+  "version": "0.0.1",
+  "description": "Gestão de alugueis de motos",
+  "author": "Gesiel Lucas",
+  "homepage": "https://github.com/gesiellucas/gc-locamoto-pro",
+  "license": "MIT",
   "main": "dist/electron/main/index.js",
   "scripts": {
     "dev": "next dev",
@@ -14,7 +18,7 @@
     "electron:build:win": "npm run electron:build -- --win",
     "postinstall": "electron-rebuild -f -w better-sqlite3",
     "db:generate": "drizzle-kit generate && drizzle-kit generate --config=drizzle.pg.config.ts",
-    "db:studio": "drizzle-kit studio",
+    "db:studio": "drizzle-kit studio --config=drizzle.studio.config.ts",
     "db:push:supabase": "drizzle-kit push --config=drizzle.pg.config.ts"
   },
   "dependencies": {
@@ -33,6 +37,7 @@
   },
   "devDependencies": {
     "@electron/rebuild": "^3.7.2",
+    "@libsql/client": "^0.17.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.14.0",
     "@types/pg": "^8.18.0",

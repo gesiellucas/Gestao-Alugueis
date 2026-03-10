@@ -61,7 +61,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <ShieldCheck className="text-[#0a2342] w-10 h-10" />
           </div>
           <h1 className="text-4xl font-black text-white tracking-tighter uppercase mb-2">
-            GC LOCA MOTO
+            GC LOCAMOTO
           </h1>
           <p className="text-blue-200 font-medium">
             {isRecovering ? "Recuperar sua senha" : "Acesse o sistema"}
@@ -153,7 +153,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
         <div className="mt-12 text-center">
           <p className="text-blue-400 text-xs font-bold uppercase tracking-widest">
-            GC Loca Moto © 2024
+            GC Locamoto © 2024
           </p>
         </div>
       </div>

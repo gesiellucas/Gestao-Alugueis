@@ -103,7 +103,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
             </div>
             <div>
               <h1 className="text-xl font-extrabold tracking-tighter leading-tight">
-                GC LOCA MOTO
+                GC LOCAMOTO
               </h1>
               <span className="text-[10px] uppercase tracking-widest text-yellow-400 font-bold">
                 Portal do Gestor
@@ -189,7 +189,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
         <header className="md:hidden bg-[#0a2342] text-white p-4 flex items-center justify-between z-20">
           <div className="flex items-center gap-2">
             <ShieldCheck className="text-yellow-400 w-6 h-6" />
-            <h1 className="text-lg font-extrabold">GC LOCA MOTO</h1>
+            <h1 className="text-lg font-extrabold">GC LOCAMOTO</h1>
           </div>
           <div className="flex items-center gap-4">
             <SyncIndicator />

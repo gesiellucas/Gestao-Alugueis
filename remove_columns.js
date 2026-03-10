@@ -3,7 +3,7 @@ const path = require('path');
 const os = require('os');
 
 // Path to the SQLite database
-const dbPath = path.join(os.homedir(), 'AppData', 'Roaming', 'gc-loca-moto', 'gc-loca-moto.sqlite');
+const dbPath = path.join(os.homedir(), 'AppData', 'Roaming', 'electron', 'gc-loca-moto.sqlite');
 
 try {
     console.log(`[SQLite] Conectando ao banco em: ${dbPath}`);

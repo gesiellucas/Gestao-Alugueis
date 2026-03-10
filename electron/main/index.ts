@@ -56,7 +56,7 @@ function createWindow(): void {
     height: 800,
     minWidth: 900,
     minHeight: 600,
-    title: 'GC Loca Moto',
+    title: 'GC Locamoto',
     frame: false,
     backgroundColor: '#0a2342',
     webPreferences: {

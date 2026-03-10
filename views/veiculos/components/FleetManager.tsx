@@ -15,7 +15,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
             Frota Ativa
           </h2>
           <p className="text-slate-500 font-medium">
-            Gestão completa das motocicletas GC Loca Moto.
+            Gestão completa das motocicletas GC Locamoto.
           </p>
         </div>
         <button className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95">

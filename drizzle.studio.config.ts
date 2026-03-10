@@ -3,18 +3,20 @@ import path from 'path';
 import os from 'os';
 import type { Config } from 'drizzle-kit';
 
-// Caminho padrão do banco SQLite em desenvolvimento (mesmo local que o Electron usa)
-// Pode ser sobrescrito com a variável SQLITE_DB_PATH no .env
+// Usa @libsql/client (pure JS/WASM) para evitar conflito de ABI com better-sqlite3
+// que é compilado para o Electron. Este config é exclusivo para `drizzle-kit studio`.
+
 const defaultDbPath = path.join(
   os.homedir(),
   'AppData', 'Roaming', 'Electron', 'gc-loca-moto.sqlite'
 );
 
+const dbPath = process.env.SQLITE_DB_PATH ?? defaultDbPath;
+
 export default {
   schema: './db/schema.ts',
-  out: './db/migrations/sqlite',
-  dialect: 'sqlite',
+  dialect: 'turso',
   dbCredentials: {
-    url: process.env.SQLITE_DB_PATH ?? defaultDbPath,
+    url: `file:${dbPath}`,
   },
 } satisfies Config;

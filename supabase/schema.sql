@@ -1,5 +1,5 @@
 -- =============================================
--- GC Loca Moto - Schema do Banco de Dados
+-- GC Locamoto - Schema do Banco de Dados
 -- Gestão de Locação de Motos
 -- =============================================
 

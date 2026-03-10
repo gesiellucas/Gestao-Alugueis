@@ -2,8 +2,8 @@ import type { Configuration } from 'electron-builder';
 
 const config: Configuration = {
   appId: 'br.com.gclocamoto.app',
-  productName: 'GC Loca Moto',
-  copyright: 'Copyright © 2025 GC Loca Moto',
+  productName: 'GC Locamoto',
+  copyright: 'Copyright © 2025 GC Locamoto',
 
   directories: {
     output: 'release',

@@ -133,7 +133,11 @@ export const AlugueisPage: React.FC = () => {
                 </tr>
               ) : (
                 filteredContracts.map((contract) => (
-                  <tr key={contract.id} className="hover:bg-slate-50 transition-colors">
+                  <tr
+                    key={contract.id}
+                    className="hover:bg-slate-50 transition-colors cursor-pointer"
+                    onClick={() => router.push(`/alugueis/${contract.id}`)}
+                  >
                     <td className="px-6 py-4">
                       {contract.status === "ACTIVE" ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-700 border border-green-200">
@@ -147,7 +151,7 @@ export const AlugueisPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => router.push(`/cliente/${contract.customer_id}`)}
+                        onClick={(e) => { e.stopPropagation(); router.push(`/cliente/${contract.customer_id}`); }}
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors"
                       >
                         <User size={16} />
@@ -159,7 +163,7 @@ export const AlugueisPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <button
-                        onClick={() => router.push(`/veiculo/${contract.vehicle_id}`)}
+                        onClick={(e) => { e.stopPropagation(); router.push(`/veiculo/${contract.vehicle_id}`); }}
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors"
                       >
                         <Bike size={16} />

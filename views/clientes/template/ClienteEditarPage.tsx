@@ -85,13 +85,13 @@ export const ClienteEditarPage: React.FC = () => {
         >
           <ArrowLeft size={20} /> Voltar
         </button>
-        <h2 className="text-3xl font-extrabold text-[#0a2342] uppercase tracking-tight">
+        <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">
           Editar Cliente
         </h2>
       </div>
 
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="bg-[#0a2342] p-8">
+        <div className="bg-[#1a4fd6] p-8">
           <h3 className="font-black text-xl uppercase tracking-tighter text-white">
             {customer.name}
           </h3>
@@ -108,7 +108,7 @@ export const ClienteEditarPage: React.FC = () => {
             </label>
             <input
               type="text"
-              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border"
+              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               required
@@ -122,7 +122,7 @@ export const ClienteEditarPage: React.FC = () => {
               </label>
               <input
                 type="text"
-                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border"
+                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 required
@@ -134,7 +134,7 @@ export const ClienteEditarPage: React.FC = () => {
               </label>
               <input
                 type="text"
-                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border"
+                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border"
                 value={form.cpf}
                 onChange={(e) => setForm({ ...form, cpf: e.target.value })}
                 required
@@ -149,7 +149,7 @@ export const ClienteEditarPage: React.FC = () => {
               </label>
               <input
                 type="number"
-                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border"
+                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border"
                 value={form.balance_due}
                 onChange={(e) =>
                   setForm({
@@ -195,7 +195,7 @@ export const ClienteEditarPage: React.FC = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-4 bg-[#0a2342] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-4 bg-[#1a4fd6] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={18} /> {submitting ? "Salvando..." : "Salvar Alterações"}
             </button>

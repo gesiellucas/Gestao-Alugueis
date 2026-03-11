@@ -68,7 +68,7 @@ export const ClienteDetalhePage: React.FC = () => {
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <h2 className="text-3xl font-extrabold text-[#0a2342]">
+                <h2 className="text-3xl font-extrabold text-[#1a4fd6]">
                   {customer.name}
                 </h2>
                 {customer.active_contract ? (
@@ -132,7 +132,7 @@ export const ClienteDetalhePage: React.FC = () => {
                   href={`/veiculo/${vehicle.id}`}
                   className="block hover:bg-slate-100 -m-2 p-2 rounded-xl transition-colors"
                 >
-                  <p className="font-extrabold text-[#0a2342] text-lg">
+                  <p className="font-extrabold text-[#1a4fd6] text-lg">
                     {vehicle.model?.name || 'Modelo desconhecido'}
                   </p>
                   <div className="flex items-center gap-3 mt-1">

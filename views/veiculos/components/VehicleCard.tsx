@@ -83,7 +83,7 @@ export const VehicleCard = ({
           </span>
           <span className="text-xs font-bold text-slate-400">{year}</span>
         </div>
-        <h3 className="text-md font-extrabold text-[#0a2342] leading-tight">
+        <h3 className="text-md font-extrabold text-[#1a4fd6] leading-tight">
           {model}
         </h3>
 

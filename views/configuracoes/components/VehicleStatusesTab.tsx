@@ -91,7 +91,7 @@ export const VehicleStatusesTab: React.FC = () => {
             <Palette size={24} />
           </div>
           <div>
-            <h3 className="text-xl font-black text-[#0a2342] uppercase">Status de Veículos</h3>
+            <h3 className="text-xl font-black text-[#1a4fd6] uppercase">Status de Veículos</h3>
             <p className="text-slate-400 text-xs">Gerencie os estados possíveis das motocicletas.</p>
           </div>
         </div>

@@ -56,13 +56,13 @@ export const OficinaNovePage: React.FC = () => {
         >
           <ArrowLeft size={20} /> Voltar
         </button>
-        <h2 className="text-3xl font-extrabold text-[#0a2342] uppercase tracking-tight">
+        <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">
           Registrar Entrada
         </h2>
       </div>
 
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="bg-[#0a2342] p-8">
+        <div className="bg-[#1a4fd6] p-8">
           <h3 className="font-black text-xl uppercase tracking-tighter text-white">
             Entrada de Veículo na Oficina
           </h3>
@@ -73,7 +73,7 @@ export const OficinaNovePage: React.FC = () => {
               Moto da Frota
             </label>
             <select
-              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border appearance-none"
+              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border appearance-none"
               value={selectedPlate}
               onChange={(e) => setSelectedPlate(e.target.value)}
               required
@@ -92,7 +92,7 @@ export const OficinaNovePage: React.FC = () => {
               Oficina
             </label>
             <select
-              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border appearance-none"
+              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border appearance-none"
               value={selectedWorkshopId}
               onChange={(e) => setSelectedWorkshopId(e.target.value)}
               required
@@ -111,7 +111,7 @@ export const OficinaNovePage: React.FC = () => {
               Tipo de Serviço
             </label>
             <select
-              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 border appearance-none"
+              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 border appearance-none"
               value={form.type}
               onChange={(e) =>
                 setForm({ ...form, type: e.target.value as MaintenanceType })
@@ -131,7 +131,7 @@ export const OficinaNovePage: React.FC = () => {
             </label>
             <input
               type="text"
-              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 border"
+              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 border"
               value={form.mechanic_name}
               onChange={(e) =>
                 setForm({ ...form, mechanic_name: e.target.value })
@@ -146,7 +146,7 @@ export const OficinaNovePage: React.FC = () => {
               Observações Técnicas
             </label>
             <textarea
-              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 border resize-none"
+              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 border resize-none"
               rows={3}
               value={form.description}
               onChange={(e) =>
@@ -167,7 +167,7 @@ export const OficinaNovePage: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="flex-1 py-4 bg-[#0a2342] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-4 bg-[#1a4fd6] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2"
             >
               <Save size={18} /> Registrar
             </button>

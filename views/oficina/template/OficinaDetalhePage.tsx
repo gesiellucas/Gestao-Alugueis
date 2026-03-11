@@ -81,7 +81,7 @@ export const OficinaDetalhePage: React.FC = () => {
           </div>
           <div className="lg:col-span-2 p-8 space-y-6">
             <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-extrabold text-[#0a2342]">
+              <h2 className="text-2xl font-extrabold text-[#1a4fd6]">
                 {vehicle.model?.name || 'Modelo desconhecido'}
               </h2>
               <span
@@ -133,7 +133,7 @@ export const OficinaDetalhePage: React.FC = () => {
 
       {activeRecords.length > 0 && (
         <div>
-          <h3 className="text-xl font-extrabold text-[#0a2342] mb-4 uppercase tracking-tight flex items-center gap-2">
+          <h3 className="text-xl font-extrabold text-[#1a4fd6] mb-4 uppercase tracking-tight flex items-center gap-2">
             <Wrench size={20} className="text-amber-500" /> Manutenção em
             Andamento
           </h3>
@@ -145,7 +145,7 @@ export const OficinaDetalhePage: React.FC = () => {
               >
                 <div className="flex flex-col md:flex-row justify-between items-start gap-4">
                   <div className="space-y-2 flex-1">
-                    <p className="font-bold text-[#0a2342] text-lg">
+                    <p className="font-bold text-[#1a4fd6] text-lg">
                       {record.type}
                     </p>
                     <p className="text-sm text-slate-600">
@@ -174,7 +174,7 @@ export const OficinaDetalhePage: React.FC = () => {
 
       {completedRecords.length > 0 && (
         <div>
-          <h3 className="text-xl font-extrabold text-[#0a2342] mb-4 uppercase tracking-tight flex items-center gap-2">
+          <h3 className="text-xl font-extrabold text-[#1a4fd6] mb-4 uppercase tracking-tight flex items-center gap-2">
             <CheckCircle size={20} className="text-green-500" /> Histórico
             Concluído
           </h3>
@@ -186,7 +186,7 @@ export const OficinaDetalhePage: React.FC = () => {
               >
                 <div className="flex justify-between items-start">
                   <div className="space-y-2">
-                    <p className="font-bold text-[#0a2342]">{record.type}</p>
+                    <p className="font-bold text-[#1a4fd6]">{record.type}</p>
                     <p className="text-sm text-slate-500">
                       {record.description}
                     </p>

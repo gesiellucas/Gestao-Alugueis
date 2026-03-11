@@ -59,7 +59,7 @@ export const AlugueisPage: React.FC = () => {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h2 className="text-3xl font-extrabold text-[#0a2342] uppercase tracking-tight">
+          <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">
             Histórico de Aluguéis
           </h2>
           <p className="text-slate-500 font-medium">
@@ -68,7 +68,7 @@ export const AlugueisPage: React.FC = () => {
         </div>
         <div className="text-right">
           <p className="text-sm text-slate-500 font-medium">Total de Contratos</p>
-          <p className="text-3xl font-black text-[#0a2342]">
+          <p className="text-3xl font-black text-[#1a4fd6]">
             {rentalContracts.length}
           </p>
         </div>
@@ -86,7 +86,7 @@ export const AlugueisPage: React.FC = () => {
               placeholder="Buscar por cliente, placa, modelo ou CPF..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1a4fd6] focus:border-transparent transition-all"
             />
           </div>
 
@@ -111,7 +111,7 @@ export const AlugueisPage: React.FC = () => {
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-[#0a2342] text-white">
+            <thead className="bg-[#1a4fd6] text-white">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Status</th>
                 <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Cliente</th>

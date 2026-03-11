@@ -29,7 +29,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h2 className="text-3xl font-extrabold text-[#0a2342] uppercase tracking-tight">
+          <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">
             Clientes
           </h2>
           <p className="text-slate-500 font-medium">
@@ -50,7 +50,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
         <input
           type="text"
           placeholder="Buscar Cliente por nome, CPF ou placa..."
-          className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-xl shadow-sm outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700"
+          className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-xl shadow-sm outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all font-medium text-slate-700"
         />
       </div>
 
@@ -83,7 +83,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
                 </div>
 
                 <div className="mb-6">
-                  <h3 className="text-xl font-extrabold text-[#0a2342] mb-1">
+                  <h3 className="text-xl font-extrabold text-[#1a4fd6] mb-1">
                     {customer.name}
                   </h3>
                   <div className="flex items-center gap-2 text-slate-400 text-sm font-medium">

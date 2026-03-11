@@ -102,18 +102,18 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
 
   return (
     <div className="flex h-screen bg-[#f1f5f9] overflow-hidden">
-      {/* Sidebar - GC Navy Blue */}
-      <aside className="hidden md:flex flex-col w-72 bg-[#0a2342] text-white">
+      {/* Sidebar - GC Locamoto Brand Blue */}
+      <aside className="hidden md:flex flex-col w-72 bg-[#1a4fd6] text-white">
         <div className={`p-8 border-b border-white/10${isElectron ? " electron-drag" : ""}`}>
           <div className="flex items-center gap-3 electron-no-drag">
-            <div className="bg-yellow-400 p-2 rounded-xl">
-              <ShieldCheck className="text-[#0a2342] w-6 h-6" />
+            <div className="bg-[#f97316] p-2 rounded-xl shadow-lg shadow-orange-600/30">
+              <Bike className="text-white w-6 h-6" />
             </div>
             <div>
               <h1 className="text-xl font-extrabold tracking-tighter leading-tight">
                 GC LOCAMOTO
               </h1>
-              <span className="text-[10px] uppercase tracking-widest text-yellow-400 font-bold">
+              <span className="text-[10px] uppercase tracking-widest text-orange-300 font-bold">
                 Portal do Gestor
               </span>
             </div>
@@ -127,15 +127,18 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
               href={item.to}
               className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all text-sm font-semibold ${
                 isActive(item.to)
-                  ? "bg-blue-600 text-white shadow-xl shadow-blue-900/30 ring-1 ring-white/20"
-                  : "text-slate-400 hover:text-white hover:bg-white/5"
+                  ? "bg-white/15 text-white ring-1 ring-white/20 shadow-inner"
+                  : "text-blue-100 hover:text-white hover:bg-white/10"
               }`}
             >
               <item.icon
                 size={20}
-                className={isActive(item.to) ? "text-yellow-400" : ""}
+                className={isActive(item.to) ? "text-[#f97316]" : ""}
               />
               {item.label}
+              {isActive(item.to) && (
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-[#f97316]" />
+              )}
             </Link>
           ))}
 
@@ -146,35 +149,35 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
                 href="/configuracoes"
                 className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all text-sm font-semibold ${
                   isSettingsOpen
-                    ? "text-white bg-white/5"
-                    : "text-slate-400 hover:text-white hover:bg-white/5"
+                    ? "bg-white/15 text-white ring-1 ring-white/20"
+                    : "text-blue-100 hover:text-white hover:bg-white/10"
                 }`}
               >
                 <Settings
                   size={20}
-                  className={isSettingsOpen ? "text-yellow-400" : ""}
+                  className={isSettingsOpen ? "text-[#f97316]" : ""}
                 />
                 Configurações
                 <ChevronRight
                   size={15}
-                  className={`ml-auto transition-transform duration-200 ${isSettingsOpen ? "rotate-90 text-yellow-400" : "text-slate-600"}`}
+                  className={`ml-auto transition-transform duration-200 ${isSettingsOpen ? "rotate-90 text-[#f97316]" : "text-blue-300"}`}
                 />
               </Link>
               {isSettingsOpen && (
-                <div className="mt-1 ml-4 space-y-1 border-l border-white/10 pl-3">
+                <div className="mt-1 ml-4 space-y-1 border-l border-white/20 pl-3">
                   {settingsSubItems.map((item) => (
                     <Link
                       key={item.to}
                       href={item.to}
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${
                         pathname === item.to
-                          ? "bg-blue-600 text-white shadow-xl shadow-blue-900/30 ring-1 ring-white/20"
-                          : "text-slate-400 hover:text-white hover:bg-white/5"
+                          ? "bg-white/15 text-white ring-1 ring-white/20"
+                          : "text-blue-100 hover:text-white hover:bg-white/10"
                       }`}
                     >
                       <item.icon
                         size={16}
-                        className={pathname === item.to ? "text-yellow-400" : ""}
+                        className={pathname === item.to ? "text-[#f97316]" : ""}
                       />
                       {item.label}
                     </Link>
@@ -185,21 +188,21 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
           )}
         </nav>
 
-        <div className="p-6 border-t border-white/10 bg-[#071a33]">
+        <div className="p-6 border-t border-white/10 bg-[#1440b8]">
           <div className="mb-4 px-2 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-[10px] font-black">
+            <div className="w-8 h-8 rounded-full bg-[#f97316] flex items-center justify-center text-[10px] font-black text-white shadow-md shadow-orange-600/30">
               {user.name.charAt(0)}
             </div>
             <div className="overflow-hidden">
               <p className="text-xs font-bold truncate">{user.name}</p>
-              <p className="text-[10px] text-blue-400 font-black uppercase tracking-tighter">
+              <p className="text-[10px] text-orange-300 font-black uppercase tracking-tighter">
                 {user.role?.name || "USUÁRIO"}
               </p>
             </div>
           </div>
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-3 text-slate-400 hover:text-white transition-colors text-sm font-bold uppercase tracking-wider px-2"
+            className="w-full flex items-center gap-3 text-blue-200 hover:text-white transition-colors text-sm font-bold uppercase tracking-wider px-2"
           >
             <LogOut size={18} />
             Desconectar
@@ -239,9 +242,9 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
           </div>
         )}
 
-        <header className="md:hidden bg-[#0a2342] text-white p-4 flex items-center justify-between z-20">
+        <header className="md:hidden bg-[#1a4fd6] text-white p-4 flex items-center justify-between z-20">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="text-yellow-400 w-6 h-6" />
+            <Bike className="text-[#f97316] w-6 h-6" />
             <h1 className="text-lg font-extrabold">GC LOCAMOTO</h1>
           </div>
           <div className="flex items-center gap-4">
@@ -253,7 +256,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
         </header>
 
         {isMobileMenuOpen && (
-          <div className="md:hidden absolute inset-0 bg-[#0a2342] z-30 pt-20 px-6 pb-6 animate-in slide-in-from-top duration-300">
+          <div className="md:hidden absolute inset-0 bg-[#1a4fd6] z-30 pt-20 px-6 pb-6 animate-in slide-in-from-top duration-300">
             <nav className="space-y-4">
               {navItems.map((item) => (
                 <Link
@@ -262,21 +265,21 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className={`w-full flex items-center gap-4 px-5 py-5 rounded-xl text-lg font-bold ${
                     isActive(item.to)
-                      ? "bg-blue-600 text-white shadow-lg"
-                      : "bg-white/5 text-slate-300"
+                      ? "bg-white/15 text-white ring-1 ring-white/20 shadow-inner"
+                      : "bg-white/5 text-blue-100"
                   }`}
                 >
-                  <item.icon size={24} />
+                  <item.icon size={24} className={isActive(item.to) ? "text-[#f97316]" : ""} />
                   {item.label}
                 </Link>
               ))}
               {hasPerm('configuracoes') && (
                 <div className="space-y-2">
-                  <div className={`flex items-center gap-4 px-5 py-3 text-sm font-black uppercase tracking-widest ${isSettingsOpen ? "text-yellow-400" : "text-slate-500"}`}>
+                  <div className={`flex items-center gap-4 px-5 py-3 text-sm font-black uppercase tracking-widest ${isSettingsOpen ? "text-[#f97316]" : "text-blue-300"}`}>
                     <Settings size={18} />
                     Configurações
                   </div>
-                  <div className="ml-4 space-y-2 border-l border-white/10 pl-4">
+                  <div className="ml-4 space-y-2 border-l border-white/20 pl-4">
                     {settingsSubItems.map((item) => (
                       <Link
                         key={item.to}
@@ -284,11 +287,11 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold ${
                           pathname === item.to
-                            ? "bg-blue-600 text-white shadow-lg"
-                            : "bg-white/5 text-slate-300"
+                            ? "bg-white/15 text-white ring-1 ring-white/20"
+                            : "bg-white/5 text-blue-100"
                         }`}
                       >
-                        <item.icon size={20} />
+                        <item.icon size={20} className={pathname === item.to ? "text-[#f97316]" : ""} />
                         {item.label}
                       </Link>
                     ))}
@@ -297,7 +300,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
               )}
               <button
                 onClick={onLogout}
-                className="w-full flex items-center gap-4 px-5 py-5 rounded-xl text-lg font-bold bg-red-600/20 text-red-500 mt-8 border border-red-600/30"
+                className="w-full flex items-center gap-4 px-5 py-5 rounded-xl text-lg font-bold bg-red-600/20 text-red-300 mt-8 border border-red-500/30"
               >
                 <LogOut size={24} />
                 Sair do Sistema

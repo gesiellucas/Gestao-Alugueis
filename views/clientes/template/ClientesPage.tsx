@@ -35,7 +35,7 @@ export const ClientesPage: React.FC = () => {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h2 className="text-3xl font-extrabold text-[#0a2342] uppercase tracking-tight">
+          <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">
             Clientes
           </h2>
           <p className="text-slate-500 font-medium">
@@ -61,7 +61,7 @@ export const ClientesPage: React.FC = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar Cliente por nome, CPF ou placa..."
-          className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-xl shadow-sm outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium text-slate-700"
+          className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-xl shadow-sm outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all font-medium text-slate-700"
         />
       </div>
 
@@ -95,7 +95,7 @@ export const ClientesPage: React.FC = () => {
                           <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 font-black text-base border border-blue-100 shrink-0 group-hover:bg-blue-100 transition-colors">
                             {customer.name.charAt(0)}
                           </div>
-                          <span className="font-bold text-[#0a2342] group-hover:text-blue-600 transition-colors">
+                          <span className="font-bold text-[#1a4fd6] group-hover:text-blue-600 transition-colors">
                             {customer.name}
                           </span>
                         </Link>

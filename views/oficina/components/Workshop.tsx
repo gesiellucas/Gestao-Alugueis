@@ -74,7 +74,7 @@ export const Workshop: React.FC<WorkshopProps> = ({
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h2 className="text-3xl font-extrabold text-[#0a2342] uppercase tracking-tight">
+          <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">
             Oficina
           </h2>
           <p className="text-slate-500 font-medium">
@@ -91,9 +91,9 @@ export const Workshop: React.FC<WorkshopProps> = ({
       </div>
 
       {showForm && (
-        <div className="fixed inset-0 bg-[#0a2342]/80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
+        <div className="fixed inset-0 bg-[#1a4fd6]/80 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
           <div className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in duration-300">
-            <div className="bg-[#0a2342] p-8 flex justify-between items-center text-white">
+            <div className="bg-[#1a4fd6] p-8 flex justify-between items-center text-white">
               <h3 className="font-black text-xl uppercase tracking-tighter">
                 Entrada de Veículo
               </h3>
@@ -110,7 +110,7 @@ export const Workshop: React.FC<WorkshopProps> = ({
                   Moto da Frota
                 </label>
                 <select
-                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all border appearance-none"
+                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border appearance-none"
                   value={selectedPlate}
                   onChange={(e) => setSelectedPlate(e.target.value)}
                   required
@@ -131,7 +131,7 @@ export const Workshop: React.FC<WorkshopProps> = ({
                   Tipo de Serviço
                 </label>
                 <select
-                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 border"
+                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 border"
                   value={newRecord.type}
                   onChange={(e) =>
                     setNewRecord({
@@ -154,7 +154,7 @@ export const Workshop: React.FC<WorkshopProps> = ({
                 </label>
                 <input
                   type="text"
-                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 border"
+                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 border"
                   value={newRecord.mechanic_name}
                   onChange={(e) =>
                     setNewRecord({ ...newRecord, mechanic_name: e.target.value })
@@ -169,7 +169,7 @@ export const Workshop: React.FC<WorkshopProps> = ({
                   Observações Técnicas
                 </label>
                 <textarea
-                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-blue-500/10 border resize-none"
+                  className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 border resize-none"
                   rows={3}
                   value={newRecord.description}
                   onChange={(e) =>
@@ -190,7 +190,7 @@ export const Workshop: React.FC<WorkshopProps> = ({
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-4 bg-[#0a2342] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all"
+                  className="flex-1 py-4 bg-[#1a4fd6] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all"
                 >
                   Registrar
                 </button>
@@ -204,7 +204,7 @@ export const Workshop: React.FC<WorkshopProps> = ({
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
         <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-amber-50">
           <ShieldAlert size={18} className="text-amber-500" />
-          <h3 className="font-black text-[#0a2342] uppercase tracking-tight text-sm">
+          <h3 className="font-black text-[#1a4fd6] uppercase tracking-tight text-sm">
             Em Manutenção Agora
           </h3>
           <span className="ml-auto bg-amber-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full">
@@ -236,7 +236,7 @@ export const Workshop: React.FC<WorkshopProps> = ({
                         {record.vehicle_plate}
                       </span>
                     </td>
-                    <td className="px-6 py-4 font-bold text-[#0a2342]">{record.type}</td>
+                    <td className="px-6 py-4 font-bold text-[#1a4fd6]">{record.type}</td>
                     <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name}</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description}</td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
@@ -266,7 +266,7 @@ export const Workshop: React.FC<WorkshopProps> = ({
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
         <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50">
           <CheckCircle size={18} className="text-green-500" />
-          <h3 className="font-black text-[#0a2342] uppercase tracking-tight text-sm">
+          <h3 className="font-black text-[#1a4fd6] uppercase tracking-tight text-sm">
             Histórico de Manutenções
           </h3>
           <span className="ml-auto bg-slate-200 text-slate-600 text-xs font-black px-2.5 py-0.5 rounded-full">
@@ -298,7 +298,7 @@ export const Workshop: React.FC<WorkshopProps> = ({
                         {record.vehicle_plate}
                       </span>
                     </td>
-                    <td className="px-6 py-4 font-bold text-[#0a2342]">{record.type}</td>
+                    <td className="px-6 py-4 font-bold text-[#1a4fd6]">{record.type}</td>
                     <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name}</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description}</td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">

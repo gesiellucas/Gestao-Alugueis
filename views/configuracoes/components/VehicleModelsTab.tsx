@@ -88,7 +88,7 @@ export const VehicleModelsTab: React.FC = () => {
           <div className="bg-indigo-100 p-3 rounded-xl text-indigo-600">
             <Car size={24} />
           </div>
-          <h3 className="text-xl font-black text-[#0a2342] uppercase">Modelos de Veículos</h3>
+          <h3 className="text-xl font-black text-[#1a4fd6] uppercase">Modelos de Veículos</h3>
         </div>
         {!showForm && (
           <button

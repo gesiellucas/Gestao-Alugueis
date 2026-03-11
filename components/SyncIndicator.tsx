@@ -73,7 +73,7 @@ export const SyncIndicator: React.FC = () => {
 
   if (isSyncing) {
     return (
-      <div className="flex items-center gap-2 text-xs font-semibold px-3 py-2 bg-blue-500/10 text-blue-500 rounded-lg">
+      <div className="flex items-center gap-2 text-xs font-semibold px-3 py-2 bg-[#1a4fd6]/10 text-[#1a4fd6] rounded-lg">
         <RefreshCw size={16} className="animate-spin" />
         <span>Sincronizando...</span>
       </div>
@@ -84,7 +84,7 @@ export const SyncIndicator: React.FC = () => {
     return (
       <button 
         onClick={handleManualSync}
-        className="flex items-center gap-2 text-xs font-semibold px-3 py-2 bg-yellow-500/10 text-yellow-600 rounded-lg hover:bg-yellow-500/20 transition-colors"
+        className="flex items-center gap-2 text-xs font-semibold px-3 py-2 bg-[#f97316]/10 text-[#f97316] rounded-lg hover:bg-[#f97316]/20 transition-colors"
         title="Clique para forçar sincronização"
       >
         <Cloud size={16} />

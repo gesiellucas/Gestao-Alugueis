@@ -39,7 +39,7 @@ export const ConfiguracoesPage: React.FC = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h2 className="text-3xl font-extrabold text-[#0a2342] tracking-tight uppercase flex items-center gap-3">
+          <h2 className="text-3xl font-extrabold text-[#1a4fd6] tracking-tight uppercase flex items-center gap-3">
             <Settings size={28} className="text-blue-600" />
             Configurações Globais
           </h2>
@@ -85,10 +85,10 @@ export const ConfiguracoesPage: React.FC = () => {
 
       {activeTab === 'sync' && (
         <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-          <div className="bg-[#0a2342] p-8 border-b border-white/10 flex justify-between items-center">
+          <div className="bg-[#1a4fd6] p-8 border-b border-white/10 flex justify-between items-center">
             <div>
               <h3 className="font-black text-xl uppercase tracking-tighter text-white flex items-center gap-2">
-                <Database size={20} className="text-yellow-400" />
+                <Database size={20} className="text-[#f97316]" />
                 Sincronização de Banco de Dados
               </h3>
               <p className="text-blue-200 text-sm mt-1">

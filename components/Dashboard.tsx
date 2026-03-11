@@ -45,7 +45,7 @@ export const Dashboard: React.FC = () => {
   ];
 
   const statusData = [
-    { name: "Em Rota", value: rentedVehicles, color: "#2563eb" },
+    { name: "Em Rota", value: rentedVehicles, color: "#1a4fd6" },
     {
       name: "Pátio",
       value: totalVehicles - rentedVehicles - inMaintenance,
@@ -72,7 +72,7 @@ export const Dashboard: React.FC = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h2 className="text-3xl font-extrabold text-[#0a2342] tracking-tight uppercase">
+          <h2 className="text-3xl font-extrabold text-[#1a4fd6] tracking-tight uppercase">
             Resumo Operacional
           </h2>
           <p className="text-slate-500 font-medium">
@@ -94,10 +94,10 @@ export const Dashboard: React.FC = () => {
           <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
             Frota GC
           </p>
-          <h3 className="text-4xl font-extrabold text-[#0a2342] mt-3">
+          <h3 className="text-4xl font-extrabold text-[#1a4fd6] mt-3">
             {totalVehicles}
           </h3>
-          <div className="mt-6 flex items-center gap-2 text-blue-600 font-bold text-xs bg-blue-50 w-fit px-3 py-1.5 rounded-full">
+          <div className="mt-6 flex items-center gap-2 text-[#1a4fd6] font-bold text-xs bg-blue-50 w-fit px-3 py-1.5 rounded-full">
             <Bike size={14} /> Ativos
           </div>
         </div>
@@ -127,26 +127,26 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#0a2342] p-7 rounded-[2rem] shadow-xl text-white">
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+        <div className="bg-[#1a4fd6] p-7 rounded-[2rem] shadow-xl text-white">
+          <p className="text-sm font-bold text-blue-200 uppercase tracking-widest">
             Financeiro Diário
           </p>
-          <h3 className="text-3xl font-extrabold text-yellow-400 mt-3">
+          <h3 className="text-3xl font-extrabold text-[#f97316] mt-3">
             R$ 1.840
           </h3>
-          <p className="text-xs text-slate-300 mt-6 font-medium">
+          <p className="text-xs text-blue-200 mt-6 font-medium">
             Previsão de recebimento para hoje
           </p>
         </div>
       </div>
 
-      {/* AI Section with GC Styling */}
-      <div className="bg-white rounded-[2rem] p-8 border-l-4 border-blue-600 shadow-sm">
+      {/* AI Section */}
+      <div className="bg-white rounded-[2rem] p-8 border-l-4 border-[#f97316] shadow-sm">
         <div className="flex items-center gap-3 mb-4">
-          <div className="bg-blue-600 p-2 rounded-xl">
+          <div className="bg-[#f97316] p-2 rounded-xl shadow-md shadow-orange-200">
             <AlertTriangle className="text-white w-5 h-5" />
           </div>
-          <h3 className="font-extrabold text-xl text-[#0a2342]">
+          <h3 className="font-extrabold text-xl text-[#1a4fd6]">
             Relatório Inteligente da Oficina
           </h3>
         </div>
@@ -157,7 +157,7 @@ export const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-          <h3 className="text-xl font-extrabold text-[#0a2342] mb-8">
+          <h3 className="text-xl font-extrabold text-[#1a4fd6] mb-8">
             Receita de Aluguéis (7 dias)
           </h3>
           <div className="h-72 w-full min-h-[250px]">
@@ -190,7 +190,7 @@ export const Dashboard: React.FC = () => {
                 />
                 <Bar
                   dataKey="income"
-                  fill="#2563eb"
+                  fill="#f97316"
                   radius={[10, 10, 0, 0]}
                   barSize={40}
                 />
@@ -200,7 +200,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center">
-          <h3 className="text-xl font-extrabold text-[#0a2342] self-start mb-8">
+          <h3 className="text-xl font-extrabold text-[#1a4fd6] self-start mb-8">
             Status Geral da Frota
           </h3>
           <div className="h-64 w-full min-h-[200px]">

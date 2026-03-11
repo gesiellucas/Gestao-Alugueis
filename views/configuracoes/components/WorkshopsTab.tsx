@@ -94,7 +94,7 @@ export const WorkshopsTab: React.FC = () => {
           <div className="bg-amber-100 p-3 rounded-xl text-amber-600">
             <Building2 size={24} />
           </div>
-          <h3 className="text-xl font-black text-[#0a2342] uppercase">Gestão de Oficinas</h3>
+          <h3 className="text-xl font-black text-[#1a4fd6] uppercase">Gestão de Oficinas</h3>
         </div>
         {!showForm && (
           <button

@@ -37,7 +37,7 @@ export const WhatsAppPage: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-extrabold text-[#0a2342] uppercase tracking-tight">Cobranças & Automação</h2>
+        <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">Cobranças & Automação</h2>
         <p className="text-slate-500 font-medium">Gestão de pagamentos pendentes e disparos via WhatsApp API (Simulado).</p>
       </div>
 

@@ -125,7 +125,7 @@ export const VeiculoDetalhePage: React.FC = () => {
       {showEndConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-6">
-            <h3 className="text-xl font-extrabold text-[#0a2342]">
+            <h3 className="text-xl font-extrabold text-[#1a4fd6]">
               Encerrar Contrato
             </h3>
             <p className="text-slate-600">
@@ -195,7 +195,7 @@ export const VeiculoDetalhePage: React.FC = () => {
                   {statusName}
                 </span>
               </div>
-              <h2 className="text-3xl font-extrabold text-[#0a2342] leading-tight">
+              <h2 className="text-3xl font-extrabold text-[#1a4fd6] leading-tight">
                 {vehicle.model?.name || "Modelo"}
               </h2>
             </div>
@@ -251,7 +251,7 @@ export const VeiculoDetalhePage: React.FC = () => {
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
         <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-blue-50">
           <KeyRound size={18} className="text-blue-600" />
-          <h3 className="font-black text-[#0a2342] uppercase tracking-tight text-sm">
+          <h3 className="font-black text-[#1a4fd6] uppercase tracking-tight text-sm">
             Histórico de Aluguéis
           </h3>
           <span className="ml-auto bg-blue-600 text-white text-xs font-black px-2.5 py-0.5 rounded-full">
@@ -283,7 +283,7 @@ export const VeiculoDetalhePage: React.FC = () => {
                         {contractCustomer ? (
                           <Link
                             href={`/cliente/${contractCustomer.id}`}
-                            className="font-bold text-[#0a2342] hover:text-blue-600 transition-colors"
+                            className="font-bold text-[#1a4fd6] hover:text-blue-600 transition-colors"
                           >
                             {contractCustomer.name}
                           </Link>
@@ -326,7 +326,7 @@ export const VeiculoDetalhePage: React.FC = () => {
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
         <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50">
           <Wrench size={18} className="text-slate-500" />
-          <h3 className="font-black text-[#0a2342] uppercase tracking-tight text-sm">
+          <h3 className="font-black text-[#1a4fd6] uppercase tracking-tight text-sm">
             Histórico de Manutenção
           </h3>
           <span className="ml-auto bg-slate-200 text-slate-600 text-xs font-black px-2.5 py-0.5 rounded-full">
@@ -353,7 +353,7 @@ export const VeiculoDetalhePage: React.FC = () => {
               <tbody>
                 {vehicleRecords.map((record) => (
                   <tr key={record.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
-                    <td className="px-6 py-4 font-bold text-[#0a2342]">{record.type}</td>
+                    <td className="px-6 py-4 font-bold text-[#1a4fd6]">{record.type}</td>
                     <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name}</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description}</td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">

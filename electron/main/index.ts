@@ -58,7 +58,7 @@ function createWindow(): void {
     minHeight: 600,
     title: 'GC Locamoto',
     frame: false,
-    backgroundColor: '#0a2342',
+    backgroundColor: '#1a4fd6',
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload', 'index.js'),
       contextIsolation: true,  // Required for security

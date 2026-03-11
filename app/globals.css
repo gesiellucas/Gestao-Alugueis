@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --brand-blue: #1a4fd6;
+  --brand-blue-dark: #1440b8;
+  --brand-blue-deeper: #0f2f8f;
+  --brand-orange: #f97316;
+  --brand-orange-light: #fb923c;
+}
+
 html,
 body {
   height: 100%;

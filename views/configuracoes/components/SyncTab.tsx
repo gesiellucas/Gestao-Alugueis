@@ -30,9 +30,9 @@ export const SyncTab: React.FC = () => {
 
   return (
     <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-      <div className="bg-[#0a2342] p-8 border-b border-white/10">
+      <div className="bg-[#1a4fd6] p-8 border-b border-white/10">
         <h3 className="font-black text-xl uppercase tracking-tighter text-white flex items-center gap-2">
-          <Database size={20} className="text-yellow-400" />
+          <Database size={20} className="text-[#f97316]" />
           Sincronização de Banco de Dados
         </h3>
         <p className="text-blue-200 text-sm mt-1">

@@ -2,11 +2,12 @@
 import React, { useState } from "react";
 import { useAppContext } from "../../../contexts/AppContext";
 import { useFullSync, useSyncStatus } from "../../../hooks/useSync";
-import { RefreshCw, Database, Server, CheckCircle, AlertCircle, ShieldCheck, Car, Palette } from "lucide-react";
+import { RefreshCw, Database, Server, CheckCircle, AlertCircle, ShieldCheck, Car, Palette, Building2 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { AccessControl } from "../components/AccessControl";
 import { VehicleModelsTab } from "../components/VehicleModelsTab";
 import { VehicleStatusesTab } from "../components/VehicleStatusesTab";
+import { WorkshopsTab } from "../components/WorkshopsTab";
 
 export const ConfiguracoesPage: React.FC = () => {
   const { user } = useAppContext();
@@ -14,7 +15,7 @@ export const ConfiguracoesPage: React.FC = () => {
   const syncMutation = useFullSync();
   const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'access' | 'vehicleModels' | 'vehicleStatuses' | 'sync'>('access');
+  const [activeTab, setActiveTab] = useState<'access' | 'vehicleModels' | 'vehicleStatuses' | 'workshops' | 'sync'>('access');
 
   const handleManualSync = async () => {
     setSyncMessage(null);
@@ -38,7 +39,11 @@ export const ConfiguracoesPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader title="Configurações Globais" subtitle="Gerencie perfis, acesso e banco de dados." />
+      <ModuleHeader 
+        title="Configurações Globais" 
+        subtitle="Gerencie perfis, acesso e banco de dados." 
+        breadcrumbs={[{ label: "Configurações" }]}
+      />
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-slate-200">
@@ -61,6 +66,12 @@ export const ConfiguracoesPage: React.FC = () => {
           <div className="flex items-center gap-2"><Palette size={18} /> Status de Veículos</div>
         </button>
         <button
+          onClick={() => setActiveTab('workshops')}
+          className={`pb-4 px-2 font-black uppercase tracking-widest text-sm transition-colors border-b-2 ${activeTab === 'workshops' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          <div className="flex items-center gap-2"><Building2 size={18} /> Oficinas</div>
+        </button>
+        <button
           onClick={() => setActiveTab('sync')}
           className={`pb-4 px-2 font-black uppercase tracking-widest text-sm transition-colors border-b-2 ${activeTab === 'sync' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
         >
@@ -74,19 +85,19 @@ export const ConfiguracoesPage: React.FC = () => {
 
       {activeTab === 'vehicleStatuses' && <VehicleStatusesTab />}
 
+      {activeTab === 'workshops' && <WorkshopsTab />}
+
       {activeTab === 'sync' && (
-        <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-          <div className="bg-[#1a4fd6] p-8 border-b border-white/10 flex justify-between items-center">
-            <div>
-              <h3 className="font-black text-xl uppercase tracking-tighter text-white flex items-center gap-2">
-                <Database size={20} className="text-[#f97316]" />
-                Sincronização de Banco de Dados
-              </h3>
-              <p className="text-blue-200 text-sm mt-1">
-                Garanta que seus dados estão salvos na nuvem (Supabase).
-              </p>
-            </div>
-          </div>
+        <div className="space-y-8">
+          <ModuleHeader 
+            title="Sincronização de Banco de Dados" 
+            subtitle="Garanta que seus dados estão salvos na nuvem (Supabase)."
+            breadcrumbs={[
+              { label: "Configurações", href: "/configuracoes" },
+              { label: "Banco de Dados" }
+            ]}
+          />
+          <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
 
           <div className="p-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
@@ -152,6 +163,7 @@ export const ConfiguracoesPage: React.FC = () => {
             </div>
           </div>
         </div>
+      </div>
       )}
     </div>
   );

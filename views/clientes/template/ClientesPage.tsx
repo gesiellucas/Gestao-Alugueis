@@ -34,7 +34,11 @@ export const ClientesPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader title="Clientes" subtitle="Gestão completa das motocicletas GC Locamoto." extraHeader={
+      <ModuleHeader 
+        title="Clientes" 
+        subtitle="Gestão completa das motocicletas GC Locamoto." 
+        breadcrumbs={[{ label: "Clientes" }]}
+        extraHeader={
         <Link
           href="/cliente/novo"
           className="bg-blue-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2"

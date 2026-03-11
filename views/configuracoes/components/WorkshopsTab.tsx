@@ -90,7 +90,14 @@ export const WorkshopsTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <ModuleHeader title="Gestão de Oficinas" subtitle="Gerencie as oficinas disponíveis no sistema." extraHeader={
+      <ModuleHeader 
+        title="Gestão de Oficinas" 
+        subtitle="Gerencie as oficinas disponíveis no sistema." 
+        breadcrumbs={[
+          { label: "Configurações", href: "/configuracoes" },
+          { label: "Oficinas" }
+        ]}
+        extraHeader={
         !showForm && (
           <button
             onClick={openCreate}

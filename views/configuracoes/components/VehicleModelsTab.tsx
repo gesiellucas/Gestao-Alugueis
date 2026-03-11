@@ -87,6 +87,10 @@ export const VehicleModelsTab: React.FC = () => {
       <ModuleHeader
         title="Modelos de Veículos"
         subtitle="Gerencie os modelos de veículos disponíveis no sistema."
+        breadcrumbs={[
+          { label: "Configurações", href: "/configuracoes" },
+          { label: "Modelos" }
+        ]}
         extraHeader={
           !showForm && (
             <button

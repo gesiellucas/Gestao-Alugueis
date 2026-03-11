@@ -86,7 +86,14 @@ export const VehicleStatusesTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <ModuleHeader title="Gestão de Status de Veículos" subtitle="Gerencie os estados possíveis das motocicletas." extraHeader={
+      <ModuleHeader 
+        title="Gestão de Status de Veículos" 
+        subtitle="Gerencie os estados possíveis das motocicletas." 
+        breadcrumbs={[
+          { label: "Configurações", href: "/configuracoes" },
+          { label: "Status" }
+        ]}
+        extraHeader={
         !showForm && (
           <button
             onClick={openCreate}

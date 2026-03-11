@@ -13,6 +13,7 @@ import {
   MessageSquare,
   Bike,
 } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const ClienteDetalhePage: React.FC = () => {
   const params = useParams();
@@ -45,20 +46,22 @@ export const ClienteDetalhePage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <button
-          onClick={() => router.push("/clientes")}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
-        >
-          <ArrowLeft size={20} /> Voltar para Clientes
-        </button>
-        <Link
-          href={`/cliente/editar/${customer.id}`}
-          className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"
-        >
-          <Pencil size={16} /> Editar Cliente
-        </Link>
-      </div>
+      <ModuleHeader 
+        title={customer.name} 
+        subtitle={`Informações detalhadas do cliente ${customer.cpf}.`}
+        breadcrumbs={[
+          { label: "Clientes", href: "/clientes" },
+          { label: customer.name }
+        ]}
+        extraHeader={
+          <Link
+            href={`/cliente/editar/${customer.id}`}
+            className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"
+          >
+            <Pencil size={16} /> Editar Cliente
+          </Link>
+        }
+      />
 
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-10">

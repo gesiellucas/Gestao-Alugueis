@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { MaintenanceType, MaintenanceRecord, VEHICLE_STATUS_IDS } from "../../../types";
 import { ArrowLeft, Save } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const OficinaNovePage: React.FC = () => {
   const router = useRouter();
@@ -49,17 +50,14 @@ export const OficinaNovePage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.push("/oficina")}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
-        >
-          <ArrowLeft size={20} /> Voltar
-        </button>
-        <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">
-          Registrar Entrada
-        </h2>
-      </div>
+      <ModuleHeader 
+        title="Registrar Entrada" 
+        subtitle="Entrada de veículo para manutenção técnica."
+        breadcrumbs={[
+          { label: "Oficina", href: "/oficina" },
+          { label: "Registrar Entrada" }
+        ]}
+      />
 
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="bg-[#1a4fd6] p-8">

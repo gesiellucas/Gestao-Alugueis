@@ -106,7 +106,11 @@ export const VeiculosPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader title="Veículos" subtitle="Gestão completa das motocicletas GC Locamoto." extraHeader={
+      <ModuleHeader 
+        title="Veículos" 
+        subtitle="Gestão completa das motocicletas GC Locamoto." 
+        breadcrumbs={[{ label: "Veículos" }]}
+        extraHeader={
         <Link
           href="/veiculo/novo_veiculo"
           className="bg-blue-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2"

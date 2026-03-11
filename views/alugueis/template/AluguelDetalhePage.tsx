@@ -19,6 +19,7 @@ import {
   Upload,
   ExternalLink,
 } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 type Tab = "aluguel" | "contrato";
 
@@ -125,25 +126,26 @@ export const AluguelDetalhePage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <button
-          onClick={() => router.push("/alugueis")}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
-        >
-          <ArrowLeft size={20} /> Voltar
-        </button>
-        <span
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest border ${
-            isActive
-              ? "bg-green-100 text-green-700 border-green-200"
-              : "bg-slate-100 text-slate-600 border-slate-200"
-          }`}
-        >
-          {isActive ? <CheckCircle size={12} /> : <XCircle size={12} />}
-          {isActive ? "Ativo" : "Encerrado"}
-        </span>
-      </div>
+      <ModuleHeader 
+        title={`Contrato ${id.substring(0, 8)}`} 
+        subtitle="Detalhes do aluguel e documentos vinculados." 
+        breadcrumbs={[
+          { label: "Aluguéis", href: "/alugueis" },
+          { label: id.substring(0, 8) }
+        ]}
+        extraHeader={
+          <span
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest border ${
+              isActive
+                ? "bg-green-100 text-green-700 border-green-200"
+                : "bg-slate-100 text-slate-600 border-slate-200"
+            }`}
+          >
+            {isActive ? <CheckCircle size={12} /> : <XCircle size={12} />}
+            {isActive ? "Ativo" : "Encerrado"}
+          </span>
+        }
+      />
 
       {/* Tab Menu */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">

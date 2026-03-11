@@ -25,7 +25,11 @@ export const OficinaPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader title="Oficina" subtitle="Controle de manutenção preventiva e corretiva." extraHeader={
+      <ModuleHeader 
+        title="Oficina" 
+        subtitle="Controle de manutenção preventiva e corretiva." 
+        breadcrumbs={[{ label: "Oficina" }]}
+        extraHeader={
         <Link
           href="/oficina/novo_entrada"
           className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-medium transition-all shadow-lg shadow-amber-100 active:scale-95 flex items-center gap-2"

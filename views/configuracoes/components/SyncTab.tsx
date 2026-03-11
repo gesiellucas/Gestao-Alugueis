@@ -31,7 +31,14 @@ export const SyncTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <ModuleHeader title="Sincronização de Banco de Dados" subtitle="Garanta que seus dados estão salvos na nuvem (Supabase)." />
+      <ModuleHeader 
+        title="Sincronização de Banco de Dados" 
+        subtitle="Garanta que seus dados estão salvos na nuvem (Supabase)."
+        breadcrumbs={[
+          { label: "Configurações", href: "/configuracoes" },
+          { label: "Banco de Dados" }
+        ]}
+      />
 
       <div className="">
         <div className="grid grid-cols-1 gap-8 items-center">

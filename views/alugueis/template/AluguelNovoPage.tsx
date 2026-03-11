@@ -12,6 +12,7 @@ import {
   DollarSign,
   Calendar,
 } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const AluguelNovoPage: React.FC = () => {
   const params = useParams();
@@ -104,17 +105,14 @@ export const AluguelNovoPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.push(`/veiculo/${vehicle.id}`)}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
-        >
-          <ArrowLeft size={20} /> Voltar
-        </button>
-        <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">
-          Novo Aluguel
-        </h2>
-      </div>
+      <ModuleHeader 
+        title="Novo Aluguel" 
+        subtitle={`Iniciando contrato para o veículo ${vehicle.plate}.`}
+        breadcrumbs={[
+          { label: "Aluguéis", href: "/alugueis" },
+          { label: "Novo Aluguel" }
+        ]}
+      />
 
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="bg-[#1a4fd6] p-8">

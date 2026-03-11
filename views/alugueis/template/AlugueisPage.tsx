@@ -58,7 +58,11 @@ export const AlugueisPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader title="Histórico de Aluguéis" subtitle="Relação completa de clientes, veículos e contratos." extraHeader={
+      <ModuleHeader 
+        title="Histórico de Aluguéis" 
+        subtitle="Relação completa de clientes, veículos e contratos." 
+        breadcrumbs={[{ label: "Aluguéis" }]}
+        extraHeader={
         <div className="text-right">
           <p className="text-sm text-slate-500 font-medium">Total de Contratos</p>
           <p className="text-3xl font-black text-[#1a4fd6]">

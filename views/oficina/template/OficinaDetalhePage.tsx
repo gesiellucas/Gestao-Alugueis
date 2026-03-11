@@ -11,6 +11,7 @@ import {
   Hash,
   Circle,
 } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const OficinaDetalhePage: React.FC = () => {
   const params = useParams();
@@ -55,20 +56,22 @@ export const OficinaDetalhePage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <button
-          onClick={() => router.push("/oficina")}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
-        >
-          <ArrowLeft size={20} /> Voltar para Oficina
-        </button>
-        <Link
-          href="/oficina/novo_entrada"
-          className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-sm transition-all"
-        >
-          <Wrench size={16} /> Nova Entrada
-        </Link>
-      </div>
+      <ModuleHeader 
+        title={vehicle.plate} 
+        subtitle={`Histórico de manutenções da moto ${vehicle.model?.name || 'Moto'}.`}
+        breadcrumbs={[
+          { label: "Oficina", href: "/oficina" },
+          { label: vehicle.plate }
+        ]}
+        extraHeader={
+          <Link
+            href="/oficina/novo_entrada"
+            className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-sm transition-all"
+          >
+            <Wrench size={16} /> Nova Entrada
+          </Link>
+        }
+      />
 
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-3">

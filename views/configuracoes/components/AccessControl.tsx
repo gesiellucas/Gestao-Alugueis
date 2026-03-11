@@ -91,7 +91,14 @@ export const AccessControl: React.FC = () => {
   return (
     <div className="space-y-10 py-4">
 
-      <ModuleHeader title="Acesso & Segurança" subtitle="Gerencie usuários, cargos e permissões do sistema." />
+      <ModuleHeader 
+        title="Acesso & Segurança" 
+        subtitle="Gerencie usuários, cargos e permissões do sistema."
+        breadcrumbs={[
+          { label: "Configurações", href: "/configuracoes" },
+          { label: "Acesso" }
+        ]} 
+      />
 
       {/* ---------- USERS SECTION ---------- */}
       <div className="bg-white rounded-xl p-8 shadow-sm border border-slate-100">

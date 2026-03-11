@@ -16,6 +16,7 @@ import {
   KeyRound,
   XCircle,
 } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const VeiculoDetalhePage: React.FC = () => {
   const params = useParams();
@@ -81,7 +82,26 @@ export const VeiculoDetalhePage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+
+      <ModuleHeader 
+        title={`${vehicle.plate}`} 
+        subtitle={vehicle.model?.name || 'Moto'} 
+        breadcrumbs={[
+          { label: "Veículos", href: "/veiculos" },
+          { label: vehicle.plate }
+        ]}
+        extraHeader={<span
+        className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border"
+        style={{
+          backgroundColor: `${statusColor}20`,
+          color: statusColor,
+          borderColor: `${statusColor}40`,
+        }}
+      >
+        {statusName}
+      </span>} />
+
+      < div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4" >
         <button
           onClick={() => router.push("/veiculos")}
           className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
@@ -120,7 +140,7 @@ export const VeiculoDetalhePage: React.FC = () => {
             <Pencil size={16} /> Editar Veículo
           </Link>
         </div>
-      </div>
+      </div >
 
       {showEndConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
@@ -382,6 +402,6 @@ export const VeiculoDetalhePage: React.FC = () => {
           </div>
         )}
       </div>
-    </div>
+    </div >
   );
 };

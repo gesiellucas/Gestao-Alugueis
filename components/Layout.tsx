@@ -103,7 +103,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
   return (
     <div className="flex h-screen bg-[#f1f5f9] overflow-hidden">
       {/* Sidebar - GC Locamoto Brand Blue */}
-      <aside className="hidden md:flex flex-col w-72 bg-[#1a4fd6] text-white">
+      <aside className="hidden md:flex flex-col w-64 bg-[#1a4fd6] text-white">
         <div className={`p-8 border-b border-white/10${isElectron ? " electron-drag" : ""}`}>
           <div className="flex items-center gap-3 electron-no-drag">
             <div className="bg-[#f97316] p-2 rounded-xl shadow-lg shadow-orange-600/30">
@@ -146,7 +146,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
           {hasPerm('configuracoes') && (
             <div>
               <Link
-                href="/configuracoes"
+                href="/configuracoes/acesso"
                 className={`w-full flex items-center gap-4 px-4 py-4 rounded-xl transition-all text-sm font-semibold ${
                   isSettingsOpen
                     ? "bg-white/15 text-white ring-1 ring-white/20"
@@ -309,7 +309,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
           </div>
         )}
 
-        <main className="flex-1 overflow-y-auto p-4 md:p-10">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8">{children}</main>
       </div>
     </div>
   );

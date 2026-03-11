@@ -3,6 +3,7 @@ import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { Search, Calendar, User, Bike, DollarSign, CheckCircle, XCircle } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const AlugueisPage: React.FC = () => {
   const { rentalContracts, customers, vehicles } = useAppContext();
@@ -57,22 +58,14 @@ export const AlugueisPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div>
-          <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">
-            Histórico de Aluguéis
-          </h2>
-          <p className="text-slate-500 font-medium">
-            Relação completa de clientes, veículos e contratos.
-          </p>
-        </div>
+      <ModuleHeader title="Histórico de Aluguéis" subtitle="Relação completa de clientes, veículos e contratos." extraHeader={
         <div className="text-right">
           <p className="text-sm text-slate-500 font-medium">Total de Contratos</p>
           <p className="text-3xl font-black text-[#1a4fd6]">
             {rentalContracts.length}
           </p>
         </div>
-      </div>
+      } />
 
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 space-y-5">
         <div className="flex flex-col sm:flex-row gap-3">

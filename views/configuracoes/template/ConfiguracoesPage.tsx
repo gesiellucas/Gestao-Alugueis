@@ -2,7 +2,8 @@
 import React, { useState } from "react";
 import { useAppContext } from "../../../contexts/AppContext";
 import { useFullSync, useSyncStatus } from "../../../hooks/useSync";
-import { Settings, RefreshCw, Database, Server, CheckCircle, AlertCircle, ShieldCheck, Car, Palette } from "lucide-react";
+import { RefreshCw, Database, Server, CheckCircle, AlertCircle, ShieldCheck, Car, Palette } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 import { AccessControl } from "../components/AccessControl";
 import { VehicleModelsTab } from "../components/VehicleModelsTab";
 import { VehicleStatusesTab } from "../components/VehicleStatusesTab";
@@ -37,17 +38,7 @@ export const ConfiguracoesPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div>
-          <h2 className="text-3xl font-extrabold text-[#1a4fd6] tracking-tight uppercase flex items-center gap-3">
-            <Settings size={28} className="text-blue-600" />
-            Configurações Globais
-          </h2>
-          <p className="text-slate-500 font-medium">
-            Gerencie perfis, acesso e banco de dados.
-          </p>
-        </div>
-      </div>
+      <ModuleHeader title="Configurações Globais" subtitle="Gerencie perfis, acesso e banco de dados." />
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-slate-200">

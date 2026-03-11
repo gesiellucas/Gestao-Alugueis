@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { VEHICLE_STATUS_IDS } from "../../../types";
 import { PlusCircle, Search, ChevronDown, ChevronUp, ChevronsUpDown, Wrench, User } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 type SortKey = "brand" | "model" | "year" | "plate" | "mileage" | "monthly_rate" | "status" | "renter";
 type SortDir = "asc" | "desc";
@@ -105,23 +106,14 @@ export const VeiculosPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div>
-          <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">
-            Veículos
-          </h2>
-          <p className="text-slate-500 font-medium">
-            Gestão completa das motocicletas GC Locamoto.
-          </p>
-        </div>
+      <ModuleHeader title="Veículos" subtitle="Gestão completa das motocicletas GC Locamoto." extraHeader={
         <Link
           href="/veiculo/novo_veiculo"
-          className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2"
+          className="bg-blue-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2"
         >
-          <PlusCircle size={20} />
           Nova Motocicleta
         </Link>
-      </div>
+      }/>
 
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 flex items-center gap-3">
         <div className="flex flex-col sm:flex-row gap-3">

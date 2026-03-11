@@ -11,6 +11,7 @@ import {
   Pencil,
   User,
 } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const ClientesPage: React.FC = () => {
   const { customers, vehicles } = useAppContext();
@@ -33,23 +34,14 @@ export const ClientesPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div>
-          <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">
-            Clientes
-          </h2>
-          <p className="text-slate-500 font-medium">
-            Gestão de clientes e contratos ativos.
-          </p>
-        </div>
+      <ModuleHeader title="Clientes" subtitle="Gestão completa das motocicletas GC Locamoto." extraHeader={
         <Link
           href="/cliente/novo"
-          className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2 uppercase tracking-widest text-xs"
+          className="bg-blue-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2"
         >
-          <PlusCircle size={18} />
           Novo Cliente
         </Link>
-      </div>
+      } />
 
       <div className="relative group">
         <Search

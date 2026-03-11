@@ -4,6 +4,7 @@ import { AppUser, Role } from "../../../types";
 import { localUsersApi } from "../../../services/localApi/users";
 import { localRolesApi } from "../../../services/localApi/roles";
 import { Users, Shield, Plus, Edit2, Trash2, X, Check } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const AccessControl: React.FC = () => {
   const [users, setUsers] = useState<AppUser[]>([]);
@@ -90,8 +91,10 @@ export const AccessControl: React.FC = () => {
   return (
     <div className="space-y-10 py-4">
 
+      <ModuleHeader title="Acesso & Segurança" subtitle="Gerencie usuários, cargos e permissões do sistema." />
+
       {/* ---------- USERS SECTION ---------- */}
-      <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100">
+      <div className="bg-white rounded-xl p-8 shadow-sm border border-slate-100">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
@@ -108,7 +111,7 @@ export const AccessControl: React.FC = () => {
         </div>
 
         {(isCreatingUser || isEditingUser) && (
-          <div className="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-2xl grid gap-4 grid-cols-1 md:grid-cols-2">
+          <div className="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-xl grid gap-4 grid-cols-1 md:grid-cols-2">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nome</label>
               <input type="text" value={formDataUser.name} onChange={e => setFormDataUser(prev => ({...prev, name: e.target.value}))} className="w-full border-slate-300 rounded-xl p-2" />
@@ -170,7 +173,7 @@ export const AccessControl: React.FC = () => {
       </div>
 
       {/* ---------- ROLES SECTION ---------- */}
-      <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100">
+      <div className="bg-white rounded-xl p-8 shadow-sm border border-slate-100">
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
             <div className="bg-yellow-100 p-3 rounded-xl text-yellow-600">
@@ -187,7 +190,7 @@ export const AccessControl: React.FC = () => {
         </div>
 
         {(isCreatingRole || isEditingRole) && (
-          <div className="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-2xl space-y-6">
+          <div className="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-xl space-y-6">
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nome do Cargo</label>
               <input type="text" value={formDataRole.name} onChange={e => setFormDataRole(prev => ({...prev, name: e.target.value}))} className="w-full max-w-md border-slate-300 rounded-xl p-2" placeholder="Ex: Vendedor" />
@@ -230,7 +233,7 @@ export const AccessControl: React.FC = () => {
         {loading ? <p>Carregando...</p> : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {roles.map(r => (
-              <div key={r.id} className="border border-slate-200 rounded-2xl p-6 relative group">
+              <div key={r.id} className="border border-slate-200 rounded-xl p-6 relative group">
                 <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button onClick={() => { setIsEditingRole(r); setFormDataRole({ name: r.name, permissions: r.permissions }); }} className="p-1.5 text-blue-500 bg-blue-50 rounded-md hover:bg-blue-100"><Edit2 size={14} /></button>
                   <button onClick={() => handleDeleteRole(r.id)} className="p-1.5 text-red-500 bg-red-50 rounded-md hover:bg-red-100"><Trash2 size={14} /></button>

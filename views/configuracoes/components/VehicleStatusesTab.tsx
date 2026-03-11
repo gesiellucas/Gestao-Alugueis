@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { VehicleStatusRecord } from "../../../types";
 import { localVehicleStatusesApi } from "../../../services/localApi/vehicleStatuses";
 import { Palette, Plus, Edit2, Trash2, Check, X, Lock } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 type FormData = { name: string; color: string };
 
@@ -84,26 +85,17 @@ export const VehicleStatusesTab: React.FC = () => {
   const showForm = isCreating || editingId !== null;
 
   return (
-    <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-purple-100 p-3 rounded-xl text-purple-600">
-            <Palette size={24} />
-          </div>
-          <div>
-            <h3 className="text-xl font-black text-[#1a4fd6] uppercase">Status de Veículos</h3>
-            <p className="text-slate-400 text-xs">Gerencie os estados possíveis das motocicletas.</p>
-          </div>
-        </div>
-        {!showForm && (
+    <div className="space-y-6">
+      <ModuleHeader title="Gestão de Status de Veículos" subtitle="Gerencie os estados possíveis das motocicletas." extraHeader={
+        !showForm && (
           <button
             onClick={openCreate}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
           >
-            <Plus size={16} /> Novo Status
+            Novo Status
           </button>
-        )}
-      </div>
+        )
+      } />
 
       {showForm && (
         <div className="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-2xl grid gap-4 grid-cols-1 md:grid-cols-3">
@@ -157,14 +149,14 @@ export const VehicleStatusesTab: React.FC = () => {
       ) : statuses.length === 0 ? (
         <p className="text-slate-400 text-sm font-medium py-6 text-center italic">Nenhum status cadastrado.</p>
       ) : (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
           <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-widest">
-                <th className="py-4 font-bold">Cor</th>
-                <th className="py-4 font-bold">Nome</th>
-                <th className="py-4 font-bold">Tipo</th>
-                <th className="py-4 font-bold text-right">Ações</th>
+            <thead className="bg-slate-800 text-white">
+              <tr className="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-widest p-6">
+                <th className="py-4 px-6 font-bold">Cor</th>
+                <th className="py-4 px-6 font-bold">Nome</th>
+                <th className="py-4 px-6 font-bold">Tipo</th>
+                <th className="py-4 px-6 font-bold text-right">Ações</th>
               </tr>
             </thead>
             <tbody>

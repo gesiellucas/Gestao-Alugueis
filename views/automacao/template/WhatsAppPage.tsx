@@ -4,6 +4,7 @@ import { useAppContext } from '../../../contexts/AppContext';
 import { generateWhatsAppMessage } from '../../../services/geminiService';
 import { Customer } from '../../../types';
 import { MessageSquare, Send, Sparkles, AlertCircle } from 'lucide-react';
+import { ModuleHeader } from '@/components/ModuleHeader';
 
 export const WhatsAppPage: React.FC = () => {
   const { customers, vehicles } = useAppContext();
@@ -36,12 +37,9 @@ export const WhatsAppPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">Cobranças & Automação</h2>
-        <p className="text-slate-500 font-medium">Gestão de pagamentos pendentes e disparos via WhatsApp API (Simulado).</p>
-      </div>
+      <ModuleHeader title="Cobranças & Automação" subtitle="Gestão de pagamentos pendentes e disparos via WhatsApp API (Simulado)." />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100 p-6">
         <div className="lg:col-span-1 space-y-4">
           <h3 className="font-semibold text-slate-700 flex items-center gap-2">
             <AlertCircle className="text-red-500" size={18} />

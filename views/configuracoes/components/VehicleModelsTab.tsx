@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { VehicleModel } from "../../../types";
 import { localVehicleModelsApi } from "../../../services/localApi/vehicleModels";
 import { Car, Plus, Edit2, Trash2, Check, X } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 type FormData = { name: string; brand: string; status: 'ACTIVE' | 'INACTIVE' };
 
@@ -82,26 +83,24 @@ export const VehicleModelsTab: React.FC = () => {
   const showForm = isCreating || editingId !== null;
 
   return (
-    <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100">
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-indigo-100 p-3 rounded-xl text-indigo-600">
-            <Car size={24} />
-          </div>
-          <h3 className="text-xl font-black text-[#1a4fd6] uppercase">Modelos de Veículos</h3>
-        </div>
-        {!showForm && (
-          <button
-            onClick={openCreate}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
-          >
-            <Plus size={16} /> Novo Modelo
-          </button>
-        )}
-      </div>
+    <div className="space-y-8">
+      <ModuleHeader
+        title="Modelos de Veículos"
+        subtitle="Gerencie os modelos de veículos disponíveis no sistema."
+        extraHeader={
+          !showForm && (
+            <button
+              onClick={openCreate}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
+            >
+              Novo Modelo
+            </button>
+          )
+        }
+      />
 
       {showForm && (
-        <div className="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-2xl grid gap-4 grid-cols-1 md:grid-cols-3">
+        <div className="mb-8 p-6 bg-white border border-slate-200 rounded-2xl grid gap-4 grid-cols-1 md:grid-cols-3">
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nome do Modelo</label>
             <input
@@ -151,53 +150,55 @@ export const VehicleModelsTab: React.FC = () => {
         </div>
       )}
 
-      {loading ? (
-        <p className="text-slate-400 text-sm font-medium py-6 text-center">Carregando...</p>
-      ) : models.length === 0 ? (
-        <p className="text-slate-400 text-sm font-medium py-6 text-center italic">Nenhum modelo cadastrado.</p>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-widest">
-                <th className="py-4 font-bold">Modelo</th>
-                <th className="py-4 font-bold">Marca</th>
-                <th className="py-4 font-bold">Status</th>
-                <th className="py-4 font-bold text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {models.map(m => (
-                <tr key={m.id} className="border-b border-slate-50 hover:bg-slate-50 group">
-                  <td className="py-4 font-bold text-slate-700">{m.name}</td>
-                  <td className="py-4 text-slate-500 text-sm">{m.brand}</td>
-                  <td className="py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${m.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                      {m.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </td>
-                  <td className="py-4 text-right">
-                    <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => openEdit(m)}
-                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(m.id)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100">
+        {loading ? (
+          <p className="text-slate-400 text-sm font-medium py-6 text-center">Carregando...</p>
+        ) : models.length === 0 ? (
+          <p className="text-slate-400 text-sm font-medium py-6 text-center italic">Nenhum modelo cadastrado.</p>
+        ) : (
+          <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidde">
+            <table className="w-full text-left">
+              <thead className="bg-slate-800 text-white">
+                <tr className="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-widest">
+                  <th className="py-4 px-6 font-bold">Modelo</th>
+                  <th className="py-4 px-6 font-bold">Marca</th>
+                  <th className="py-4 px-6 font-bold">Status</th>
+                  <th className="py-4 px-6 font-bold text-right">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody>
+                {models.map(m => (
+                  <tr key={m.id} className="border-b border-slate-50 hover:bg-slate-50 group">
+                    <td className="py-4 font-bold text-slate-700">{m.name}</td>
+                    <td className="py-4 text-slate-500 text-sm">{m.brand}</td>
+                    <td className="py-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${m.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                        {m.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}
+                      </span>
+                    </td>
+                    <td className="py-4 text-right">
+                      <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => openEdit(m)}
+                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(m.id)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

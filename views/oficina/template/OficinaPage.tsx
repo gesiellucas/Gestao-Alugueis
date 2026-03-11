@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
 import { PlusCircle, ShieldAlert, Clock, CheckCircle, Building2 } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const OficinaPage: React.FC = () => {
   const { maintenanceRecords: records, workshops, handleFinishMaintenance } =
@@ -24,23 +25,14 @@ export const OficinaPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-        <div>
-          <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">
-            Oficina
-          </h2>
-          <p className="text-slate-500 font-medium">
-            Controle de manutenção preventiva e corretiva.
-          </p>
-        </div>
+      <ModuleHeader title="Oficina" subtitle="Controle de manutenção preventiva e corretiva." extraHeader={
         <Link
           href="/oficina/novo_entrada"
-          className="bg-amber-500 hover:bg-amber-600 text-white px-8 py-4 rounded-xl flex items-center gap-2 font-black shadow-lg shadow-amber-100 transition-all uppercase tracking-wider"
+          className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-medium transition-all shadow-lg shadow-amber-100 active:scale-95 flex items-center gap-2"
         >
-          <PlusCircle size={20} />
           Registrar Entrada
         </Link>
-      </div>
+      } />
 
       {/* Workshop Filter */}
       <div className="flex items-center gap-3">

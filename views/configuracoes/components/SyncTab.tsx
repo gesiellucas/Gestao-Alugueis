@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { useFullSync, useSyncStatus } from "../../../hooks/useSync";
 import { RefreshCw, Database, Server, CheckCircle, AlertCircle } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const SyncTab: React.FC = () => {
   const { data: syncStatus, refetch: refetchStatus } = useSyncStatus();
@@ -29,19 +30,11 @@ export const SyncTab: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-      <div className="bg-[#1a4fd6] p-8 border-b border-white/10">
-        <h3 className="font-black text-xl uppercase tracking-tighter text-white flex items-center gap-2">
-          <Database size={20} className="text-[#f97316]" />
-          Sincronização de Banco de Dados
-        </h3>
-        <p className="text-blue-200 text-sm mt-1">
-          Garanta que seus dados estão salvos na nuvem (Supabase).
-        </p>
-      </div>
+    <div className="space-y-6">
+      <ModuleHeader title="Sincronização de Banco de Dados" subtitle="Garanta que seus dados estão salvos na nuvem (Supabase)." />
 
-      <div className="p-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+      <div className="">
+        <div className="grid grid-cols-1 gap-8 items-center">
           <div className="space-y-6">
             <div className="flex items-center gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-200">
               <div className="bg-blue-100 text-blue-600 p-3 rounded-xl">
@@ -72,26 +65,26 @@ export const SyncTab: React.FC = () => {
             <p className="text-xs text-slate-500 font-medium ml-2">
               Última sincronização: <span className="font-bold">{formatDate(syncStatus?.lastSync)}</span>
             </p>
-          </div>
 
-          <div className="flex flex-col items-center justify-center p-8 bg-blue-50 rounded-3xl border border-blue-100 h-full">
-            <button
-              onClick={handleManualSync}
-              disabled={syncMutation.isPending}
-              className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg"
-            >
-              <RefreshCw size={22} className={syncMutation.isPending ? "animate-spin" : ""} />
-              {syncMutation.isPending ? "Sincronizando..." : "Sincronizar Agora"}
-            </button>
-            <p className="text-sm text-blue-600 text-center mt-4 font-medium">
-              Sincroniza automaticamente a cada 5 minutos em segundo plano.
-            </p>
-            {syncMessage && (
-              <div className={`mt-6 p-4 rounded-xl w-full flex items-center gap-3 ${syncMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                {syncMessage.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
-                <span className="text-sm font-bold">{syncMessage.text}</span>
-              </div>
-            )}
+            <div className="flex flex-col items-center justify-center p-8 bg-white rounded-3xl border border-blue-100 h-full">
+              <button
+                onClick={handleManualSync}
+                disabled={syncMutation.isPending}
+                className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg"
+              >
+                <RefreshCw size={22} className={syncMutation.isPending ? "animate-spin" : ""} />
+                {syncMutation.isPending ? "Sincronizando..." : "Sincronizar Agora"}
+              </button>
+              <p className="text-sm text-blue-600 text-center mt-4 font-medium">
+                Sincroniza automaticamente a cada 5 minutos em segundo plano.
+              </p>
+              {syncMessage && (
+                <div className={`mt-6 p-4 rounded-xl w-full flex items-center gap-3 ${syncMessage.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                  {syncMessage.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+                  <span className="text-sm font-bold">{syncMessage.text}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

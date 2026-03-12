@@ -8,7 +8,7 @@ import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const ClienteEditarPage: React.FC = () => {
   const params = useParams();
-  const id = params.id as string;
+  const id = Number(params.id);
   const router = useRouter();
   const { customers, setCustomers } = useAppContext();
 

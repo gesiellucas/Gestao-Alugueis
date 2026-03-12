@@ -11,127 +11,142 @@ export interface Database {
     Tables: {
       workshops: {
         Row: {
-          id: string;
+          id: number;
           name: string;
           address: string | null;
           status: 'ACTIVE' | 'INACTIVE';
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
-          id?: string;
+          id?: number;
           name: string;
           address?: string | null;
           status?: 'ACTIVE' | 'INACTIVE';
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
-          id?: string;
+          id?: number;
           name?: string;
           address?: string | null;
           status?: 'ACTIVE' | 'INACTIVE';
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Relationships: [];
       };
       app_users: {
         Row: {
-          id: string;
+          id: number;
           name: string;
           email: string;
-          role: 'ADMIN' | 'MECHANIC' | 'BILLING';
+          role_id: number;
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
-          id?: string;
+          id?: number;
           name: string;
           email: string;
-          role?: 'ADMIN' | 'MECHANIC' | 'BILLING';
+          role_id: number;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
-          id?: string;
+          id?: number;
           name?: string;
           email?: string;
-          role?: 'ADMIN' | 'MECHANIC' | 'BILLING';
+          role_id?: number;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Relationships: [];
       };
       customers: {
         Row: {
-          id: string;
+          id: number;
+          user_id: number;
           name: string;
-          phone: string;
-          cpf: string;
+          phone: string | null;
+          cpf: string | null;
           active_contract: boolean;
           balance_due: number;
           last_payment_date: string | null;
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
-          id?: string;
+          id?: number;
+          user_id: number;
           name: string;
-          phone: string;
-          cpf: string;
+          phone?: string | null;
+          cpf?: string | null;
           active_contract?: boolean;
           balance_due?: number;
           last_payment_date?: string | null;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
-          id?: string;
+          id?: number;
+          user_id?: number;
           name?: string;
-          phone?: string;
-          cpf?: string;
+          phone?: string | null;
+          cpf?: string | null;
           active_contract?: boolean;
           balance_due?: number;
           last_payment_date?: string | null;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Relationships: [];
       };
       vehicle_models: {
         Row: {
-          id: string;
+          id: number;
           name: string;
           brand: string;
           image_url: string | null;
           status: 'ACTIVE' | 'INACTIVE';
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
-          id?: string;
+          id?: number;
           name: string;
           brand: string;
           image_url?: string | null;
           status?: 'ACTIVE' | 'INACTIVE';
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
-          id?: string;
+          id?: number;
           name?: string;
           brand?: string;
           image_url?: string | null;
           status?: 'ACTIVE' | 'INACTIVE';
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Relationships: [];
       };
       vehicle_statuses: {
         Row: {
-          id: string;
+          id: number;
           name: string;
           color: string;
           is_default: boolean;
@@ -140,7 +155,7 @@ export interface Database {
           deleted_at: string | null;
         };
         Insert: {
-          id?: string;
+          id?: number;
           name: string;
           color?: string;
           is_default?: boolean;
@@ -149,7 +164,7 @@ export interface Database {
           deleted_at?: string | null;
         };
         Update: {
-          id?: string;
+          id?: number;
           name?: string;
           color?: string;
           is_default?: boolean;
@@ -161,40 +176,43 @@ export interface Database {
       };
       vehicles: {
         Row: {
-          id: string;
+          id: number;
           plate: string;
-          model_id: string;
+          model_id: number;
           year: number;
-          status_id: string;
+          status_id: number;
           mileage: number;
-          current_renter_id: string | null;
+          current_renter_id: number | null;
           default_monthly_rate: number;
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
-          id?: string;
+          id?: number;
           plate: string;
-          model_id: string;
+          model_id: number;
           year: number;
-          status_id: string;
+          status_id: number;
           mileage?: number;
-          current_renter_id?: string | null;
+          current_renter_id?: number | null;
           default_monthly_rate?: number;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
-          id?: string;
+          id?: number;
           plate?: string;
-          model_id?: string;
+          model_id?: number;
           year?: number;
-          status_id?: string;
+          status_id?: number;
           mileage?: number;
-          current_renter_id?: string | null;
+          current_renter_id?: number | null;
           default_monthly_rate?: number;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Relationships: [
           {
@@ -222,37 +240,43 @@ export interface Database {
       };
       rentals: {
         Row: {
-          id: string;
-          vehicle_id: string;
-          customer_id: string;
+          id: number;
+          user_id: number;
+          vehicle_id: number;
+          customer_id: number;
           start_date: string;
           end_date: string | null;
           monthly_rate: number;
           status: 'ACTIVE' | 'ENDED';
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
-          id?: string;
-          vehicle_id: string;
-          customer_id: string;
+          id?: number;
+          user_id: number;
+          vehicle_id: number;
+          customer_id: number;
           start_date: string;
           end_date?: string | null;
           monthly_rate: number;
           status?: 'ACTIVE' | 'ENDED';
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
-          id?: string;
-          vehicle_id?: string;
-          customer_id?: string;
+          id?: number;
+          user_id?: number;
+          vehicle_id?: number;
+          customer_id?: number;
           start_date?: string;
           end_date?: string | null;
           monthly_rate?: number;
           status?: 'ACTIVE' | 'ENDED';
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Relationships: [
           {
@@ -273,22 +297,25 @@ export interface Database {
       };
       contracts: {
         Row: {
-          id: string;
-          rental_id: string;
+          id: number;
+          rental_id: number;
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
-          id?: string;
-          rental_id: string;
+          id?: number;
+          rental_id: number;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
-          id?: string;
-          rental_id?: string;
+          id?: number;
+          rental_id?: number;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Relationships: [
           {
@@ -302,9 +329,11 @@ export interface Database {
       };
       maintenance_records: {
         Row: {
-          id: string;
-          vehicle_id: string;
-          workshop_id: string | null;
+          id: number;
+          user_id: number;
+          vehicle_id: number;
+          customer_id: number | null;
+          workshop_id: number | null;
           vehicle_plate: string;
           entry_date: string;
           completion_date: string | null;
@@ -315,11 +344,14 @@ export interface Database {
           status: 'OPEN' | 'COMPLETED';
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
-          id?: string;
-          vehicle_id: string;
-          workshop_id?: string | null;
+          id?: number;
+          user_id: number;
+          vehicle_id: number;
+          customer_id?: number | null;
+          workshop_id?: number | null;
           vehicle_plate: string;
           entry_date?: string;
           completion_date?: string | null;
@@ -330,11 +362,14 @@ export interface Database {
           status?: 'OPEN' | 'COMPLETED';
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
-          id?: string;
-          vehicle_id?: string;
-          workshop_id?: string | null;
+          id?: number;
+          user_id?: number;
+          vehicle_id?: number;
+          customer_id?: number | null;
+          workshop_id?: number | null;
           vehicle_plate?: string;
           entry_date?: string;
           completion_date?: string | null;
@@ -345,6 +380,7 @@ export interface Database {
           status?: 'OPEN' | 'COMPLETED';
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Relationships: [
           {
@@ -365,28 +401,31 @@ export interface Database {
       };
       documents: {
         Row: {
-          id: string;
-          parent_id: string;
+          id: number;
+          parent_id: number;
           origin_type: 'CONTRACT' | 'WORKSHOP';
           file_url: string;
           created_at: string;
           updated_at: string;
+          deleted_at: string | null;
         };
         Insert: {
-          id?: string;
-          parent_id: string;
+          id?: number;
+          parent_id: number;
           origin_type: 'CONTRACT' | 'WORKSHOP';
           file_url: string;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Update: {
-          id?: string;
-          parent_id?: string;
+          id?: number;
+          parent_id?: number;
           origin_type?: 'CONTRACT' | 'WORKSHOP';
           file_url?: string;
           created_at?: string;
           updated_at?: string;
+          deleted_at?: string | null;
         };
         Relationships: [];
       };

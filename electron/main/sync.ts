@@ -6,18 +6,6 @@ let supabase: ReturnType<typeof createClient> | null = null;
 let syncInterval: NodeJS.Timeout | null = null;
 let isSyncing = false;
 
-// Mapeamento dos IDs de status local (texto) para UUIDs no Supabase
-const LOCAL_TO_SUPABASE_STATUS: Record<string, string> = {
-  'vs_available':    '00000000-0000-0000-0000-000000000001',
-  'vs_rented':       '00000000-0000-0000-0000-000000000002',
-  'vs_maintenance':  '00000000-0000-0000-0000-000000000003',
-  'vs_unavailable':  '00000000-0000-0000-0000-000000000004',
-};
-
-const SUPABASE_TO_LOCAL_STATUS: Record<string, string> = Object.fromEntries(
-  Object.entries(LOCAL_TO_SUPABASE_STATUS).map(([k, v]) => [v, k])
-);
-
 // Tabelas sincronizadas (app_users NÃO sincroniza — contém senha local)
 const SYNC_TABLES = [
   'workshops',
@@ -103,18 +91,8 @@ async function pushChanges() {
 
       if (SHARED_TABLES.has(table)) {
         delete rest.user_id;
-      } else if (rest.user_id === '1') {
-        rest.user_id = '00000000-0000-0000-0000-000000000000';
-      }
-
-      // Converter status_id local → UUID Supabase para vehicles
-      if (table === 'vehicles' && rest.status_id && LOCAL_TO_SUPABASE_STATUS[rest.status_id as string]) {
-        rest.status_id = LOCAL_TO_SUPABASE_STATUS[rest.status_id as string];
-      }
-
-      // Converter id local → UUID Supabase para vehicle_statuses
-      if (table === 'vehicle_statuses' && rest.id && LOCAL_TO_SUPABASE_STATUS[rest.id as string]) {
-        rest.id = LOCAL_TO_SUPABASE_STATUS[rest.id as string];
+      } else if (rest.user_id === 1 || rest.user_id === '1') {
+        rest.user_id = 1;
       }
 
       return rest;
@@ -159,21 +137,11 @@ function upsertLocally(table: string, records: any[]) {
 
   for (const record of records) {
     if (!SHARED_TABLES.has(table)) {
-      if (!record.user_id || record.user_id === '00000000-0000-0000-0000-000000000000') {
-        record.user_id = '1';
+      if (!record.user_id || record.user_id === 0) {
+        record.user_id = 1;
       }
     } else {
       delete record.user_id;
-    }
-
-    // Converter status_id UUID Supabase → local para vehicles
-    if (table === 'vehicles' && record.status_id && SUPABASE_TO_LOCAL_STATUS[record.status_id]) {
-      record.status_id = SUPABASE_TO_LOCAL_STATUS[record.status_id];
-    }
-
-    // Converter id UUID Supabase → local para vehicle_statuses
-    if (table === 'vehicle_statuses' && record.id && SUPABASE_TO_LOCAL_STATUS[record.id]) {
-      record.id = SUPABASE_TO_LOCAL_STATUS[record.id];
     }
 
     if (record.deleted_at === undefined) record.deleted_at = null;

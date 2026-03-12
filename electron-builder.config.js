@@ -1,6 +1,8 @@
-import type { Configuration } from 'electron-builder';
-
-const config: Configuration = {
+/**
+ * @type {import('electron-builder').Configuration}
+ * @see https://www.electron.build/configuration/configuration
+ */
+const config = {
   appId: 'br.com.gclocamoto.app',
   productName: 'GC Locamoto',
   copyright: 'Copyright © 2025 GC Locamoto',
@@ -13,6 +15,7 @@ const config: Configuration = {
   // Files included in the built app
   files: [
     'dist/electron/**/*',         // Compiled Electron main + preload (CommonJS)
+    'dist/db/**/*',               // Compiled Database logic
     'out/**/*',                    // Next.js static export
     'db/migrations/sqlite/**/*',   // Drizzle SQLite migrations (aplicadas em runtime)
     'node_modules/**/*',
@@ -41,4 +44,4 @@ const config: Configuration = {
   },
 };
 
-export default config;
+module.exports = config;

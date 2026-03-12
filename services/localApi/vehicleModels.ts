@@ -16,7 +16,7 @@ export const localVehicleModelsApi = {
         }
     },
 
-    async getById(id: string): Promise<VehicleModel | null> {
+    async getById(id: number): Promise<VehicleModel | null> {
         return ipcInvoke<VehicleModel | null>('db:vehicleModels:getById', { id });
     },
 
@@ -24,11 +24,11 @@ export const localVehicleModelsApi = {
         return ipcInvoke<VehicleModel>('db:vehicleModels:create', { ...model });
     },
 
-    async update(id: string, updates: UpdateDto<'vehicle_models'>): Promise<VehicleModel> {
+    async update(id: number, updates: UpdateDto<'vehicle_models'>): Promise<VehicleModel> {
         return ipcInvoke<VehicleModel>('db:vehicleModels:update', { ...updates, id });
     },
 
-    async delete(id: string): Promise<void> {
+    async delete(id: number): Promise<void> {
         await ipcInvoke('db:vehicleModels:delete', { id });
     },
 };

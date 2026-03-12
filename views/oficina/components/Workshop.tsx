@@ -18,7 +18,7 @@ interface WorkshopProps {
   vehicles: Vehicle[];
   records: MaintenanceRecord[];
   onAddRecord: (record: MaintenanceRecord) => void;
-  onFinishMaintenance: (recordId: string) => void;
+  onFinishMaintenance: (recordId: number) => void;
 }
 
 export const Workshop: React.FC<WorkshopProps> = ({
@@ -49,7 +49,8 @@ export const Workshop: React.FC<WorkshopProps> = ({
     if (!vehicle || !newRecord.mechanic_name || !newRecord.description) return;
 
     const record: MaintenanceRecord = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: Date.now(),
+      user_id: 0, // Will be set by service/IPC
       vehicle_id: vehicle.id,
       vehicle_plate: vehicle.plate,
       entry_date: new Date().toISOString(),

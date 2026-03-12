@@ -7,8 +7,8 @@ import { Contract } from '../../types';
 
 function mapRow(row: Record<string, unknown>): Contract {
   return {
-    id: row.id as string,
-    rental_id: row.rental_id as string,
+    id: Number(row.id),
+    rental_id: Number(row.rental_id),
     created_at: row.created_at as string | undefined,
     updated_at: row.updated_at as string | undefined,
   };
@@ -18,7 +18,7 @@ export const supabaseContractsApi = {
   /**
    * Busca o contrato de um aluguel. Retorna null se não existir.
    */
-  async getByRental(rentalId: string): Promise<Contract | null> {
+  async getByRental(rentalId: number): Promise<Contract | null> {
     const { data, error } = await supabase
       .from('contracts')
       .select('*')
@@ -33,7 +33,7 @@ export const supabaseContractsApi = {
   /**
    * Cria um contrato vinculado a um aluguel.
    */
-  async create(rentalId: string): Promise<Contract> {
+  async create(rentalId: number): Promise<Contract> {
     const { data, error } = await supabase
       .from('contracts')
       .insert({ rental_id: rentalId })
@@ -48,7 +48,7 @@ export const supabaseContractsApi = {
    * Garante que existe um contrato para o aluguel — cria se necessário.
    * Retorna o contrato existente ou recém-criado.
    */
-  async ensureForRental(rentalId: string): Promise<Contract> {
+  async ensureForRental(rentalId: number): Promise<Contract> {
     const existing = await supabaseContractsApi.getByRental(rentalId);
     if (existing) return existing;
     return supabaseContractsApi.create(rentalId);

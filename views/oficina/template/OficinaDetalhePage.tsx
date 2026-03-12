@@ -15,7 +15,7 @@ import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const OficinaDetalhePage: React.FC = () => {
   const params = useParams();
-  const id = params.id as string;
+  const id = Number(params.id);
   const router = useRouter();
   const { vehicles, maintenanceRecords, handleFinishMaintenance } =
     useAppContext();

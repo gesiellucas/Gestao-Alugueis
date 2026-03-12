@@ -10,11 +10,11 @@ export const localUsersApi = {
         return ipcInvoke<AppUser>('db:users:create', user);
     },
 
-    async update(id: string, updates: Partial<Omit<AppUser, 'id' | 'role' | 'created_at' | 'updated_at'>>): Promise<void> {
+    async update(id: number, updates: Partial<Omit<AppUser, 'id' | 'role' | 'created_at' | 'updated_at'>>): Promise<void> {
         return ipcInvoke<void>('db:users:update', { id, ...updates });
     },
 
-    async delete(id: string): Promise<void> {
+    async delete(id: number): Promise<void> {
         await ipcInvoke('db:users:delete', { id });
     },
 

@@ -14,7 +14,7 @@
     "lint": "next lint",
     "electron:compile": "tsc --project tsconfig.electron.json",
     "electron:dev": "concurrently --kill-others \"npm run dev\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development npx --no electron dist/electron/main/index.js\"",
-    "electron:build": "npm run build && npm run electron:compile && electron-builder --config electron-builder.config.ts",
+    "electron:build": "npm run build && npm run electron:compile && electron-builder --config electron-builder.config.js",
     "electron:build:win": "npm run electron:build -- --win",
     "postinstall": "electron-rebuild -f -w better-sqlite3",
     "db:generate": "drizzle-kit generate && drizzle-kit generate --config=drizzle.pg.config.ts",

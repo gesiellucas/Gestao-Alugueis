@@ -17,11 +17,12 @@ import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const ClienteDetalhePage: React.FC = () => {
   const params = useParams();
-  const id = params.id as string;
+  const id = Number(params.id);
   const router = useRouter();
   const { customers, vehicles } = useAppContext();
 
   const customer = customers.find((c) => c.id === id);
+  const vehicle = vehicles.find((v) => v.current_renter_id === id);
 
   if (!customer) {
     return (
@@ -41,7 +42,6 @@ export const ClienteDetalhePage: React.FC = () => {
     );
   }
 
-  const vehicle = vehicles.find((v) => v.current_renter_id === customer.id);
   const hasDebt = customer.balance_due > 0;
 
   return (

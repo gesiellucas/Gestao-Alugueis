@@ -12,7 +12,8 @@ export const OficinaNovePage: React.FC = () => {
   const { vehicles, workshops, handleAddMaintenanceRecord } = useAppContext();
 
   const [selectedPlate, setSelectedPlate] = useState(searchParams.get("plate") ?? "");
-  const [selectedWorkshopId, setSelectedWorkshopId] = useState("");
+  const [selectedWorkshopId, setSelectedWorkshopId] = useState<number | "">("");
+  const { user } = useAppContext();
   const [form, setForm] = useState({
     type: MaintenanceType.PREVENTIVE,
     description: "",
@@ -29,7 +30,8 @@ export const OficinaNovePage: React.FC = () => {
     if (!vehicle || !form.mechanic_name || !form.description) return;
 
     const record: MaintenanceRecord = {
-      id: "",
+      id: 0,
+      user_id: user!.id,
       vehicle_id: vehicle.id,
       workshop_id: selectedWorkshopId || null,
       vehicle_plate: vehicle.plate,
@@ -92,7 +94,7 @@ export const OficinaNovePage: React.FC = () => {
             <select
               className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border appearance-none"
               value={selectedWorkshopId}
-              onChange={(e) => setSelectedWorkshopId(e.target.value)}
+              onChange={(e) => setSelectedWorkshopId(e.target.value === "" ? "" : Number(e.target.value))}
               required
             >
               <option value="">Selecione a oficina...</option>

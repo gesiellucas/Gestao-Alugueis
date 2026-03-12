@@ -8,6 +8,13 @@
       "when": 1773145053042,
       "tag": "0000_wooden_arachne",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1773328268636,
+      "tag": "0001_absurd_patriot",
+      "breakpoints": true
     }
   ]
 }

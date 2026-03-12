@@ -16,7 +16,7 @@ export const localVehiclesApi = {
     }
   },
 
-  async getById(id: string): Promise<Vehicle | null> {
+  async getById(id: number): Promise<Vehicle | null> {
     try {
       const result = await ipcInvoke<Vehicle | null>('db:vehicles:getById', { id });
       return result;
@@ -29,15 +29,15 @@ export const localVehiclesApi = {
     return ipcInvoke<Vehicle>('db:vehicles:create', { ...vehicle });
   },
 
-  async update(id: string, updates: UpdateDto<'vehicles'>): Promise<Vehicle> {
+  async update(id: number, updates: UpdateDto<'vehicles'>): Promise<Vehicle> {
     return ipcInvoke<Vehicle>('db:vehicles:update', { ...updates, id });
   },
 
-  async delete(id: string): Promise<void> {
+  async delete(id: number): Promise<void> {
     await ipcInvoke('db:vehicles:delete', { id });
   },
 
-  async getByStatusId(statusId: string): Promise<Vehicle[]> {
+  async getByStatusId(statusId: number): Promise<Vehicle[]> {
     const all = await this.getAll();
     return all.filter((v) => v.status_id === statusId);
   },
@@ -54,11 +54,11 @@ export const localVehiclesApi = {
     return this.getByStatusId(VEHICLE_STATUS_IDS.MAINTENANCE);
   },
 
-  async updateStatus(id: string, statusId: string): Promise<Vehicle> {
+  async updateStatus(id: number, statusId: number): Promise<Vehicle> {
     return this.update(id, { status_id: statusId });
   },
 
-  async updateMileage(id: string, mileage: number): Promise<Vehicle> {
+  async updateMileage(id: number, mileage: number): Promise<Vehicle> {
     return this.update(id, { mileage });
   },
 };

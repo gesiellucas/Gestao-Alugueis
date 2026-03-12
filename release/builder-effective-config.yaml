@@ -7,6 +7,7 @@ copyright: Copyright © 2025 GC Locamoto
 files:
   - filter:
       - dist/electron/**/*
+      - dist/db/**/*
       - out/**/*
       - db/migrations/sqlite/**/*
       - node_modules/**/*

@@ -9,15 +9,15 @@ export const localDocumentsApi = {
         return ipcInvoke<Document[]>('db:documents:getAll');
     },
 
-    async getByParent(parentId: string, originType: 'CONTRACT' | 'WORKSHOP'): Promise<Document[]> {
-        return ipcInvoke<Document[]>('db:documents:getByParent', { parentId, originType });
+    async getByParent(parent_id: number, origin_type: 'CONTRACT' | 'WORKSHOP'): Promise<Document[]> {
+        return ipcInvoke<Document[]>('db:documents:getByParent', { parent_id, origin_type });
     },
 
-    async create(doc: { parent_id: string; origin_type: 'CONTRACT' | 'WORKSHOP'; file_url: string }): Promise<Document> {
+    async create(doc: { parent_id: number; origin_type: 'CONTRACT' | 'WORKSHOP'; file_url: string }): Promise<Document> {
         return ipcInvoke<Document>('db:documents:create', doc);
     },
 
-    async delete(id: string): Promise<void> {
+    async delete(id: number): Promise<void> {
         await ipcInvoke('db:documents:delete', { id });
     },
 };

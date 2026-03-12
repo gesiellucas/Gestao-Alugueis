@@ -9,23 +9,23 @@ export const localContractsApi = {
         return ipcInvoke<Contract[]>('db:contracts:getAll');
     },
 
-    async getById(id: string): Promise<Contract | null> {
+    async getById(id: number): Promise<Contract | null> {
         return ipcInvoke<Contract | null>('db:contracts:getById', { id });
     },
 
-    async getByRental(rentalId: string): Promise<Contract | null> {
-        return ipcInvoke<Contract | null>('db:contracts:getByRental', { rentalId });
+    async getByRental(rental_id: number): Promise<Contract | null> {
+        return ipcInvoke<Contract | null>('db:contracts:getByRental', { rental_id });
     },
 
-    async create(contract: { rental_id: string }): Promise<Contract> {
+    async create(contract: { rental_id: number }): Promise<Contract> {
         return ipcInvoke<Contract>('db:contracts:create', contract);
     },
 
-    async update(id: string, updates: { rental_id?: string }): Promise<Contract> {
+    async update(id: number, updates: { rental_id?: number }): Promise<Contract> {
         return ipcInvoke<Contract>('db:contracts:update', { id, ...updates });
     },
 
-    async delete(id: string): Promise<void> {
+    async delete(id: number): Promise<void> {
         await ipcInvoke('db:contracts:delete', { id });
     },
 };

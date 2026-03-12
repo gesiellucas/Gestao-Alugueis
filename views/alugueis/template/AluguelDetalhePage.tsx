@@ -46,7 +46,7 @@ function FileIcon({ ext }: { ext: string }) {
 
 export const AluguelDetalhePage: React.FC = () => {
   const params = useParams();
-  const id = params.id as string;
+  const id = Number(params.id);
   const router = useRouter();
   const { rentalContracts, customers, vehicles } = useAppContext();
   const [activeTab, setActiveTab] = useState<Tab>("aluguel");
@@ -55,10 +55,9 @@ export const AluguelDetalhePage: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [docsLoading, setDocsLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [deleting, setDeleting] = useState<string | null>(null);
+  const [contractId, setContractId] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState<number | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  // contractId é o ID do registro na tabela `contracts` (diferente do rental id)
-  const [contractId, setContractId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const rental = rentalContracts.find((c) => c.id === id);
@@ -148,11 +147,11 @@ export const AluguelDetalhePage: React.FC = () => {
   return (
     <div className="space-y-6">
       <ModuleHeader 
-        title={`Contrato ${id.substring(0, 8)}`} 
+        title={`Contrato ${id}`} 
         subtitle="Detalhes do aluguel e documentos vinculados." 
         breadcrumbs={[
           { label: "Aluguéis", href: "/alugueis" },
-          { label: id.substring(0, 8) }
+          { label: String(id) }
         ]}
         extraHeader={
           <span

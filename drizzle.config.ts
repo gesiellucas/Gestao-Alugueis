@@ -15,6 +15,6 @@ export default {
   out: './db/migrations/sqlite',
   dialect: 'sqlite',
   dbCredentials: {
-    url: process.env.SQLITE_DB_PATH ?? defaultDbPath,
+    url: `file:${process.env.SQLITE_DB_PATH ?? defaultDbPath}`,
   },
 } satisfies Config;

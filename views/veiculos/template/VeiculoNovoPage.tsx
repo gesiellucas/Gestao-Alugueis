@@ -4,13 +4,20 @@ import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { localVehiclesApi } from "../../../services/localApi/vehicles";
 import { localVehicleModelsApi } from "../../../services/localApi/vehicleModels";
+import { VEHICLE_STATUS_IDS } from "../../../types";
 import { ArrowLeft, Save, PlusCircle } from "lucide-react";
 
 export const VeiculoNovoPage: React.FC = () => {
   const router = useRouter();
   const { setVehicles, vehicleModels, setVehicleModels } = useAppContext();
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    plate: string;
+    model_id: number | "";
+    year: number;
+    mileage: number;
+    default_monthly_rate: number;
+  }>({
     plate: "",
     model_id: "",
     year: new Date().getFullYear(),
@@ -62,9 +69,9 @@ export const VeiculoNovoPage: React.FC = () => {
 
       const newVehicle = await localVehiclesApi.create({
         plate: form.plate,
-        model_id: finalModelId,
+        model_id: Number(finalModelId),
         year: form.year,
-        status_id: 'vs_available',
+        status_id: VEHICLE_STATUS_IDS.AVAILABLE,
         mileage: form.mileage,
         default_monthly_rate: form.default_monthly_rate,
       });
@@ -130,7 +137,7 @@ export const VeiculoNovoPage: React.FC = () => {
                   <select
                     className="flex-1 bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border appearance-none"
                     value={form.model_id}
-                    onChange={(e) => setForm({ ...form, model_id: e.target.value })}
+                    onChange={(e) => setForm({ ...form, model_id: e.target.value === "" ? "" : Number(e.target.value) })}
                     required
                   >
                     <option value="">Selecione um modelo...</option>

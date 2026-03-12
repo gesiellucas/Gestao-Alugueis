@@ -1,10 +1,10 @@
 
 // Seed IDs for default vehicle statuses (match vehicle_statuses table)
 export const VEHICLE_STATUS_IDS = {
-  AVAILABLE: 'vs_available',
-  RENTED: 'vs_rented',
-  MAINTENANCE: 'vs_maintenance',
-  UNAVAILABLE: 'vs_unavailable',
+  AVAILABLE: 1,
+  RENTED: 2,
+  MAINTENANCE: 3,
+  UNAVAILABLE: 4,
 } as const;
 
 export enum MaintenanceType {
@@ -16,7 +16,7 @@ export enum MaintenanceType {
 }
 
 export interface Workshop {
-  id: string;
+  id: number;
   name: string;
   address?: string | null;
   status: 'ACTIVE' | 'INACTIVE';
@@ -25,7 +25,7 @@ export interface Workshop {
 }
 
 export interface VehicleStatusRecord {
-  id: string;
+  id: number;
   name: string;
   color: string;
   is_default: boolean | number;
@@ -34,8 +34,8 @@ export interface VehicleStatusRecord {
 }
 
 export interface Role {
-  id: string;
-  workshop_id?: string | null;
+  id: number;
+  workshop_id?: number | null;
   name: string;
   permissions: string[]; // e.g. ['dashboard', 'veiculos', 'oficina', 'clientes', 'alugueis', 'financeiro', 'configuracoes']
   created_at?: string;
@@ -43,10 +43,10 @@ export interface Role {
 }
 
 export interface AppUser {
-  id: string;
+  id: number;
   name: string;
   email: string;
-  role_id: string;
+  role_id: number;
   role?: Role; // Populated from join
   password?: string;
   created_at?: string;
@@ -54,7 +54,8 @@ export interface AppUser {
 }
 
 export interface Customer {
-  id: string;
+  id: number;
+  user_id: number;
   name: string;
   phone: string;
   cpf: string;
@@ -66,7 +67,7 @@ export interface Customer {
 }
 
 export interface VehicleModel {
-  id: string;
+  id: number;
   name: string;
   brand: string;
   status: 'ACTIVE' | 'INACTIVE';
@@ -76,24 +77,25 @@ export interface VehicleModel {
 }
 
 export interface Vehicle {
-  id: string;
+  id: number;
   plate: string;
-  model_id: string;
+  model_id: number;
   model?: VehicleModel; // Populated from join
   year: number;
-  statusId: string;
+  status_id: number;
   vehicleStatus?: VehicleStatusRecord; // Populated from join
   mileage: number;
-  current_renter_id?: string | null;
+  current_renter_id?: number | null;
   default_monthly_rate: number;
   created_at?: string;
   updated_at?: string;
 }
 
 export interface RentalContract {
-  id: string;
-  vehicle_id: string;
-  customer_id: string;
+  id: number;
+  user_id: number;
+  vehicle_id: number;
+  customer_id: number;
   start_date: string;
   end_date?: string | null;
   monthly_rate: number;
@@ -103,16 +105,17 @@ export interface RentalContract {
 }
 
 export interface Contract {
-  id: string;
-  rental_id: string;
+  id: number;
+  rental_id: number;
   created_at?: string;
   updated_at?: string;
 }
 
 export interface MaintenanceRecord {
-  id: string;
-  vehicle_id: string;
-  workshop_id?: string | null;
+  id: number;
+  user_id: number;
+  vehicle_id: number;
+  workshop_id?: number | null;
   vehicle_plate: string;
   entry_date: string;
   completion_date?: string | null;
@@ -126,10 +129,11 @@ export interface MaintenanceRecord {
 }
 
 export interface Document {
-  id: string;
-  parent_id: string;
+  id: number;
+  parent_id: number;
   origin_type: 'CONTRACT' | 'WORKSHOP';
   file_url: string;
   created_at?: string;
   updated_at?: string;
+  deleted_at?: string | null;
 }

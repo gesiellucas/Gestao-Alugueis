@@ -13,8 +13,8 @@ const BUCKET = 'contract-documents';
 
 function mapRow(row: Record<string, unknown>): Document {
   return {
-    id: row.id as string,
-    parent_id: row.parent_id as string,
+    id: Number(row.id),
+    parent_id: Number(row.parent_id),
     origin_type: row.origin_type as 'CONTRACT' | 'WORKSHOP',
     file_url: row.file_url as string,
     created_at: row.created_at as string | undefined,
@@ -26,7 +26,7 @@ export const supabaseDocumentsApi = {
   /**
    * Busca todos os documentos de um contrato.
    */
-  async getByContract(contractId: string): Promise<Document[]> {
+  async getByContract(contractId: number): Promise<Document[]> {
     const { data, error } = await supabase
       .from('documents')
       .select('*')
@@ -47,7 +47,7 @@ export const supabaseDocumentsApi = {
    * @param file       - Arquivo selecionado pelo usuário
    * @returns          - Documento criado com a URL pública do arquivo
    */
-  async uploadAndCreate(contractId: string, file: File): Promise<Document> {
+  async uploadAndCreate(contractId: number, file: File): Promise<Document> {
     // Gera um nome único para evitar colisões
     const ext = file.name.split('.').pop() ?? '';
     const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext ? `.${ext}` : ''}`;

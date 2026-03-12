@@ -30,7 +30,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         const user = await localUsersApi.login(email, password);
         if (user) {
           if (typeof window !== 'undefined') {
-            localStorage.setItem('electron_user_id', user.id);
+            localStorage.setItem('electron_user_id', String(user.id));
             localStorage.setItem('electron_user_email', user.email);
           }
           onLogin(user);

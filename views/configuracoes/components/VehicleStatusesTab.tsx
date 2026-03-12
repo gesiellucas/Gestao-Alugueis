@@ -13,7 +13,7 @@ export const VehicleStatusesTab: React.FC = () => {
   const [statuses, setStatuses] = useState<VehicleStatusRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 

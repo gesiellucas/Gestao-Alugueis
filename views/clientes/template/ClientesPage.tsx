@@ -17,7 +17,7 @@ export const ClientesPage: React.FC = () => {
   const { customers, vehicles } = useAppContext();
   const [search, setSearch] = useState("");
 
-  const getCustomerVehicle = (customerId: string) => {
+  const getCustomerVehicle = (customerId: number) => {
     return vehicles.find((v) => v.current_renter_id === customerId);
   };
 

@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { VEHICLE_STATUS_IDS } from "../../../types";
@@ -15,18 +15,18 @@ import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const AluguelNovoPage: React.FC = () => {
   const params = useParams();
-  const preselectedVehicleId = params.vehicleId as string | undefined;
+  const preselectedVehicleId = params.vehicleId ? Number(params.vehicleId) : undefined;
   const router = useRouter();
   const { vehicles, customers, handleCreateRental } = useAppContext();
 
   const availableVehicles = vehicles.filter(
-    (v) => v.statusId === VEHICLE_STATUS_IDS.AVAILABLE,
+    (v) => v.status_id === VEHICLE_STATUS_IDS.AVAILABLE,
   );
 
-  const [selectedVehicleId, setSelectedVehicleId] = useState(preselectedVehicleId ?? "");
+  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(preselectedVehicleId ?? null);
   const vehicle = vehicles.find((v) => v.id === selectedVehicleId);
 
-  const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const [monthlyRate, setMonthlyRate] = useState(
     vehicle?.default_monthly_rate?.toString() || "",
   );
@@ -36,6 +36,13 @@ export const AluguelNovoPage: React.FC = () => {
   const [customerSearch, setCustomerSearch] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Update monthly rate when vehicle selection changes
+  useEffect(() => {
+    if (vehicle?.default_monthly_rate) {
+      setMonthlyRate(vehicle.default_monthly_rate.toString());
+    }
+  }, [vehicle]);
 
   const availableCustomers = useMemo(() => {
     return customers.filter((c) => {
@@ -117,7 +124,7 @@ export const AluguelNovoPage: React.FC = () => {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setSelectedVehicleId("")}
+                    onClick={() => setSelectedVehicleId(null)}
                     className="text-blue-500 hover:text-blue-700 font-black text-sm uppercase"
                   >
                     Trocar
@@ -172,7 +179,7 @@ export const AluguelNovoPage: React.FC = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setSelectedCustomerId("")}
+                  onClick={() => setSelectedCustomerId(null)}
                   className="text-blue-500 hover:text-blue-700 font-black text-sm uppercase"
                 >
                   Trocar

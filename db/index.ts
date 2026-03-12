@@ -18,10 +18,11 @@ let _sqlite: Database.Database | null = null;
 export function initDb(dbPath: string, migrationsFolder: string): DrizzleDb {
   _sqlite = new Database(dbPath);
   _sqlite.pragma('journal_mode = WAL');
-  _sqlite.pragma('foreign_keys = ON');
 
   _db = drizzle(_sqlite, { schema });
   migrate(_db, { migrationsFolder });
+
+  _sqlite.pragma('foreign_keys = ON');
 
   return _db;
 }

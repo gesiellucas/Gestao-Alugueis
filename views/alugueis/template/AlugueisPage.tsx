@@ -58,27 +58,20 @@ export const AlugueisPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader 
-        title="Histórico de Aluguéis" 
-        subtitle="Relação completa de clientes, veículos e contratos." 
+      <ModuleHeader
+        title="Histórico de Aluguéis"
+        subtitle="Relação completa de clientes, veículos e contratos."
         breadcrumbs={[{ label: "Aluguéis" }]}
         extraHeader={
-        <div className="flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-sm text-slate-500 font-medium">Total de Contratos</p>
-            <p className="text-3xl font-black text-[#1a4fd6]">
-              {rentalContracts.length}
-            </p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.push("/alugueis/novo")}
+              className="flex items-center gap-2 px-4 py-2.5 bg-[#004AAD] text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-md shadow-blue-200"
+            >
+              Novo Aluguel
+            </button>
           </div>
-          <button
-            onClick={() => router.push("/alugueis/novo")}
-            className="flex items-center gap-2 px-4 py-2.5 bg-[#1a4fd6] text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-md shadow-blue-200"
-          >
-            <Plus size={16} />
-            Novo Aluguel
-          </button>
-        </div>
-      } />
+        } />
 
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 space-y-5">
         <div className="flex flex-col sm:flex-row gap-3">
@@ -92,7 +85,7 @@ export const AlugueisPage: React.FC = () => {
               placeholder="Buscar por cliente, placa, modelo ou CPF..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1a4fd6] focus:border-transparent transition-all"
+              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#004AAD] focus:border-transparent transition-all"
             />
           </div>
 
@@ -101,11 +94,10 @@ export const AlugueisPage: React.FC = () => {
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${
-                  statusFilter === status
-                    ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                    : "bg-slate-50 text-slate-500 hover:bg-slate-100"
-                }`}
+                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${statusFilter === status
+                  ? "bg-blue-600 text-white shadow-md shadow-blue-200"
+                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                  }`}
               >
                 {status === "TODOS" ? "Todos" : status === "ACTIVE" ? "Ativos" : "Encerrados"}
               </button>
@@ -117,12 +109,11 @@ export const AlugueisPage: React.FC = () => {
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-[#1a4fd6] text-white">
+            <thead className="bg-[#004AAD] text-white">
               <tr>
                 <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Status</th>
                 <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Cliente</th>
                 <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">CPF</th>
-                <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Veículo</th>
                 <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Placa</th>
                 <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Início</th>
                 <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Duração</th>
@@ -147,11 +138,11 @@ export const AlugueisPage: React.FC = () => {
                     <td className="px-6 py-4">
                       {contract.status === "ACTIVE" ? (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-700 border border-green-200">
-                          <CheckCircle size={12} /> Ativo
+                          Ativo
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-700 border border-slate-200">
-                          <XCircle size={12} /> Encerrado
+                          Encerrado
                         </span>
                       )}
                     </td>
@@ -160,7 +151,6 @@ export const AlugueisPage: React.FC = () => {
                         onClick={(e) => { e.stopPropagation(); router.push(`/cliente/${contract.customer_id}`); }}
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors"
                       >
-                        <User size={16} />
                         {contract.customerName}
                       </button>
                     </td>
@@ -168,23 +158,10 @@ export const AlugueisPage: React.FC = () => {
                       <span className="text-sm font-medium text-slate-600">{contract.customerCPF}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); router.push(`/veiculo/${contract.vehicle_id}`); }}
-                        className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors"
-                      >
-                        <Bike size={16} />
-                        <div>
-                          <p className="font-bold">{contract.vehicleModel}</p>
-                          <p className="text-xs text-slate-500 font-medium">{contract.vehicleBrand}</p>
-                        </div>
-                      </button>
-                    </td>
-                    <td className="px-6 py-4">
                       <span className="text-sm font-bold text-slate-700">{contract.vehicle_plate}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-slate-600">
-                        <Calendar size={14} />
                         <span className="text-sm font-medium">{formatDate(contract.start_date)}</span>
                       </div>
                     </td>
@@ -193,7 +170,6 @@ export const AlugueisPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1.5 text-green-600 font-black">
-                        <DollarSign size={16} />
                         <span>R$ {contract.monthly_rate?.toFixed(2) ?? '0.00'}</span>
                       </div>
                     </td>

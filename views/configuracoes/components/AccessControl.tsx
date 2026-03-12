@@ -111,7 +111,7 @@ export const AccessControl: React.FC = () => {
             <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
               <Users size={24} />
             </div>
-            <h3 className="text-xl font-black text-[#1a4fd6] uppercase">Membros de Equipe</h3>
+            <h3 className="text-xl font-black text-[#004AAD] uppercase">Membros de Equipe</h3>
           </div>
           <button
             onClick={() => { setIsCreatingUser(true); setFormDataUser({ name: '', email: '', password: '', role_id: roles[0]?.id || '' }); }}
@@ -190,11 +190,11 @@ export const AccessControl: React.FC = () => {
             <div className="bg-yellow-100 p-3 rounded-xl text-yellow-600">
               <Shield size={24} />
             </div>
-            <h3 className="text-xl font-black text-[#1a4fd6] uppercase">Cargos e Permissões</h3>
+            <h3 className="text-xl font-black text-[#004AAD] uppercase">Cargos e Permissões</h3>
           </div>
           <button
             onClick={() => { setIsCreatingRole(true); setFormDataRole({ name: '', permissions: [] }); }}
-            className="bg-[#1a4fd6] hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
+            className="bg-[#004AAD] hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
           >
             <Plus size={16} /> Novo Cargo
           </button>
@@ -225,7 +225,7 @@ export const AccessControl: React.FC = () => {
                             return { ...prev, permissions: newPerms };
                           });
                         }}
-                        className="mt-1 w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-[#1a4fd6]"
+                        className="mt-1 w-4 h-4 text-blue-600 rounded border-slate-300 focus:ring-[#004AAD]"
                       />
                       <span className={`text-sm font-medium ${isChecked ? 'text-blue-900' : 'text-slate-600'}`}>{mod.label}</span>
                     </label>
@@ -236,7 +236,7 @@ export const AccessControl: React.FC = () => {
 
             <div className="flex justify-end gap-3 pt-4 border-t border-slate-200">
               <button onClick={() => { setIsCreatingRole(false); setIsEditingRole(null); }} className="px-4 py-2 text-slate-500 hover:text-slate-700 font-bold">Cancelar</button>
-              <button onClick={handleSaveRole} className="px-6 py-2 bg-[#1a4fd6] text-white rounded-xl font-bold">Salvar Cargo</button>
+              <button onClick={handleSaveRole} className="px-6 py-2 bg-[#004AAD] text-white rounded-xl font-bold">Salvar Cargo</button>
             </div>
           </div>
         )}

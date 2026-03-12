@@ -42,7 +42,7 @@ export const Dashboard: React.FC = () => {
   ];
 
   const statusData = [
-    { name: "Em Rota", value: rentedVehicles, color: "#1a4fd6" },
+    { name: "Em Rota", value: rentedVehicles, color: "#004AAD" },
     {
       name: "Pátio",
       value: totalVehicles - rentedVehicles - inMaintenance,
@@ -55,7 +55,7 @@ export const Dashboard: React.FC = () => {
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h2 className="text-3xl font-extrabold text-[#1a4fd6] tracking-tight uppercase">
+          <h2 className="text-3xl font-extrabold text-[#004AAD] tracking-tight uppercase">
             Resumo Operacional
           </h2>
           <p className="text-slate-500 font-medium">
@@ -77,10 +77,10 @@ export const Dashboard: React.FC = () => {
           <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
             Frota GC
           </p>
-          <h3 className="text-4xl font-extrabold text-[#1a4fd6] mt-3">
+          <h3 className="text-4xl font-extrabold text-[#004AAD] mt-3">
             {totalVehicles}
           </h3>
-          <div className="mt-6 flex items-center gap-2 text-[#1a4fd6] font-bold text-xs bg-blue-50 w-fit px-3 py-1.5 rounded-full">
+          <div className="mt-6 flex items-center gap-2 text-[#004AAD] font-bold text-xs bg-blue-50 w-fit px-3 py-1.5 rounded-full">
             <Bike size={14} /> Ativos
           </div>
         </div>
@@ -110,11 +110,11 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#1a4fd6] p-7 rounded-[2rem] shadow-xl text-white">
+        <div className="bg-[#004AAD] p-7 rounded-[2rem] shadow-xl text-white">
           <p className="text-sm font-bold text-blue-200 uppercase tracking-widest">
             Financeiro Diário
           </p>
-          <h3 className="text-3xl font-extrabold text-[#f97316] mt-3">
+          <h3 className="text-3xl font-extrabold text-[#0C4AA5] mt-3">
             R$ 1.840
           </h3>
           <p className="text-xs text-blue-200 mt-6 font-medium">
@@ -125,7 +125,7 @@ export const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-          <h3 className="text-xl font-extrabold text-[#1a4fd6] mb-8">
+          <h3 className="text-xl font-extrabold text-[#004AAD] mb-8">
             Receita de Aluguéis (7 dias)
           </h3>
           <div className="h-72 w-full min-h-[250px]">
@@ -158,7 +158,7 @@ export const Dashboard: React.FC = () => {
                 />
                 <Bar
                   dataKey="income"
-                  fill="#f97316"
+                  fill="#0C4AA5"
                   radius={[10, 10, 0, 0]}
                   barSize={40}
                 />
@@ -168,7 +168,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center">
-          <h3 className="text-xl font-extrabold text-[#1a4fd6] self-start mb-8">
+          <h3 className="text-xl font-extrabold text-[#004AAD] self-start mb-8">
             Status Geral da Frota
           </h3>
           <div className="h-64 w-full min-h-[200px]">

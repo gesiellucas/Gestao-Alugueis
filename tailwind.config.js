@@ -8,13 +8,16 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        montserrat: ['var(--font-montserrat)', 'sans-serif'],
+      },
       colors: {
         brand: {
-          blue: '#1a4fd6',
-          'blue-dark': '#1440b8',
-          'blue-deeper': '#0f2f8f',
-          orange: '#f97316',
-          'orange-light': '#fb923c',
+          blue: '#004AAD',
+          'blue-dark': '#003d91',
+          'blue-deeper': '#003380',
+          orange: '#0C4AA5',
+          'orange-light': '#1a5cbf',
         },
       },
     },

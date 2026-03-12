@@ -25,24 +25,24 @@ export const OficinaPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader 
-        title="Oficina" 
-        subtitle="Controle de manutenção preventiva e corretiva." 
+      <ModuleHeader
+        title="Oficina"
+        subtitle="Controle de manutenção preventiva e corretiva."
         breadcrumbs={[{ label: "Oficina" }]}
         extraHeader={
-        <Link
-          href="/oficina/novo_entrada"
-          className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-medium transition-all shadow-lg shadow-amber-100 active:scale-95 flex items-center gap-2"
-        >
-          Registrar Entrada
-        </Link>
-      } />
+          <Link
+            href="/oficina/novo_entrada"
+            className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-medium transition-all shadow-lg shadow-amber-100 active:scale-95 flex items-center gap-2"
+          >
+            Registrar Entrada
+          </Link>
+        } />
 
       {/* Workshop Filter */}
       <div className="flex items-center gap-3">
         <Building2 size={18} className="text-slate-400 shrink-0" />
         <select
-          className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all appearance-none min-w-[220px]"
+          className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all appearance-none min-w-[220px]"
           value={selectedWorkshopId}
           onChange={(e) => setSelectedWorkshopId(e.target.value === "" ? "" : Number(e.target.value))}
         >
@@ -59,10 +59,10 @@ export const OficinaPage: React.FC = () => {
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
         <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-amber-50">
           <ShieldAlert size={18} className="text-amber-500" />
-          <h3 className="font-black text-[#1a4fd6] uppercase tracking-tight text-sm">
+          <h3 className="font-bold text-[#004AAD] uppercase tracking-tight text-sm">
             Em Manutenção Agora
           </h3>
-          <span className="ml-auto bg-amber-500 text-white text-xs font-black px-2.5 py-0.5 rounded-full">
+          <span className="ml-auto bg-amber-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
             {activeRecords.length}
           </span>
         </div>
@@ -75,11 +75,11 @@ export const OficinaPage: React.FC = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Placa</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Tipo</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Mecânico</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Observação</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Entrada</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Placa</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Tipo</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Observação</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Entrada</th>
                   <th className="px-6 py-3"></th>
                 </tr>
               </thead>
@@ -89,12 +89,12 @@ export const OficinaPage: React.FC = () => {
                     <td className="px-6 py-4">
                       <Link
                         href={`/oficina/${record.vehicle_id}`}
-                        className="font-black text-amber-700 bg-amber-50 px-3 py-1 rounded-lg text-sm uppercase tracking-tight hover:bg-amber-100 transition-colors"
+                        className="font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-lg text-sm uppercase tracking-tight hover:bg-amber-100 transition-colors"
                       >
                         {record.vehicle_plate}
                       </Link>
                     </td>
-                    <td className="px-6 py-4 font-bold text-[#1a4fd6]">{record.type}</td>
+                    <td className="px-6 py-4 font-bold text-[#004AAD]">{record.type}</td>
                     <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name}</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description}</td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
@@ -106,7 +106,7 @@ export const OficinaPage: React.FC = () => {
                     <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => handleFinishMaintenance(record.id)}
-                        className="bg-green-500 hover:bg-green-600 text-white font-black px-4 py-2 rounded-xl transition-all shadow-sm shadow-green-100 uppercase text-xs tracking-widest flex items-center gap-1.5 ml-auto"
+                        className="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-sm shadow-green-100 uppercase text-xs tracking-widest flex items-center gap-1.5 ml-auto"
                       >
                         <CheckCircle size={14} />
                         Finalizar
@@ -124,10 +124,10 @@ export const OficinaPage: React.FC = () => {
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
         <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50">
           <CheckCircle size={18} className="text-green-500" />
-          <h3 className="font-black text-[#1a4fd6] uppercase tracking-tight text-sm">
+          <h3 className="font-bold text-[#004AAD] uppercase tracking-tight text-sm">
             Histórico de Manutenções
           </h3>
-          <span className="ml-auto bg-slate-200 text-slate-600 text-xs font-black px-2.5 py-0.5 rounded-full">
+          <span className="ml-auto bg-slate-200 text-slate-600 text-xs font-bold px-2.5 py-0.5 rounded-full">
             {historyRecords.length}
           </span>
         </div>
@@ -159,7 +159,7 @@ export const OficinaPage: React.FC = () => {
                         {record.vehicle_plate}
                       </Link>
                     </td>
-                    <td className="px-6 py-4 font-bold text-[#1a4fd6]">{record.type}</td>
+                    <td className="px-6 py-4 font-bold text-[#004AAD]">{record.type}</td>
                     <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name}</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description}</td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">

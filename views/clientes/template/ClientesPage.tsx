@@ -34,18 +34,18 @@ export const ClientesPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader 
-        title="Clientes" 
-        subtitle="Gestão completa das motocicletas GC Locamoto." 
+      <ModuleHeader
+        title="Clientes"
+        subtitle="Gerenciamento de clientes."
         breadcrumbs={[{ label: "Clientes" }]}
         extraHeader={
-        <Link
-          href="/cliente/novo"
-          className="bg-blue-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2"
-        >
-          Novo Cliente
-        </Link>
-      } />
+          <Link
+            href="/cliente/novo"
+            className="bg-blue-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2"
+          >
+            Novo Cliente
+          </Link>
+        } />
 
       <div className="relative group">
         <Search
@@ -57,7 +57,7 @@ export const ClientesPage: React.FC = () => {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar Cliente por nome, CPF ou placa..."
-          className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-xl shadow-sm outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all font-medium text-slate-700"
+          className="w-full pl-12 pr-4 py-4 bg-white border border-slate-100 rounded-xl shadow-sm outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all font-medium text-slate-700"
         />
       </div>
 
@@ -88,10 +88,7 @@ export const ClientesPage: React.FC = () => {
                     <tr key={customer.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
                       <td className="px-6 py-4">
                         <Link href={`/cliente/${customer.id}`} className="flex items-center gap-3 group">
-                          <div className="w-9 h-9 bg-blue-50 rounded-lg flex items-center justify-center text-blue-600 font-black text-base border border-blue-100 shrink-0 group-hover:bg-blue-100 transition-colors">
-                            {customer.name.charAt(0)}
-                          </div>
-                          <span className="font-bold text-[#1a4fd6] group-hover:text-blue-600 transition-colors">
+                          <span className="font-bold text-[#004AAD] group-hover:text-blue-600 transition-colors">
                             {customer.name}
                           </span>
                         </Link>
@@ -100,7 +97,6 @@ export const ClientesPage: React.FC = () => {
                       <td className="px-6 py-4">
                         {vehicle ? (
                           <div className="flex items-center gap-2">
-                            <span className="text-slate-600 font-medium">{vehicle.model?.name}</span>
                             <span className="text-xs font-black bg-blue-600 text-white px-2 py-0.5 rounded">
                               {vehicle.plate}
                             </span>
@@ -112,7 +108,7 @@ export const ClientesPage: React.FC = () => {
                       <td className="px-6 py-4">
                         {customer.active_contract ? (
                           <span className="bg-green-100 text-green-700 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-200 inline-flex items-center gap-1">
-                            <CheckCircle size={10} /> Ativo
+                            Ativo
                           </span>
                         ) : (
                           <span className="bg-slate-100 text-slate-500 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-slate-200">
@@ -122,9 +118,6 @@ export const ClientesPage: React.FC = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className={`inline-flex items-center gap-1.5 font-black text-sm ${hasDebt ? "text-red-600" : "text-green-600"}`}>
-                          {hasDebt
-                            ? <AlertCircle size={14} />
-                            : <CheckCircle size={14} />}
                           {(customer.balance_due ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </div>
                       </td>

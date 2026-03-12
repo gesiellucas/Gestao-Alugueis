@@ -128,7 +128,7 @@ export const VeiculosPage: React.FC = () => {
               placeholder="Buscar por placa..."
               value={plateFilter}
               onChange={(e) => setPlateFilter(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1a4fd6] focus:border-transparent transition-all"
+              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#004AAD] focus:border-transparent transition-all"
             />
           </div>
         </div>
@@ -137,7 +137,7 @@ export const VeiculosPage: React.FC = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value === "TODOS" ? "TODOS" : Number(e.target.value))}
-            className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#1a4fd6] focus:border-transparent transition-all"
+            className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#004AAD] focus:border-transparent transition-all"
           >
             <option value="TODOS">Todos os status</option>
             {vehicleStatuses.map((status) => (
@@ -176,7 +176,7 @@ export const VeiculosPage: React.FC = () => {
                     className="hover:bg-slate-50 cursor-pointer transition-colors"
                   >
                     <td className="px-4 py-3 font-mono font-bold text-slate-700">{row.plate}</td>
-                    <td className="px-4 py-3 font-semibold text-[#1a4fd6]">{row.model}</td>
+                    <td className="px-4 py-3 font-semibold text-[#004AAD]">{row.model}</td>
                     <td className="px-4 py-3 text-slate-500">{row.year}</td>
                     <td className="px-4 py-3 text-slate-600">{row.mileage.toLocaleString("pt-BR")} km</td>
                     <td className="px-4 py-3">

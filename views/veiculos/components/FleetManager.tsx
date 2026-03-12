@@ -11,7 +11,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div>
-          <h2 className="text-3xl font-extrabold text-[#1a4fd6] uppercase tracking-tight">
+          <h2 className="text-3xl font-extrabold text-[#004AAD] uppercase tracking-tight">
             Frota Ativa
           </h2>
           <p className="text-slate-500 font-medium">
@@ -62,7 +62,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
                       {vehicle.year}
                     </span>
                   </div>
-                  <h3 className="text-xl font-extrabold text-[#1a4fd6] leading-tight">
+                  <h3 className="text-xl font-extrabold text-[#004AAD] leading-tight">
                     {vehicle.model?.name || 'Modelo desconhecido'}
                   </h3>
                 </div>

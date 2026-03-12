@@ -91,7 +91,7 @@ export const AluguelNovoPage: React.FC = () => {
       />
 
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="bg-[#1a4fd6] p-8">
+        <div className="bg-[#004AAD] p-8">
           <div className="flex items-center gap-4">
             <Bike size={24} className="text-blue-400" />
             <div>
@@ -144,7 +144,7 @@ export const AluguelNovoPage: React.FC = () => {
                         onClick={() => setSelectedVehicleId(v.id)}
                         className="w-full text-left p-4 hover:bg-blue-50 transition-colors border-b border-slate-100 last:border-b-0"
                       >
-                        <p className="font-bold text-[#1a4fd6]">
+                        <p className="font-bold text-[#004AAD]">
                           {v.model?.brand} {v.model?.name}
                         </p>
                         <p className="text-xs text-slate-500 font-mono font-medium">{v.plate}</p>
@@ -194,7 +194,7 @@ export const AluguelNovoPage: React.FC = () => {
                   />
                   <input
                     type="text"
-                    className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 pl-12 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border"
+                    className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 pl-12 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
                     value={customerSearch}
                     onChange={(e) => setCustomerSearch(e.target.value)}
                     placeholder="Buscar por nome ou CPF..."
@@ -217,7 +217,7 @@ export const AluguelNovoPage: React.FC = () => {
                         }}
                         className="w-full text-left p-4 hover:bg-blue-50 transition-colors border-b border-slate-100 last:border-b-0"
                       >
-                        <p className="font-bold text-[#1a4fd6]">
+                        <p className="font-bold text-[#004AAD]">
                           {customer.name}
                         </p>
                         <p className="text-xs text-slate-500 font-medium">
@@ -241,7 +241,7 @@ export const AluguelNovoPage: React.FC = () => {
                 type="number"
                 step="0.01"
                 min="0"
-                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border"
+                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
                 value={monthlyRate}
                 onChange={(e) => setMonthlyRate(e.target.value)}
                 placeholder="800.00"
@@ -255,7 +255,7 @@ export const AluguelNovoPage: React.FC = () => {
               </label>
               <input
                 type="date"
-                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border"
+                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
                 value={startDate}
                 onChange={(e) => setStartDate(e.target.value)}
                 required
@@ -274,7 +274,7 @@ export const AluguelNovoPage: React.FC = () => {
             <button
               type="submit"
               disabled={!vehicle || !selectedCustomerId || !monthlyRate || submitting}
-              className="flex-1 py-4 bg-[#1a4fd6] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={18} />
               {submitting ? "Registrando..." : "Registrar Aluguel"}

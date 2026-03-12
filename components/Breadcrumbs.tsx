@@ -17,7 +17,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
     <nav className="flex items-center space-x-2 text-xs font-semibold text-slate-400 mb-2 overflow-x-auto whitespace-nowrap scrollbar-hide py-1">
       <Link
         href="/"
-        className="flex items-center gap-1 hover:text-[#1a4fd6] transition-colors"
+        className="flex items-center gap-1 hover:text-[#004AAD] transition-colors"
       >
         <Home size={14} />
         <span>Início</span>
@@ -29,7 +29,7 @@ export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items }) => {
           {item.href ? (
             <Link
               href={item.href}
-              className="hover:text-[#1a4fd6] transition-colors"
+              className="hover:text-[#004AAD] transition-colors"
             >
               {item.label}
             </Link>

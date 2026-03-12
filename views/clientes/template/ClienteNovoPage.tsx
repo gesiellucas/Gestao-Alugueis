@@ -53,7 +53,7 @@ export const ClienteNovoPage: React.FC = () => {
       />
 
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="bg-[#1a4fd6] p-8">
+        <div className="bg-[#004AAD] p-8">
           <h3 className="font-black text-xl uppercase tracking-tighter text-white">
             Cadastro de Cliente
           </h3>
@@ -70,7 +70,7 @@ export const ClienteNovoPage: React.FC = () => {
             </label>
             <input
               type="text"
-              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border"
+              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="Nome do Cliente"
@@ -85,7 +85,7 @@ export const ClienteNovoPage: React.FC = () => {
               </label>
               <input
                 type="text"
-                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border"
+                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 placeholder="5511999999999"
@@ -98,7 +98,7 @@ export const ClienteNovoPage: React.FC = () => {
               </label>
               <input
                 type="text"
-                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#1a4fd6]/10 focus:border-blue-500 transition-all border"
+                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
                 value={form.cpf}
                 onChange={(e) => setForm({ ...form, cpf: e.target.value })}
                 placeholder="000.000.000-00"
@@ -118,7 +118,7 @@ export const ClienteNovoPage: React.FC = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-4 bg-[#1a4fd6] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={18} /> {submitting ? "Cadastrando..." : "Cadastrar"}
             </button>

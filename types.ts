@@ -81,7 +81,7 @@ export interface Vehicle {
   model_id: string;
   model?: VehicleModel; // Populated from join
   year: number;
-  status_id: string;
+  statusId: string;
   vehicleStatus?: VehicleStatusRecord; // Populated from join
   mileage: number;
   current_renter_id?: string | null;

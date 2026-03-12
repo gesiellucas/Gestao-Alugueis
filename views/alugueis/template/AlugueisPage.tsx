@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { Search, Calendar, User, Bike, DollarSign, CheckCircle, XCircle } from "lucide-react";
+import { Search, Calendar, User, Bike, DollarSign, CheckCircle, XCircle, Plus } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const AlugueisPage: React.FC = () => {
@@ -63,11 +63,20 @@ export const AlugueisPage: React.FC = () => {
         subtitle="Relação completa de clientes, veículos e contratos." 
         breadcrumbs={[{ label: "Aluguéis" }]}
         extraHeader={
-        <div className="text-right">
-          <p className="text-sm text-slate-500 font-medium">Total de Contratos</p>
-          <p className="text-3xl font-black text-[#1a4fd6]">
-            {rentalContracts.length}
-          </p>
+        <div className="flex items-center gap-4">
+          <div className="text-right">
+            <p className="text-sm text-slate-500 font-medium">Total de Contratos</p>
+            <p className="text-3xl font-black text-[#1a4fd6]">
+              {rentalContracts.length}
+            </p>
+          </div>
+          <button
+            onClick={() => router.push("/alugueis/novo")}
+            className="flex items-center gap-2 px-4 py-2.5 bg-[#1a4fd6] text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-md shadow-blue-200"
+          >
+            <Plus size={16} />
+            Novo Aluguel
+          </button>
         </div>
       } />
 

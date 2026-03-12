@@ -39,7 +39,7 @@ interface AppContextType {
   setRentalContracts: React.Dispatch<React.SetStateAction<RentalContract[]>>;
   handleAddMaintenanceRecord: (record: MaintenanceRecord) => Promise<void>;
   handleFinishMaintenance: (recordId: string) => Promise<void>;
-  handleCreateRental: (vehicleId: string, customerId: string, monthlyRate: number, startDate: string) => Promise<void>;
+  handleCreateRental: (vehicleId: string, customerId: string, monthlyRate: number, startDate: string) => Promise<RentalContract>;
   handleEndRental: (vehicleId: string) => Promise<void>;
   loading: boolean;
   error: string | null;
@@ -208,7 +208,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     customerId: string,
     monthlyRate: number,
     startDate: string,
-  ) => {
+  ): Promise<RentalContract> => {
     try {
       const newContract = await localRentalsApi.create({
         vehicle_id: vehicleId,
@@ -240,6 +240,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           c.id === customerId ? { ...c, active_contract: true } : c,
         ),
       );
+      return newContract;
     } catch (err) {
       throw err;
     }

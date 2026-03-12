@@ -278,7 +278,7 @@ export const AluguelDetalhePage: React.FC = () => {
                   <DollarSign size={12} /> Valor mensal
                 </span>
                 <span className="font-black text-green-600 text-lg">
-                  {rental.monthly_rate.toLocaleString("pt-BR", {
+                  {(rental.monthly_rate ?? 0).toLocaleString("pt-BR", {
                     style: "currency",
                     currency: "BRL",
                   })}

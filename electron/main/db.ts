@@ -18,6 +18,7 @@ import {
   vehicleStatuses,
   workshops,
 } from '../../db/schema';
+import { runSeed } from './seed';
 
 // ─── Initialization ───────────────────────────────────────────────────────────
 
@@ -27,10 +28,23 @@ export function initDatabase(): void {
   // Em produção (electron-builder): empacotadas junto com o app
   const migrationsFolder = app.isPackaged
     ? path.join(process.resourcesPath, 'db/migrations/sqlite')
-    : path.join(app.getAppPath(), 'db/migrations/sqlite');
+    : path.resolve('db/migrations/sqlite');
 
-  initDb(dbPath, migrationsFolder);
-  seedData();
+  console.log('Resolved Migrations folder:', migrationsFolder);
+  console.log('Exists?', require('fs').existsSync(migrationsFolder));
+  if (require('fs').existsSync(migrationsFolder)) {
+    console.log('Meta Exists?', require('fs').existsSync(path.join(migrationsFolder, 'meta', '_journal.json')));
+  }
+
+  try {
+    initDb(dbPath, migrationsFolder);
+    seedData();
+    runSeed(getDb());
+  } catch (error) {
+    console.error('Failed to initialize database:', error);
+    // Em desenvolvimento, vamos logar onde ele tentou procurar
+    console.error('Tried migrations at:', migrationsFolder);
+  }
 }
 
 function seedData(): void {

@@ -185,7 +185,7 @@ export const AlugueisPage: React.FC = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-1.5 text-green-600 font-black">
                         <DollarSign size={16} />
-                        <span>R$ {contract.monthly_rate.toFixed(2)}</span>
+                        <span>R$ {contract.monthly_rate?.toFixed(2) ?? '0.00'}</span>
                       </div>
                     </td>
                   </tr>

@@ -125,7 +125,7 @@ export const ClientesPage: React.FC = () => {
                           {hasDebt
                             ? <AlertCircle size={14} />
                             : <CheckCircle size={14} />}
-                          {customer.balance_due.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          {(customer.balance_due ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </div>
                       </td>
                       <td className="px-6 py-4">

@@ -4,7 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
 import { Document } from "../../../types";
-import { localDocumentsApi } from "../../../services/localApi/documents";
+import { supabaseContractsApi } from "../../../services/supabaseApi/contracts";
+import { supabaseDocumentsApi } from "../../../services/supabaseApi/documents";
 import {
   ArrowLeft,
   User,
@@ -53,48 +54,68 @@ export const AluguelDetalhePage: React.FC = () => {
   // Documents state
   const [documents, setDocuments] = useState<Document[]>([]);
   const [docsLoading, setDocsLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  // contractId é o ID do registro na tabela `contracts` (diferente do rental id)
+  const [contractId, setContractId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const contract = rentalContracts.find((c) => c.id === id);
+  const rental = rentalContracts.find((c) => c.id === id);
 
+  // Ao abrir a aba de documentos, busca o contrato vinculado ao aluguel
   useEffect(() => {
-    if (!contract) return;
+    if (!rental) return;
+    supabaseContractsApi
+      .getByRental(rental.id)
+      .then((c) => setContractId(c?.id ?? null))
+      .catch(() => setContractId(null));
+  }, [rental?.id]);
+
+  // Carrega documentos sempre que o contractId for resolvido
+  useEffect(() => {
+    if (!contractId) { setDocuments([]); return; }
     setDocsLoading(true);
-    localDocumentsApi
-      .getByParent(contract.id, "CONTRACT")
+    supabaseDocumentsApi
+      .getByContract(contractId)
       .then(setDocuments)
       .catch(() => setDocuments([]))
       .finally(() => setDocsLoading(false));
-  }, [contract?.id]);
+  }, [contractId]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !contract) return;
+    if (!file || !rental) return;
 
-    // In Electron, file.path gives the absolute local path
-    const filePath = (file as { path?: string }).path || file.name;
+    setUploading(true);
+    setUploadError(null);
+    try {
+      // Garante que o contrato existe — cria automaticamente se necessário
+      const contract = await supabaseContractsApi.ensureForRental(rental.id);
+      setContractId(contract.id);
 
-    const created = await localDocumentsApi.create({
-      parent_id: contract.id,
-      origin_type: "CONTRACT",
-      file_url: filePath,
-    });
-    setDocuments((prev) => [...prev, created]);
-    e.target.value = "";
+      const created = await supabaseDocumentsApi.uploadAndCreate(contract.id, file);
+      setDocuments((prev) => [created, ...prev]);
+    } catch (err) {
+      setUploadError("Erro ao enviar arquivo. Tente novamente.");
+      console.error(err);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
   };
 
-  const handleDelete = async (docId: string) => {
-    setDeleting(docId);
+  const handleDelete = async (doc: Document) => {
+    setDeleting(doc.id);
     try {
-      await localDocumentsApi.delete(docId);
-      setDocuments((prev) => prev.filter((d) => d.id !== docId));
+      await supabaseDocumentsApi.delete(doc);
+      setDocuments((prev) => prev.filter((d) => d.id !== doc.id));
     } finally {
       setDeleting(null);
     }
   };
 
-  if (!contract) {
+  if (!rental) {
     return (
       <div className="space-y-6">
         <button
@@ -110,11 +131,11 @@ export const AluguelDetalhePage: React.FC = () => {
     );
   }
 
-  const customer = customers.find((c) => c.id === contract.customer_id);
-  const vehicle = vehicles.find((v) => v.id === contract.vehicle_id);
+  const customer = customers.find((c) => c.id === rental.customer_id);
+  const vehicle = vehicles.find((v) => v.id === rental.vehicle_id);
 
-  const startDate = new Date(contract.start_date);
-  const endDate = contract.end_date ? new Date(contract.end_date) : null;
+  const startDate = new Date(rental.start_date);
+  const endDate = rental.end_date ? new Date(rental.end_date) : null;
   const now = new Date();
   const diffMs = (endDate ?? now).getTime() - startDate.getTime();
   const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
@@ -122,7 +143,7 @@ export const AluguelDetalhePage: React.FC = () => {
   const days = diffDays % 30;
   const duration = `${months}m ${days}d`;
 
-  const isActive = contract.status === "ACTIVE";
+  const isActive = rental.status === "ACTIVE";
 
   return (
     <div className="space-y-6">
@@ -257,7 +278,7 @@ export const AluguelDetalhePage: React.FC = () => {
                   <DollarSign size={12} /> Valor mensal
                 </span>
                 <span className="font-black text-green-600 text-lg">
-                  {contract.monthly_rate.toLocaleString("pt-BR", {
+                  {rental.monthly_rate.toLocaleString("pt-BR", {
                     style: "currency",
                     currency: "BRL",
                   })}
@@ -277,10 +298,11 @@ export const AluguelDetalhePage: React.FC = () => {
               </p>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
+                disabled={uploading}
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
               >
                 <Upload size={14} />
-                Anexar arquivo
+                {uploading ? "Enviando..." : "Anexar arquivo"}
               </button>
               <input
                 ref={fileInputRef}
@@ -289,6 +311,9 @@ export const AluguelDetalhePage: React.FC = () => {
                 onChange={handleFileChange}
               />
             </div>
+            {uploadError && (
+              <p className="text-xs text-red-500 font-medium">{uploadError}</p>
+            )}
 
             {/* List */}
             {docsLoading ? (
@@ -333,7 +358,7 @@ export const AluguelDetalhePage: React.FC = () => {
                           <ExternalLink size={15} />
                         </a>
                         <button
-                          onClick={() => handleDelete(doc.id)}
+                          onClick={() => handleDelete(doc)}
                           disabled={deleting === doc.id}
                           className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40"
                           title="Remover"

@@ -19,9 +19,6 @@ import { summarizeDailyWorkshop } from "../services/geminiService";
 
 export const Dashboard: React.FC = () => {
   const { vehicles, maintenanceRecords: records } = useAppContext();
-  const [aiSummary, setAiSummary] = useState<string>(
-    "Analisando atividades da oficina...",
-  );
 
   const totalVehicles = vehicles.length;
   const rentedVehicles = vehicles.filter(
@@ -32,7 +29,7 @@ export const Dashboard: React.FC = () => {
   ).length;
 
   const today = new Date().toISOString().split("T")[0];
-  const arrivedToday = records.filter((r) => r.entry_date.startsWith(today));
+  const arrivedToday = records.filter((r) => r.entry_date?.startsWith(today));
 
   const revenueData = [
     { name: "Seg", income: 4200 },
@@ -53,20 +50,6 @@ export const Dashboard: React.FC = () => {
     },
     { name: "Oficina", value: inMaintenance, color: "#f59e0b" },
   ];
-
-  useEffect(() => {
-    const fetchSummary = async () => {
-      if (arrivedToday.length > 0) {
-        const summary = await summarizeDailyWorkshop(arrivedToday);
-        setAiSummary(summary);
-      } else {
-        setAiSummary(
-          "Oficina tranquila hoje. Todas as motos da frota GC estão em operação ou aguardando rotina.",
-        );
-      }
-    };
-    fetchSummary();
-  }, [records]);
 
   return (
     <div className="space-y-8">
@@ -138,21 +121,6 @@ export const Dashboard: React.FC = () => {
             Previsão de recebimento para hoje
           </p>
         </div>
-      </div>
-
-      {/* AI Section */}
-      <div className="bg-white rounded-[2rem] p-8 border-l-4 border-[#f97316] shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="bg-[#f97316] p-2 rounded-xl shadow-md shadow-orange-200">
-            <AlertTriangle className="text-white w-5 h-5" />
-          </div>
-          <h3 className="font-extrabold text-xl text-[#1a4fd6]">
-            Relatório Inteligente da Oficina
-          </h3>
-        </div>
-        <p className="text-slate-600 leading-relaxed font-medium italic">
-          "{aiSummary}"
-        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

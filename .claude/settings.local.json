@@ -26,7 +26,8 @@
       "Bash(npx skills find electron nextjs)",
       "Bash(npx drizzle-kit generate)",
       "Bash(npx drizzle-kit generate --config=drizzle.pg.config.ts)",
-      "Bash(xargs sed -i -e 's/\\\\[#0a2342\\\\]/[#1a4fd6]/g' -e 's/bg-yellow-400/bg-\\\\[#f97316\\\\]/g' -e 's/text-yellow-400/text-\\\\[#f97316\\\\]/g' -e 's/text-yellow-300/text-orange-300/g' -e 's/shadow-yellow-400\\\\/20/shadow-orange-500\\\\/20/g' -e 's/focus:ring-blue-500/focus:ring-\\\\[#1a4fd6\\\\]/g')"
+      "Bash(xargs sed -i -e 's/\\\\[#0a2342\\\\]/[#1a4fd6]/g' -e 's/bg-yellow-400/bg-\\\\[#f97316\\\\]/g' -e 's/text-yellow-400/text-\\\\[#f97316\\\\]/g' -e 's/text-yellow-300/text-orange-300/g' -e 's/shadow-yellow-400\\\\/20/shadow-orange-500\\\\/20/g' -e 's/focus:ring-blue-500/focus:ring-\\\\[#1a4fd6\\\\]/g')",
+      "Read(//d/Workspace/GitHub/Gestao Alugueis/**)"
     ]
   }
 }

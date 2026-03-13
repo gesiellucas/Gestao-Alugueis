@@ -11,14 +11,14 @@ import {
   VehicleModel,
   Workshop,
 } from "../types";
-import { localVehiclesApi } from "../services/localApi/vehicles";
-import { localCustomersApi } from "../services/localApi/customers";
-import { localRentalsApi } from "../services/localApi/rentals";
-import { localMaintenanceApi } from "../services/localApi/maintenance";
-import { localUsersApi } from "../services/localApi/users";
-import { localVehicleModelsApi } from "../services/localApi/vehicleModels";
-import { localVehicleStatusesApi } from "../services/localApi/vehicleStatuses";
-import { localWorkshopsApi } from "../services/localApi/workshops";
+import { localVehiclesApi } from "../database/api/local/vehicles";
+import { localCustomersApi } from "../database/api/local/customers";
+import { localRentalsApi } from "../database/api/local/rentals";
+import { localMaintenanceApi } from "../database/api/local/maintenance";
+import { localUsersApi } from "../database/api/local/users";
+import { localVehicleModelsApi } from "../database/api/local/vehicleModels";
+import { localVehicleStatusesApi } from "../database/api/local/vehicleStatuses";
+import { localWorkshopsApi } from "../database/api/local/workshops";
 
 interface AppContextType {
   user: AppUser | null;

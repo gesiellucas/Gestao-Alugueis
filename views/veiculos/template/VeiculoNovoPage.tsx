@@ -2,8 +2,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { localVehiclesApi } from "../../../services/localApi/vehicles";
-import { localVehicleModelsApi } from "../../../services/localApi/vehicleModels";
+import { localVehiclesApi } from "../../../database/api/local/vehicles";
+import { localVehicleModelsApi } from "../../../database/api/local/vehicleModels";
 import { VEHICLE_STATUS_IDS } from "../../../types";
 import { ArrowLeft, Save, PlusCircle } from "lucide-react";
 

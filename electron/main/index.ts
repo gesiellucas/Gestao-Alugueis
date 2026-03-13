@@ -1,9 +1,9 @@
 import { app, BrowserWindow, shell, protocol, ipcMain } from 'electron';
 import path from 'path';
 import 'dotenv/config';
-import { initDatabase, registerIpcHandlers } from './db';
-import { getRawDb } from '../../db/index';
-import { initSyncEngine } from './sync';
+import { initDatabase, registerIpcHandlers } from '../../database/ipc/handlers';
+import { getRawDb } from '../../database/client/sqlite';
+import { initSyncEngine } from '../../database/ipc/sync';
 
 // Prevent multiple instances
 const gotLock = app.requestSingleInstanceLock();

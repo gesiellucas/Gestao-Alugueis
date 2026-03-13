@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { AppUser } from "../types";
 import { Bike, LogIn, Lock, Mail, AlertCircle, ShieldCheck } from "lucide-react";
-import { localUsersApi } from "../services/localApi/users";
+import { localUsersApi } from "../database/api/local/users";
 
 interface LoginProps {
   onLogin: (user: AppUser) => void;

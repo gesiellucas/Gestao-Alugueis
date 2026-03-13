@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { localCustomersApi } from "../../../services/localApi/customers";
+import { localCustomersApi } from "../../../database/api/local/customers";
 import { ArrowLeft, Save } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 

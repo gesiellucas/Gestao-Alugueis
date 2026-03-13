@@ -4,8 +4,8 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
 import { Document } from "../../../types";
-import { supabaseContractsApi } from "../../../services/supabaseApi/contracts";
-import { supabaseDocumentsApi } from "../../../services/supabaseApi/documents";
+import { supabaseContractsApi } from "../../../database/api/supabase/contracts";
+import { supabaseDocumentsApi } from "../../../database/api/supabase/documents";
 import {
   ArrowLeft,
   User,

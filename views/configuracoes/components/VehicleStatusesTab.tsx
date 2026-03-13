@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import { VehicleStatusRecord } from "../../../types";
-import { localVehicleStatusesApi } from "../../../services/localApi/vehicleStatuses";
+import { localVehicleStatusesApi } from "../../../database/api/local/vehicleStatuses";
 import { Palette, Plus, Edit2, Trash2, Check, X, Lock } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 

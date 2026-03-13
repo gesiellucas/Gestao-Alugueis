@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import { Workshop } from "../../../types";
-import { localWorkshopsApi } from "../../../services/localApi/workshops";
+import { localWorkshopsApi } from "../../../database/api/local/workshops";
 import { Building2, Plus, Edit2, Trash2, Check, X } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 

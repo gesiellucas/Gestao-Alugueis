@@ -12,6 +12,11 @@
     "skipLibCheck": true,
     "sourceMap": true
   },
-  "include": ["electron/**/*.ts", "db/**/*.ts"],
+  "include": [
+    "electron/**/*.ts",
+    "database/schema/sqlite.ts",
+    "database/client/sqlite.ts",
+    "database/ipc/**/*.ts"
+  ],
   "exclude": ["node_modules"]
 }

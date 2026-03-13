@@ -14,10 +14,10 @@ const config = {
 
   // Files included in the built app
   files: [
-    'dist/electron/**/*',         // Compiled Electron main + preload (CommonJS)
-    'dist/db/**/*',               // Compiled Database logic
-    'out/**/*',                    // Next.js static export
-    'db/migrations/sqlite/**/*',   // Drizzle SQLite migrations (aplicadas em runtime)
+    'dist/electron/**/*',                      // Compiled Electron main + preload (CommonJS)
+    'dist/database/**/*',                     // Compiled Database logic
+    'out/**/*',                               // Next.js static export
+    'database/migrations/sqlite/**/*',        // Drizzle SQLite migrations (aplicadas em runtime)
     'node_modules/**/*',
     'package.json',
   ],

@@ -1,8 +1,8 @@
 'use client';
 import React, { useState, useEffect } from "react";
 import { AppUser, Role } from "../../../types";
-import { localUsersApi } from "../../../services/localApi/users";
-import { localRolesApi } from "../../../services/localApi/roles";
+import { localUsersApi } from "../../../database/api/local/users";
+import { localRolesApi } from "../../../database/api/local/roles";
 import { Users, Shield, Plus, Edit2, Trash2, X, Check } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 

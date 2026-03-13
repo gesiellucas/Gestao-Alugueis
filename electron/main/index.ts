@@ -5,6 +5,9 @@ import { initDatabase, registerIpcHandlers } from '../../database/ipc/handlers';
 import { getRawDb } from '../../database/client/sqlite';
 import { initSyncEngine } from '../../database/ipc/sync';
 
+// Define app identity para ícone correto na barra de tarefas do Windows
+app.setAppUserModelId('br.com.gclocamoto.app');
+
 // Prevent multiple instances
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
@@ -51,12 +54,17 @@ app.whenReady().then(() => {
 });
 
 function createWindow(): void {
+  const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'icon.ico')
+    : path.resolve('public/icon-app.png');
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 900,
     minHeight: 600,
     title: 'GC Locamoto',
+    icon: iconPath,
     frame: false,
     backgroundColor: '#004AAD',
     webPreferences: {

@@ -5,7 +5,9 @@
 const config = {
   appId: 'br.com.gclocamoto.app',
   productName: 'GC Locamoto',
-  copyright: 'Copyright © 2025 GC Locamoto',
+  copyright: 'Copyright © 2026 GC Locamoto',
+
+  icon: 'resources/icon.ico',
 
   directories: {
     output: 'release',

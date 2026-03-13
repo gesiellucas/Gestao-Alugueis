@@ -33,6 +33,7 @@ export const workshops = pgTable('workshops', {
   status: text('status').notNull().default('ACTIVE'), // 'ACTIVE' | 'INACTIVE'
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true }),
 });
 
 // ---------------------------------------------------------------------------
@@ -58,6 +59,7 @@ export const roles = pgTable('roles', {
   permissions: text('permissions').notNull(), // JSON.stringify(string[])
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => [
   foreignKey({ columns: [table.workshop_id], foreignColumns: [workshops.id] }),
 ]);
@@ -73,6 +75,7 @@ export const appUsers = pgTable('app_users', {
   role_id: bigint('role_id', { mode: 'number' }).notNull(),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => [
   foreignKey({ columns: [table.role_id], foreignColumns: [roles.id] }),
 ]);
@@ -91,6 +94,7 @@ export const customers = pgTable('customers', {
   last_payment_date: text('last_payment_date'),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => [
   index('idx_customers_user_id').on(table.user_id),
   index('idx_customers_cpf').on(table.cpf),
@@ -107,6 +111,7 @@ export const vehicleModels = pgTable('vehicle_models', {
   status: text('status').notNull().default('ACTIVE'), // 'ACTIVE' | 'INACTIVE'
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true }),
 });
 
 // ---------------------------------------------------------------------------
@@ -124,6 +129,7 @@ export const vehicles = pgTable('vehicles', {
   image_url: text('image_url'),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => [
   index('idx_vehicles_plate').on(table.plate),
   index('idx_vehicles_status_id').on(table.status_id),
@@ -146,6 +152,7 @@ export const rentals = pgTable('rentals', {
   status: text('status').notNull().default('ACTIVE'), // 'ACTIVE' | 'ENDED'
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => [
   index('idx_rentals_user_id').on(table.user_id),
   index('idx_rentals_vehicle_id').on(table.vehicle_id),
@@ -162,6 +169,7 @@ export const contracts = pgTable('contracts', {
   rental_id: bigint('rental_id', { mode: 'number' }).notNull(),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => [
   index('idx_contracts_rental_id').on(table.rental_id),
   foreignKey({ columns: [table.rental_id], foreignColumns: [rentals.id] }),
@@ -185,6 +193,7 @@ export const maintenanceRecords = pgTable('maintenance_records', {
   status: text('status').notNull().default('OPEN'), // 'OPEN' | 'COMPLETED'
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).notNull(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => [
   index('idx_maintenance_user_id').on(table.user_id),
   index('idx_maintenance_vehicle_id').on(table.vehicle_id),
@@ -203,6 +212,7 @@ export const documents = pgTable('documents', {
   file_url: text('file_url').notNull(),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deleted_at: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => [
   index('idx_documents_parent').on(table.parent_id, table.origin_type),
 ]);

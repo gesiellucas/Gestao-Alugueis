@@ -19,7 +19,8 @@
     "postinstall": "electron-rebuild -f -w better-sqlite3",
     "db:generate": "drizzle-kit generate --config=database/drizzle.config.ts && drizzle-kit generate --config=database/drizzle.pg.config.ts",
     "db:studio": "drizzle-kit studio --config=database/drizzle.studio.config.ts",
-    "db:push:supabase": "drizzle-kit push --config=database/drizzle.pg.config.ts"
+    "db:push:supabase": "drizzle-kit push --config=database/drizzle.pg.config.ts",
+    "db:push:sqlite": "drizzle-kit push --config=database/drizzle.config.ts"
   },
   "dependencies": {
     "@google/genai": "^1.40.0",

@@ -13,8 +13,8 @@ const BUCKET = 'contract-documents';
 
 function mapRow(row: Record<string, unknown>): Document {
   return {
-    id: Number(row.id),
-    parent_id: Number(row.parent_id),
+    id: row.id as unknown as number,
+    parent_id: row.parent_id as unknown as number,
     origin_type: row.origin_type as 'CONTRACT' | 'WORKSHOP',
     file_url: row.file_url as string,
     created_at: row.created_at as string | undefined,
@@ -73,11 +73,13 @@ export const supabaseDocumentsApi = {
     // 3. Salva registro na tabela documents
     const { data, error: insertError } = await supabase
       .from('documents')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .insert({
-        parent_id: contractId,
+        id: crypto.randomUUID(),
+        parent_id: String(contractId),
         origin_type: 'CONTRACT',
         file_url: fileUrl,
-      })
+      } as any)
       .select()
       .single();
 

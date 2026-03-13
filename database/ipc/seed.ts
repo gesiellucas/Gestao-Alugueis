@@ -17,10 +17,10 @@ export function runSeed(db: DrizzleDb): void {
   const statusCount = db.select({ n: sql<number>`count(*)` }).from(vehicleStatuses).get();
   if ((statusCount?.n ?? 0) === 0) {
     db.insert(vehicleStatuses).values([
-      { id: 1, name: 'Disponível',      color: '#22c55e', is_default: 1, created_at: now, updated_at: now, dirty: 0 },
-      { id: 2, name: 'Alugada',          color: '#3b82f6', is_default: 1, created_at: now, updated_at: now, dirty: 0 },
-      { id: 3, name: 'Em Manutenção',    color: '#f59e0b', is_default: 1, created_at: now, updated_at: now, dirty: 0 },
-      { id: 4, name: 'Indisponível',     color: '#ef4444', is_default: 1, created_at: now, updated_at: now, dirty: 0 },
+      { id: 1, name: 'Disponível',      color: '#22c55e', is_default: 1, created_at: now, updated_at: now, dirty: 1 },
+      { id: 2, name: 'Alugada',          color: '#3b82f6', is_default: 1, created_at: now, updated_at: now, dirty: 1 },
+      { id: 3, name: 'Em Manutenção',    color: '#f59e0b', is_default: 1, created_at: now, updated_at: now, dirty: 1 },
+      { id: 4, name: 'Indisponível',     color: '#ef4444', is_default: 1, created_at: now, updated_at: now, dirty: 1 },
     ]).onConflictDoNothing().run();
   }
 

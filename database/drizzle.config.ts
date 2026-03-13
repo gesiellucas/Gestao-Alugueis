@@ -11,8 +11,8 @@ const defaultDbPath = path.join(
 );
 
 export default {
-  schema: './schema/sqlite.ts',
-  out: './migrations/sqlite',
+  schema: './database/schema/sqlite.ts',
+  out: './database/migrations/sqlite',
   dialect: 'sqlite',
   dbCredentials: {
     url: `file:${process.env.SQLITE_DB_PATH ?? defaultDbPath}`,

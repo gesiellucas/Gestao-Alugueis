@@ -90,7 +90,7 @@ export const AluguelDetalhePage: React.FC = () => {
     setUploadError(null);
     try {
       // Garante que o contrato existe — cria automaticamente se necessário
-      const contract = await supabaseContractsApi.ensureForRental(rental.id);
+      const contract = await supabaseContractsApi.ensureForRental(rental);
       setContractId(contract.id);
 
       const created = await supabaseDocumentsApi.uploadAndCreate(contract.id, file);

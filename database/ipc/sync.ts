@@ -66,11 +66,14 @@ async function runSync() {
   if (isSyncing) return { success: false, reason: 'Already syncing' };
   isSyncing = true;
 
+  console.log(`[Sync] Starting sync...`);
   try {
     await pushChanges();
     await pullChanges();
+    console.log(`[Sync] Sync completed successfully.`);
     return { success: true };
   } catch (error) {
+    console.error(`[Sync] Sync failed:`, error);
     return { success: false, error };
   } finally {
     isSyncing = false;
@@ -82,9 +85,29 @@ async function runSync() {
 async function pushChanges() {
   const db = getRawDb();
 
+  // Se nunca sincronizou globalmente, vamos marcar tudo como dirty para garantir que o Supabase tenha os dados iniciais
+  const globalLastSync = db.prepare("SELECT value FROM config WHERE key = 'last_sync_at'").get() as { value: string } | undefined;
+  if (!globalLastSync?.value) {
+    console.log(`[Sync] First time sync detected. Marking all records as dirty...`);
+    for (const table of SYNC_TABLES) {
+      try {
+        db.prepare(`UPDATE ${table} SET dirty = 1 WHERE dirty = 0`).run();
+      } catch (e) {
+        // Silently fail if table doesn't exist yet
+      }
+    }
+    // Set a placeholder to avoid repeating this every time sync fails
+    db.prepare("INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)").run('last_sync_at', 'PENDING');
+  }
+
   for (const table of SYNC_TABLES) {
     const dirtyRecords = db.prepare(`SELECT * FROM ${table} WHERE dirty = 1`).all() as Record<string, unknown>[];
-    if (dirtyRecords.length === 0) continue;
+    
+    console.log(`[Sync] Table "${table}": found ${dirtyRecords.length} dirty records.`);
+    
+    if (dirtyRecords.length === 0) {
+      continue;
+    }
 
     const recordsToPush = dirtyRecords.map(record => {
       const { dirty, ...rest } = record as any;
@@ -98,8 +121,12 @@ async function pushChanges() {
       return rest;
     });
 
+    console.log(`[Sync] Pushing ${recordsToPush.length} records to table "${table}"...`);
     const { error } = await (supabase as any).from(table).upsert(recordsToPush);
-    if (error) continue;
+    if (error) {
+      console.error(`[Sync] Error pushing to table "${table}":`, error);
+      continue;
+    }
 
     const ids = dirtyRecords.map(r => (r as any).id);
     const placeholders = ids.map(() => '?').join(',');
@@ -112,6 +139,7 @@ async function pushChanges() {
 async function pullChanges() {
   for (const table of SYNC_TABLES) {
     const lastSyncAt = getSyncMetadata(table) || new Date(0).toISOString();
+    console.log(`[Sync] Pulling changes for table "${table}" since ${lastSyncAt}...`);
 
     const { data, error } = await (supabase as any)
       .from(table)
@@ -119,7 +147,17 @@ async function pullChanges() {
       .gt('updated_at', lastSyncAt)
       .order('updated_at', { ascending: true });
 
-    if (error || !data || data.length === 0) continue;
+    if (error) {
+      console.error(`[Sync] Error pulling from table "${table}":`, error);
+      continue;
+    }
+
+    if (!data || data.length === 0) {
+      // console.log(`[Sync] No new records for table "${table}".`);
+      continue;
+    }
+
+    console.log(`[Sync] Pulled ${data.length} records for table "${table}".`);
 
     upsertLocally(table, data);
 

@@ -1,8 +1,12 @@
-import { app, BrowserWindow, shell, protocol } from 'electron';
+import { app, BrowserWindow, shell, protocol, ipcMain } from 'electron';
 import path from 'path';
 import 'dotenv/config';
-import { initDatabase, registerIpcHandlers, db } from './db';
-import { initSyncEngine } from './sync';
+import { initDatabase, registerIpcHandlers } from '../../database/ipc/handlers';
+import { getRawDb } from '../../database/client/sqlite';
+import { initSyncEngine } from '../../database/ipc/sync';
+
+// Define app identity para ícone correto na barra de tarefas do Windows
+app.setAppUserModelId('br.com.gclocamoto.app');
 
 // Prevent multiple instances
 const gotLock = app.requestSingleInstanceLock();
@@ -33,14 +37,15 @@ app.whenReady().then(() => {
 
   initDatabase();
 
-  // Inject Supabase credentials into local SQLite config
+  // Inject Supabase credentials into local SQLite config (from .env, se disponível)
   if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    db.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').run('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL);
-    db.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').run('NEXT_PUBLIC_SUPABASE_ANON_KEY', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+    const rawDb = getRawDb();
+    rawDb.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').run('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL);
+    rawDb.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').run('NEXT_PUBLIC_SUPABASE_ANON_KEY', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
   }
 
   registerIpcHandlers();
-  initSyncEngine(db);
+  initSyncEngine();
   createWindow();
 
   app.on('activate', () => {
@@ -49,12 +54,19 @@ app.whenReady().then(() => {
 });
 
 function createWindow(): void {
+  const iconPath = app.isPackaged
+    ? path.join(process.resourcesPath, 'icon.ico')
+    : path.resolve('public/icon-app.png');
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
     minWidth: 900,
     minHeight: 600,
-    title: 'GC Loca Moto',
+    title: 'GC Locamoto',
+    icon: iconPath,
+    frame: false,
+    backgroundColor: '#004AAD',
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload', 'index.js'),
       contextIsolation: true,  // Required for security
@@ -62,6 +74,14 @@ function createWindow(): void {
       sandbox: false,          // Allow preload to use Node APIs
     },
   });
+
+  ipcMain.handle('window:minimize', () => mainWindow?.minimize());
+  ipcMain.handle('window:maximize', () => {
+    if (mainWindow?.isMaximized()) mainWindow.unmaximize();
+    else mainWindow?.maximize();
+  });
+  ipcMain.handle('window:close', () => mainWindow?.close());
+  ipcMain.handle('window:isMaximized', () => mainWindow?.isMaximized() ?? false);
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:3000');

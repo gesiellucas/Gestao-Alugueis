@@ -19,7 +19,29 @@
       "Bash(node_modules/.bin/electron --version)",
       "Bash(node -e \"const d=require\\(''fs''\\).readFileSync\\(''/dev/stdin'',''utf8''\\);const p=JSON.parse\\(d\\);console.log\\(''electron version in node_modules:'',p.version\\)\")",
       "Bash(node -e \"console.log\\(require\\(''./node_modules/electron/package.json''\\).version\\)\")",
-      "Bash(node_modules/.bin/electron-rebuild -f -w better-sqlite3)"
+      "Bash(node_modules/.bin/electron-rebuild -f -w better-sqlite3)",
+      "Bash(xargs sed -i '/^\\\\s*console\\\\.\\\\\\(log\\\\|error\\\\|warn\\\\|info\\\\|debug\\\\\\)/d')",
+      "Bash(npx skills find nextjs structure)",
+      "Bash(npx skills find nextjs best-practices)",
+      "Bash(npx skills find electron nextjs)",
+      "Bash(npx drizzle-kit generate)",
+      "Bash(npx drizzle-kit generate --config=drizzle.pg.config.ts)",
+      "Bash(xargs sed -i -e 's/\\\\[#0a2342\\\\]/[#1a4fd6]/g' -e 's/bg-yellow-400/bg-\\\\[#f97316\\\\]/g' -e 's/text-yellow-400/text-\\\\[#f97316\\\\]/g' -e 's/text-yellow-300/text-orange-300/g' -e 's/shadow-yellow-400\\\\/20/shadow-orange-500\\\\/20/g' -e 's/focus:ring-blue-500/focus:ring-\\\\[#1a4fd6\\\\]/g')",
+      "Read(//d/Workspace/GitHub/Gestao Alugueis/**)",
+      "Bash(xargs sed -i -e 's/#1a4fd6/#004AAD/gI' -e 's/#1440b8/#003d91/gI' -e 's/#0f2f8f/#003380/gI' -e 's/#f97316/#0C4AA5/gI' -e 's/#fb923c/#1a5cbf/gI')",
+      "Bash(for f:*)",
+      "Bash(do echo:*)",
+      "Bash(done)",
+      "Bash(sed -i \"s|schema: ''./db/schema.ts''|schema: ''./database/schema/sqlite.ts''|g; s|out: ''./db/migrations/sqlite''|out: ''./database/migrations/sqlite''|g\" drizzle.config.ts)",
+      "Bash(sed -i \"s|schema: ''./db/schema.pg.ts''|schema: ''./database/schema/postgres.ts''|g; s|out: ''./supabase/migrations''|out: ''./database/migrations/postgres/migrations''|g\" drizzle.pg.config.ts)",
+      "Bash(sed -i \"s|schema: ''./db/schema.ts''|schema: ''./database/schema/sqlite.ts''|g\" drizzle.studio.config.ts)",
+      "Bash(grep -rn \"from ''''../../db/\\\\|from ''''../db/\\\\|from ''''./db''''\" --include=\"*.ts\" --include=\"*.tsx\" .)",
+      "Bash(rm -rf db/ supabase/ services/localApi/ services/supabaseApi/)",
+      "Bash(rm -f electron/main/db.ts electron/main/sync.ts electron/main/seed.ts)",
+      "Bash(rm -f lib/supabase.ts types/database.ts)",
+      "Bash(npm run:*)",
+      "Bash(grep -rn types.ts --include=*.json .next/)",
+      "Bash(node -e \"const fs=require\\(''fs''\\); fs.mkdirSync\\(''resources'',{recursive:true}\\); fs.copyFileSync\\(''public/icon-app.png'',''resources/icon.png''\\); console.log\\(''done''\\)\")"
     ]
   }
 }

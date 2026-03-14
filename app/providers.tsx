@@ -6,7 +6,6 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { AppProvider, useAppContext } from '../contexts/AppContext';
 import { Layout } from '../components/Layout';
 import { Login } from '../components/Login';
-import { UserRole } from '../types';
 import { queryClient } from '../lib/queryClient';
 
 function AuthWrapper({ children }: { children: React.ReactNode }) {
@@ -16,10 +15,12 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (user && pathname === '/') {
-      if (user.role === UserRole.MECHANIC) {
-        router.push('/oficina');
-      } else if (user.role === UserRole.BILLING) {
-        router.push('/clientes');
+      const perms = user.role?.permissions || [];
+      const hasDashboard = perms.includes('*') || perms.includes('dashboard');
+      if (!hasDashboard) {
+        if (perms.includes('oficina_view')) router.push('/oficina');
+        else if (perms.includes('financeiro_view')) router.push('/clientes');
+        else if (perms.includes('veiculos_view')) router.push('/veiculos');
       }
     }
   }, [user, pathname, router]);

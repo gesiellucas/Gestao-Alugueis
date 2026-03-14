@@ -1,4 +1,4 @@
-import { VeiculoDetalhePage } from '../../../views/VeiculoDetalhePage';
+import { VeiculoDetalhePage } from '../../../views/veiculos/template/VeiculoDetalhePage';
 
 export const dynamic = 'force-static';
 

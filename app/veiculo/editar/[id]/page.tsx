@@ -1,4 +1,4 @@
-import { VeiculoEditarPage } from '../../../../views/VeiculoEditarPage';
+import { VeiculoEditarPage } from '../../../../views/veiculos/template/VeiculoEditarPage';
 
 export const dynamic = 'force-static';
 

@@ -1,0 +1,29 @@
+directories:
+  output: release
+  buildResources: resources
+appId: br.com.gclocamoto.app
+productName: GC Locamoto
+copyright: Copyright © 2025 GC Locamoto
+files:
+  - filter:
+      - dist/electron/**/*
+      - dist/db/**/*
+      - out/**/*
+      - db/migrations/sqlite/**/*
+      - node_modules/**/*
+      - package.json
+npmRebuild: true
+asarUnpack:
+  - node_modules/better-sqlite3/**/*
+  - node_modules/bindings/**/*
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+electronVersion: 34.5.8

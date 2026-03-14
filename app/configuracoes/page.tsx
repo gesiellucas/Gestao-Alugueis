@@ -1,7 +1,11 @@
-import { ConfiguracoesPage } from '../../views/ConfiguracoesPage';
+'use client';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-export const dynamic = 'force-static';
-
-export default function Configuracoes() {
-  return <ConfiguracoesPage />;
+export default function ConfiguracoesRedirect() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/configuracoes/acesso');
+  }, [router]);
+  return null;
 }

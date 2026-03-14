@@ -1,5 +1,5 @@
 'use client';
-import { VeiculosPage } from '../../views/VeiculosPage';
+import { VeiculosPage } from '../../views/veiculos/template/VeiculosPage';
 export default function Veiculos() {
   return <VeiculosPage />;
 }

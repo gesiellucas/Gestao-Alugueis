@@ -1,6 +1,6 @@
 'use client';
 import React, { useEffect, useState } from "react";
-import { VehicleStatus } from "../types";
+import { VEHICLE_STATUS_IDS } from "../types";
 import { useAppContext } from "../contexts/AppContext";
 import {
   BarChart,
@@ -19,20 +19,17 @@ import { summarizeDailyWorkshop } from "../services/geminiService";
 
 export const Dashboard: React.FC = () => {
   const { vehicles, maintenanceRecords: records } = useAppContext();
-  const [aiSummary, setAiSummary] = useState<string>(
-    "Analisando atividades da oficina...",
-  );
 
   const totalVehicles = vehicles.length;
   const rentedVehicles = vehicles.filter(
-    (v) => v.status === VehicleStatus.RENTED,
+    (v) => v.status_id === VEHICLE_STATUS_IDS.RENTED,
   ).length;
   const inMaintenance = vehicles.filter(
-    (v) => v.status === VehicleStatus.MAINTENANCE,
+    (v) => v.status_id === VEHICLE_STATUS_IDS.MAINTENANCE,
   ).length;
 
   const today = new Date().toISOString().split("T")[0];
-  const arrivedToday = records.filter((r) => r.entry_date.startsWith(today));
+  const arrivedToday = records.filter((r) => r.entry_date?.startsWith(today));
 
   const revenueData = [
     { name: "Seg", income: 4200 },
@@ -45,7 +42,7 @@ export const Dashboard: React.FC = () => {
   ];
 
   const statusData = [
-    { name: "Em Rota", value: rentedVehicles, color: "#2563eb" },
+    { name: "Em Rota", value: rentedVehicles, color: "#004AAD" },
     {
       name: "Pátio",
       value: totalVehicles - rentedVehicles - inMaintenance,
@@ -54,25 +51,11 @@ export const Dashboard: React.FC = () => {
     { name: "Oficina", value: inMaintenance, color: "#f59e0b" },
   ];
 
-  useEffect(() => {
-    const fetchSummary = async () => {
-      if (arrivedToday.length > 0) {
-        const summary = await summarizeDailyWorkshop(arrivedToday);
-        setAiSummary(summary);
-      } else {
-        setAiSummary(
-          "Oficina tranquila hoje. Todas as motos da frota GC estão em operação ou aguardando rotina.",
-        );
-      }
-    };
-    fetchSummary();
-  }, [records]);
-
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h2 className="text-3xl font-extrabold text-[#0a2342] tracking-tight uppercase">
+          <h2 className="text-3xl font-extrabold text-[#004AAD] tracking-tight uppercase">
             Resumo Operacional
           </h2>
           <p className="text-slate-500 font-medium">
@@ -94,10 +77,10 @@ export const Dashboard: React.FC = () => {
           <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
             Frota GC
           </p>
-          <h3 className="text-4xl font-extrabold text-[#0a2342] mt-3">
+          <h3 className="text-4xl font-extrabold text-[#004AAD] mt-3">
             {totalVehicles}
           </h3>
-          <div className="mt-6 flex items-center gap-2 text-blue-600 font-bold text-xs bg-blue-50 w-fit px-3 py-1.5 rounded-full">
+          <div className="mt-6 flex items-center gap-2 text-[#004AAD] font-bold text-xs bg-blue-50 w-fit px-3 py-1.5 rounded-full">
             <Bike size={14} /> Ativos
           </div>
         </div>
@@ -127,37 +110,22 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#0a2342] p-7 rounded-[2rem] shadow-xl text-white">
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+        <div className="bg-[#004AAD] p-7 rounded-[2rem] shadow-xl text-white">
+          <p className="text-sm font-bold text-blue-200 uppercase tracking-widest">
             Financeiro Diário
           </p>
-          <h3 className="text-3xl font-extrabold text-yellow-400 mt-3">
+          <h3 className="text-3xl font-extrabold text-[#0C4AA5] mt-3">
             R$ 1.840
           </h3>
-          <p className="text-xs text-slate-300 mt-6 font-medium">
+          <p className="text-xs text-blue-200 mt-6 font-medium">
             Previsão de recebimento para hoje
           </p>
         </div>
       </div>
 
-      {/* AI Section with GC Styling */}
-      <div className="bg-white rounded-[2rem] p-8 border-l-4 border-blue-600 shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="bg-blue-600 p-2 rounded-xl">
-            <AlertTriangle className="text-white w-5 h-5" />
-          </div>
-          <h3 className="font-extrabold text-xl text-[#0a2342]">
-            Relatório Inteligente da Oficina
-          </h3>
-        </div>
-        <p className="text-slate-600 leading-relaxed font-medium italic">
-          "{aiSummary}"
-        </p>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-          <h3 className="text-xl font-extrabold text-[#0a2342] mb-8">
+          <h3 className="text-xl font-extrabold text-[#004AAD] mb-8">
             Receita de Aluguéis (7 dias)
           </h3>
           <div className="h-72 w-full min-h-[250px]">
@@ -190,7 +158,7 @@ export const Dashboard: React.FC = () => {
                 />
                 <Bar
                   dataKey="income"
-                  fill="#2563eb"
+                  fill="#0C4AA5"
                   radius={[10, 10, 0, 0]}
                   barSize={40}
                 />
@@ -200,7 +168,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center">
-          <h3 className="text-xl font-extrabold text-[#0a2342] self-start mb-8">
+          <h3 className="text-xl font-extrabold text-[#004AAD] self-start mb-8">
             Status Geral da Frota
           </h3>
           <div className="h-64 w-full min-h-[200px]">

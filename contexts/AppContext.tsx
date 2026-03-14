@@ -4,23 +4,31 @@ import {
   Vehicle,
   MaintenanceRecord,
   Customer,
-  VehicleStatus,
+  VEHICLE_STATUS_IDS,
+  VehicleStatusRecord,
   AppUser,
-  UserRole,
   RentalContract,
+  VehicleModel,
+  Workshop,
 } from "../types";
-import {
-  getVehiclesApi,
-  getCustomersApi,
-  getRentalsApi,
-  getMaintenanceApi,
-} from "../lib/apiFactory";
+import { localVehiclesApi } from "../database/api/local/vehicles";
+import { localCustomersApi } from "../database/api/local/customers";
+import { localRentalsApi } from "../database/api/local/rentals";
+import { localMaintenanceApi } from "../database/api/local/maintenance";
+import { localUsersApi } from "../database/api/local/users";
+import { localVehicleModelsApi } from "../database/api/local/vehicleModels";
+import { localVehicleStatusesApi } from "../database/api/local/vehicleStatuses";
+import { localWorkshopsApi } from "../database/api/local/workshops";
 
 interface AppContextType {
   user: AppUser | null;
   setUser: (user: AppUser | null) => void;
   vehicles: Vehicle[];
   setVehicles: React.Dispatch<React.SetStateAction<Vehicle[]>>;
+  vehicleModels: VehicleModel[];
+  setVehicleModels: React.Dispatch<React.SetStateAction<VehicleModel[]>>;
+  vehicleStatuses: VehicleStatusRecord[];
+  workshops: Workshop[];
   maintenanceRecords: MaintenanceRecord[];
   setMaintenanceRecords: React.Dispatch<
     React.SetStateAction<MaintenanceRecord[]>
@@ -30,9 +38,9 @@ interface AppContextType {
   rentalContracts: RentalContract[];
   setRentalContracts: React.Dispatch<React.SetStateAction<RentalContract[]>>;
   handleAddMaintenanceRecord: (record: MaintenanceRecord) => Promise<void>;
-  handleFinishMaintenance: (recordId: string) => Promise<void>;
-  handleCreateRental: (vehicleId: string, customerId: string, monthlyRate: number, startDate: string) => Promise<void>;
-  handleEndRental: (vehicleId: string) => Promise<void>;
+  handleFinishMaintenance: (recordId: number) => Promise<void>;
+  handleCreateRental: (vehicleId: number, customerId: number, monthlyRate: number, startDate: string) => Promise<RentalContract>;
+  handleEndRental: (vehicleId: number) => Promise<void>;
   loading: boolean;
   error: string | null;
   refreshData: () => Promise<void>;
@@ -52,6 +60,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [vehicleModels, setVehicleModels] = useState<VehicleModel[]>([]);
+  const [vehicleStatuses, setVehicleStatuses] = useState<VehicleStatusRecord[]>([]);
+  const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [maintenanceRecords, setMaintenanceRecords] = useState<
     MaintenanceRecord[]
   >([]);
@@ -63,38 +74,52 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   // Re-hydrate user from localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const storedId = localStorage.getItem("electron_user_id");
-      if (storedId) {
-        // Mocking the static users from Login.tsx
-        if (storedId === "1") {
-          setUser({ id: "1", name: "Gestor Master", role: UserRole.ADMIN, email: "admin@gclocamoto.com.br" });
-        } else if (storedId === "2") {
-          setUser({ id: "2", name: "Roberto Mecânico", role: UserRole.MECHANIC, email: "oficina@gclocamoto.com.br" });
-        } else if (storedId === "3") {
-          setUser({ id: "3", name: "Clara Financeiro", role: UserRole.BILLING, email: "financeiro@gclocamoto.com.br" });
-        }
+      const storedEmail = localStorage.getItem("electron_user_email");
+      if (storedEmail) {
+        localUsersApi.login(storedEmail).then((u: AppUser | null) => {
+          if (u) {
+            setUser(u);
+          } else {
+            localStorage.removeItem("electron_user_email");
+            localStorage.removeItem("electron_user_id");
+          }
+        }).catch(() => {});
       }
     }
   }, []);
 
-  // Função para carregar todos os dados do Supabase
+  // Função para carregar todos os dados
   const loadData = async () => {
+    const userIdStr = typeof window !== 'undefined' ? localStorage.getItem('electron_user_id') : null;
+    const userId = userIdStr ? Number(userIdStr) : null;
+
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
 
-      const [vehiclesData, customersData, contractsData, maintenanceData] =
+      const [vehiclesData, modelsData, statusesData, customersData, contractsData, maintenanceData, workshopsData] =
         await Promise.all([
-          getVehiclesApi().getAll(),
-          getCustomersApi().getAll(),
-          getRentalsApi().getAll(),
-          getMaintenanceApi().getAll(),
+          localVehiclesApi.getAll().catch(() => [] as Vehicle[]),
+          localVehicleModelsApi.getAll().catch(() => [] as VehicleModel[]),
+          localVehicleStatusesApi.getAll().catch(() => [] as VehicleStatusRecord[]),
+          localCustomersApi.getAll().catch(() => [] as Customer[]),
+          localRentalsApi.getAll().catch(() => [] as RentalContract[]),
+          localMaintenanceApi.getAll().catch(() => [] as MaintenanceRecord[]),
+          localWorkshopsApi.getAll().catch(() => [] as Workshop[]),
         ]);
 
       setVehicles(vehiclesData);
+      setVehicleModels(modelsData);
+      setVehicleStatuses(statusesData);
       setCustomers(customersData);
       setRentalContracts(contractsData);
       setMaintenanceRecords(maintenanceData);
+      setWorkshops(workshopsData);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao carregar dados");
     } finally {
@@ -102,16 +127,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Carregar dados na montagem do componente
+  // Carregar dados na montagem e quando o user mudar
   useEffect(() => {
     loadData();
-  }, []);
+  }, [user]);
 
   const handleAddMaintenanceRecord = async (record: MaintenanceRecord) => {
     try {
-      // Criar na API correspondente (Local ou Supabase)
-      const newRecord = await getMaintenanceApi().create({
+      const newRecord = await localMaintenanceApi.create({
+        user_id: user!.id,
         vehicle_id: record.vehicle_id,
+        workshop_id: record.workshop_id ?? null,
         vehicle_plate: record.vehicle_plate,
         entry_date: record.entry_date,
         mechanic_name: record.mechanic_name,
@@ -121,42 +147,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         status: record.status,
       });
 
-      // Atualizar status do veículo para "Em Manutenção"
-      await getVehiclesApi().updateStatus(
+      await localVehiclesApi.updateStatus(
         record.vehicle_id,
-        VehicleStatus.MAINTENANCE,
+        VEHICLE_STATUS_IDS.MAINTENANCE,
       );
 
-      // Atualizar estado local
+      const maintenanceStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.MAINTENANCE);
+
       setMaintenanceRecords((prev) => [newRecord, ...prev]);
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === record.vehicle_id
-            ? { ...v, status: VehicleStatus.MAINTENANCE }
+            ? { ...v, status_id: VEHICLE_STATUS_IDS.MAINTENANCE, vehicleStatus: maintenanceStatus }
             : v,
         ),
       );
     } catch (err) {
-      console.error("Error adding maintenance record:", err);
       throw err;
     }
   };
 
-  const handleFinishMaintenance = async (recordId: string) => {
+  const handleFinishMaintenance = async (recordId: number) => {
     try {
       const record = maintenanceRecords.find((r) => r.id === recordId);
       if (!record) return;
 
-      // Finalizar manutenção
-      await getMaintenanceApi().complete(recordId);
+      await localMaintenanceApi.complete(recordId);
 
-      // Atualizar status do veículo para "Disponível"
-      await getVehiclesApi().updateStatus(
+      await localVehiclesApi.updateStatus(
         record.vehicle_id,
-        VehicleStatus.AVAILABLE,
+        VEHICLE_STATUS_IDS.AVAILABLE,
       );
 
-      // Atualizar estado local
+      const availableStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.AVAILABLE);
+
       setMaintenanceRecords((prev) =>
         prev.map((r) =>
           r.id === recordId
@@ -172,25 +196,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === record.vehicle_id
-            ? { ...v, status: VehicleStatus.AVAILABLE }
+            ? { ...v, status_id: VEHICLE_STATUS_IDS.AVAILABLE, vehicleStatus: availableStatus }
             : v,
         ),
       );
     } catch (err) {
-      console.error("Error finishing maintenance:", err);
       throw err;
     }
   };
 
   const handleCreateRental = async (
-    vehicleId: string,
-    customerId: string,
+    vehicleId: number,
+    customerId: number,
     monthlyRate: number,
     startDate: string,
-  ) => {
+  ): Promise<RentalContract> => {
     try {
-      // Criar contrato
-      const newContract = await getRentalsApi().create({
+      const newContract = await localRentalsApi.create({
+        user_id: user!.id,
         vehicle_id: vehicleId,
         customer_id: customerId,
         monthly_rate: monthlyRate,
@@ -198,21 +221,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         status: "ACTIVE",
       });
 
-      // Atualizar veículo: status = Alugada e current_renter_id
-      await getVehiclesApi().update(vehicleId, {
-        status: VehicleStatus.RENTED,
+      await localVehiclesApi.update(vehicleId, {
+        status_id: VEHICLE_STATUS_IDS.RENTED,
         current_renter_id: customerId,
       });
 
-      // Atualizar cliente: active_contract = true
-      await getCustomersApi().update(customerId, { active_contract: true });
+      const rentedStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.RENTED);
 
-      // Atualizar estado local
+      await localCustomersApi.update(customerId, { active_contract: true });
+
       setRentalContracts((prev) => [newContract, ...prev]);
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === vehicleId
-            ? { ...v, status: VehicleStatus.RENTED, current_renter_id: customerId }
+            ? { ...v, status_id: VEHICLE_STATUS_IDS.RENTED, vehicleStatus: rentedStatus, current_renter_id: customerId }
             : v,
         ),
       );
@@ -221,30 +243,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
           c.id === customerId ? { ...c, active_contract: true } : c,
         ),
       );
+      return newContract;
     } catch (err) {
-      console.error("Error creating rental contract:", err);
       throw err;
     }
   };
 
-  const handleEndRental = async (vehicleId: string) => {
+  const handleEndRental = async (vehicleId: number) => {
     try {
-      // Buscar contrato ativo desse veículo
       const activeContract = rentalContracts.find(
         (c) => c.vehicle_id === vehicleId && c.status === "ACTIVE",
       );
       if (!activeContract) return;
 
-      // Encerrar contrato
-      await getRentalsApi().end(activeContract.id);
+      await localRentalsApi.end(activeContract.id);
 
-      // Atualizar veículo: status = Disponível e limpar current_renter_id
-      await getVehiclesApi().update(vehicleId, {
-        status: VehicleStatus.AVAILABLE,
+      await localVehiclesApi.update(vehicleId, {
+        status_id: VEHICLE_STATUS_IDS.AVAILABLE,
         current_renter_id: null,
       });
 
-      // Verificar se o cliente tem outros contratos ativos
+      const availableStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.AVAILABLE);
+
       const customerId = activeContract.customer_id;
       const otherActiveContracts = rentalContracts.filter(
         (c) =>
@@ -254,10 +274,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       );
 
       if (otherActiveContracts.length === 0) {
-        await getCustomersApi().update(customerId, { active_contract: false });
+        await localCustomersApi.update(customerId, { active_contract: false });
       }
 
-      // Atualizar estado local
       setRentalContracts((prev) =>
         prev.map((c) =>
           c.id === activeContract.id
@@ -268,7 +287,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === vehicleId
-            ? { ...v, status: VehicleStatus.AVAILABLE, current_renter_id: null }
+            ? { ...v, status_id: VEHICLE_STATUS_IDS.AVAILABLE, vehicleStatus: availableStatus, current_renter_id: null }
             : v,
         ),
       );
@@ -280,7 +299,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         );
       }
     } catch (err) {
-      console.error("Error ending rental contract:", err);
       throw err;
     }
   };
@@ -292,6 +310,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setUser,
         vehicles,
         setVehicles,
+        vehicleModels,
+        setVehicleModels,
+        vehicleStatuses,
+        workshops,
         maintenanceRecords,
         setMaintenanceRecords,
         customers,

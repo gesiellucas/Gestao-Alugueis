@@ -53,9 +53,12 @@ function cleanObject<T extends object>(obj: T): T {
   ) as T;
 }
 
+const DEVICE_ID = 'desktop-app';
+
 // Helper types for DTOs
-type InsertDto<T extends keyof typeof import('../schema/sqlite')> = Omit<typeof import('../schema/sqlite')[T]['$inferInsert'], 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'dirty'>;
-type UpdateDto<T extends keyof typeof import('../schema/sqlite')> = Omit<typeof import('../schema/sqlite')[T]['$inferInsert'], 'id' | 'created_at' | 'updated_at' | 'deleted_at' | 'dirty'>;
+type SyncMetadataKeys = 'created_at' | 'updated_at' | 'updated_by' | 'device_id' | 'version' | 'is_deleted' | 'sync_status';
+type InsertDto<T extends keyof typeof import('../schema/sqlite')> = Omit<typeof import('../schema/sqlite')[T]['$inferInsert'], 'id' | SyncMetadataKeys>;
+type UpdateDto<T extends keyof typeof import('../schema/sqlite')> = Omit<typeof import('../schema/sqlite')[T]['$inferInsert'], 'id' | SyncMetadataKeys>;
 
 // ─── Config helpers ───────────────────────────────────────────────────────────
 
@@ -111,148 +114,159 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('sync:setMetadata', (_e, args: { table: string; timestamp: string }) => setSyncMetadata(args.table, args.timestamp));
 
   ipcMain.handle('sync:status', () => {
-    const countDirty = (t: any) => {
-      const r = db.select({ n: sql<number>`count(*)` }).from(t).where(eq(t.dirty, 1)).get();
+    const countPending = (t: any) => {
+      const r = db.select({ n: sql<number>`count(*)` }).from(t).where(eq(t.sync_status, 'pending')).get();
       return r?.n ?? 0;
     };
     return {
       lastSync: getConfig('last_sync_at'),
       pendingCount:
-        countDirty(customers) +
-        countDirty(vehicleModels) +
-        countDirty(vehicles) +
-        countDirty(rentals) +
-        countDirty(contracts) +
-        countDirty(maintenanceRecords) +
-        countDirty(workshops) +
-        countDirty(documents) +
-        countDirty(vehicleStatuses),
+        countPending(customers) +
+        countPending(vehicleModels) +
+        countPending(vehicles) +
+        countPending(rentals) +
+        countPending(contracts) +
+        countPending(maintenanceRecords) +
+        countPending(workshops) +
+        countPending(documents) +
+        countPending(vehicleStatuses),
     };
   });
 
-  // ── Upsert batches (usados pelo sync) ──
+  const syncCols = ['id', 'created_at', 'updated_at', 'updated_by', 'device_id', 'version', 'is_deleted', 'sync_status'];
+
   ipcMain.handle('db:customers:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertBatchRaw('customers', ['id', 'user_id', 'name', 'phone', 'cpf', 'active_contract', 'balance_due', 'last_payment_date', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
+    upsertBatchRaw('customers', ['user_id', 'name', 'phone', 'cpf', 'active_contract', 'balance_due', 'last_payment_date', ...syncCols], args.rows.map(r => ({ ...r, sync_status: 'synced' })));
   });
   ipcMain.handle('db:vehicleModels:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertBatchRaw('vehicle_models', ['id', 'name', 'brand', 'image_url', 'status', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
+    upsertBatchRaw('vehicle_models', ['name', 'brand', 'image_url', 'status', ...syncCols], args.rows.map(r => ({ ...r, sync_status: 'synced' })));
   });
   ipcMain.handle('db:vehicles:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertBatchRaw('vehicles', ['id', 'plate', 'model_id', 'year', 'status_id', 'mileage', 'current_renter_id', 'default_monthly_rate', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
+    upsertBatchRaw('vehicles', ['plate', 'model_id', 'year', 'status_id', 'mileage', 'current_renter_id', 'default_monthly_rate', ...syncCols], args.rows.map(r => ({ ...r, sync_status: 'synced' })));
   });
   ipcMain.handle('db:rentals:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertBatchRaw('rentals', ['id', 'user_id', 'vehicle_id', 'customer_id', 'start_date', 'end_date', 'monthly_rate', 'status', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
+    upsertBatchRaw('rentals', ['user_id', 'vehicle_id', 'customer_id', 'start_date', 'end_date', 'monthly_rate', 'status', ...syncCols], args.rows.map(r => ({ ...r, sync_status: 'synced' })));
   });
   ipcMain.handle('db:maintenance:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertBatchRaw('maintenance_records', ['id', 'user_id', 'vehicle_id', 'workshop_id', 'vehicle_plate', 'entry_date', 'completion_date', 'mechanic_name', 'description', 'type', 'cost', 'status', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
+    upsertBatchRaw('maintenance_records', ['user_id', 'vehicle_id', 'workshop_id', 'vehicle_plate', 'entry_date', 'completion_date', 'mechanic_name', 'description', 'type', 'cost', 'status', ...syncCols], args.rows.map(r => ({ ...r, sync_status: 'synced' })));
   });
   ipcMain.handle('db:workshops:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertBatchRaw('workshops', ['id', 'name', 'address', 'status', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
+    upsertBatchRaw('workshops', ['name', 'address', 'status', ...syncCols], args.rows.map(r => ({ ...r, sync_status: 'synced' })));
   });
   ipcMain.handle('db:contracts:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertBatchRaw('contracts', ['id', 'rental_id', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
+    upsertBatchRaw('contracts', ['rental_id', ...syncCols], args.rows.map(r => ({ ...r, sync_status: 'synced' })));
   });
   ipcMain.handle('db:documents:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertBatchRaw('documents', ['id', 'parent_id', 'origin_type', 'file_url', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
+    upsertBatchRaw('documents', ['parent_id', 'origin_type', 'file_url', ...syncCols], args.rows.map(r => ({ ...r, sync_status: 'synced' })));
   });
   ipcMain.handle('db:vehicleStatuses:upsertBatch', (_e, args: { rows: Record<string, unknown>[] }) => {
-    upsertBatchRaw('vehicle_statuses', ['id', 'name', 'color', 'is_default', 'created_at', 'updated_at', 'dirty'], args.rows.map(r => ({ ...r, dirty: 0 })));
+    upsertBatchRaw('vehicle_statuses', ['name', 'color', 'is_default', ...syncCols], args.rows.map(r => ({ ...r, sync_status: 'synced' })));
   });
 
   // ── Customers CRUD ──
-  ipcMain.handle('db:customers:getAll', (_e, args: { user_id: number }) => {
+  ipcMain.handle('db:customers:getAll', (_e, args: { user_id: string }) => {
     return db.select().from(customers)
-      .where(and(eq(customers.user_id, args.user_id), isNull(customers.deleted_at)))
+      .where(and(eq(customers.user_id, args.user_id), eq(customers.is_deleted, 0)))
       .orderBy(customers.name)
       .all();
   });
 
-  ipcMain.handle('db:customers:getById', (_e, args: { id: number; user_id: number }) => {
+  ipcMain.handle('db:customers:getById', (_e, args: { id: string; user_id: string }) => {
     return db.select().from(customers)
-      .where(and(eq(customers.id, args.id), eq(customers.user_id, args.user_id), isNull(customers.deleted_at)))
+      .where(and(eq(customers.id, args.id), eq(customers.user_id, args.user_id), eq(customers.is_deleted, 0)))
       .get() ?? null;
   });
 
-  ipcMain.handle('db:customers:create', (_e, args: InsertDto<'customers'>) => {
+  ipcMain.handle('db:customers:create', (_e, args: InsertDto<'customers'> & { user_id: string }) => {
     const now = new Date().toISOString();
-    const result = db.insert(customers).values(cleanObject({
+    return db.insert(customers).values(cleanObject({
       ...args,
+      id: randomUUID(),
+      device_id: DEVICE_ID,
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
       created_at: now,
       updated_at: now,
-      dirty: 1
-    })).run();
-    return db.select().from(customers).where(eq(customers.id, result.lastInsertRowid as number)).get();
+    })).returning().get();
   });
 
-  ipcMain.handle('db:customers:update', (_e, args: UpdateDto<'customers'> & { id: number; user_id: number }) => {
+  ipcMain.handle('db:customers:update', (_e, args: UpdateDto<'customers'> & { id: string; user_id: string }) => {
     const { id, user_id, ...updates } = args;
-    db.update(customers)
-      .set(cleanObject({ ...updates, updated_at: new Date().toISOString(), dirty: 1 }))
+    const now = new Date().toISOString();
+    return db.update(customers)
+      .set(cleanObject({ ...updates, updated_at: now, sync_status: 'pending' }))
       .where(and(eq(customers.id, id), eq(customers.user_id, user_id)))
-      .run();
-    return db.select().from(customers).where(eq(customers.id, id)).get();
+      .returning().get();
   });
 
-  ipcMain.handle('db:customers:delete', (_e, args: { id: number; user_id: number }) => {
+  ipcMain.handle('db:customers:delete', (_e, args: { id: string; user_id: string }) => {
+    const now = new Date().toISOString();
     db.update(customers)
-      .set({ deleted_at: new Date().toISOString(), dirty: 1 })
+      .set({ is_deleted: 1, sync_status: 'pending', updated_at: now })
       .where(and(eq(customers.id, args.id), eq(customers.user_id, args.user_id)))
       .run();
   });
 
   // ── Vehicle Models CRUD ──
   ipcMain.handle('db:vehicleModels:getAll', () => {
-    return db.select().from(vehicleModels).where(isNull(vehicleModels.deleted_at)).orderBy(vehicleModels.name).all();
+    return db.select().from(vehicleModels).where(eq(vehicleModels.is_deleted, 0)).orderBy(vehicleModels.name).all();
   });
 
-  ipcMain.handle('db:vehicleModels:getById', (_e, args: { id: number }) => {
-    return db.select().from(vehicleModels).where(and(eq(vehicleModels.id, args.id), isNull(vehicleModels.deleted_at))).get() ?? null;
+  ipcMain.handle('db:vehicleModels:getById', (_e, args: { id: string }) => {
+    return db.select().from(vehicleModels).where(and(eq(vehicleModels.id, args.id), eq(vehicleModels.is_deleted, 0))).get() ?? null;
   });
 
   ipcMain.handle('db:vehicleModels:create', (_e, args: InsertDto<'vehicleModels'>) => {
     const now = new Date().toISOString();
-    const result = db.insert(vehicleModels).values(cleanObject({
+    return db.insert(vehicleModels).values(cleanObject({
       ...args,
+      id: randomUUID(),
+      device_id: DEVICE_ID,
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
       created_at: now,
       updated_at: now,
-      dirty: 1
-    })).run();
-    return db.select().from(vehicleModels).where(eq(vehicleModels.id, result.lastInsertRowid as number)).get();
+    })).returning().get();
   });
 
-  ipcMain.handle('db:vehicleModels:update', (_e, args: UpdateDto<'vehicleModels'> & { id: number }) => {
+  ipcMain.handle('db:vehicleModels:update', (_e, args: UpdateDto<'vehicleModels'> & { id: string }) => {
     const { id, ...updates } = args;
-    db.update(vehicleModels)
-      .set(cleanObject({ ...updates, updated_at: new Date().toISOString(), dirty: 1 }))
+    const now = new Date().toISOString();
+    return db.update(vehicleModels)
+      .set(cleanObject({ ...updates, updated_at: now, sync_status: 'pending' }))
       .where(eq(vehicleModels.id, id))
-      .run();
-    return db.select().from(vehicleModels).where(eq(vehicleModels.id, id)).get();
+      .returning().get();
   });
 
-  ipcMain.handle('db:vehicleModels:delete', (_e, args: { id: number }) => {
-    db.update(vehicleModels).set({ deleted_at: new Date().toISOString(), dirty: 1 }).where(eq(vehicleModels.id, args.id)).run();
+  ipcMain.handle('db:vehicleModels:delete', (_e, args: { id: string }) => {
+    const now = new Date().toISOString();
+    db.update(vehicleModels).set({ is_deleted: 1, sync_status: 'pending', updated_at: now }).where(eq(vehicleModels.id, args.id)).run();
   });
 
   // ── Vehicles CRUD ──
   const vehicleWithRelations = (vehicleRow: typeof vehicles.$inferSelect) => {
     const model = vehicleRow.model_id
-      ? db.select().from(vehicleModels).where(eq(vehicleModels.id, vehicleRow.model_id)).get() ?? null
+      ? db.select().from(vehicleModels).where(and(eq(vehicleModels.id, vehicleRow.model_id), eq(vehicleModels.is_deleted, 0))).get() ?? null
       : null;
-    const vehicleStatus = db.select().from(vehicleStatuses).where(eq(vehicleStatuses.id, vehicleRow.status_id)).get() ?? null;
+    const vehicleStatus = vehicleRow.status_id
+      ? db.select().from(vehicleStatuses).where(and(eq(vehicleStatuses.id, vehicleRow.status_id), eq(vehicleStatuses.is_deleted, 0))).get() ?? null
+      : null;
     return { ...vehicleRow, model, vehicleStatus };
   };
 
   ipcMain.handle('db:vehicles:getAll', () => {
-    const rows = db.select().from(vehicles).where(isNull(vehicles.deleted_at)).orderBy(desc(vehicles.created_at)).all();
-    const allModels = db.select().from(vehicleModels).where(isNull(vehicleModels.deleted_at)).all();
-    const allStatuses = db.select().from(vehicleStatuses).where(isNull(vehicleStatuses.deleted_at)).all();
+    const rows = db.select().from(vehicles).where(eq(vehicles.is_deleted, 0)).orderBy(desc(vehicles.created_at)).all();
+    const allModels = db.select().from(vehicleModels).where(eq(vehicleModels.is_deleted, 0)).all();
+    const allStatuses = db.select().from(vehicleStatuses).where(eq(vehicleStatuses.is_deleted, 0)).all();
     const modelMap = new Map(allModels.map(m => [m.id, m]));
     const statusMap = new Map(allStatuses.map(s => [s.id, s]));
     return rows.map(v => ({ ...v, model: modelMap.get(v.model_id!) ?? null, vehicleStatus: statusMap.get(v.status_id) ?? null }));
   });
 
-  ipcMain.handle('db:vehicles:getById', (_e, args: { id: number }) => {
-    const v = db.select().from(vehicles).where(and(eq(vehicles.id, args.id), isNull(vehicles.deleted_at))).get();
+  ipcMain.handle('db:vehicles:getById', (_e, args: { id: string }) => {
+    const v = db.select().from(vehicles).where(and(eq(vehicles.id, args.id), eq(vehicles.is_deleted, 0))).get();
     if (!v) return null;
     return vehicleWithRelations(v);
   });
@@ -261,237 +275,265 @@ export function registerIpcHandlers(): void {
     const now = new Date().toISOString();
     const result = db.insert(vehicles).values(cleanObject({
       ...args,
+      id: randomUUID(),
+      device_id: DEVICE_ID,
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
       created_at: now,
       updated_at: now,
-      dirty: 1
-    })).run();
-    const v = db.select().from(vehicles).where(eq(vehicles.id, result.lastInsertRowid as number)).get()!;
-    return vehicleWithRelations(v);
+    })).returning().get();
+    return vehicleWithRelations(result);
   });
 
-  ipcMain.handle('db:vehicles:update', (_e, args: UpdateDto<'vehicles'> & { id: number }) => {
+  ipcMain.handle('db:vehicles:update', (_e, args: UpdateDto<'vehicles'> & { id: string }) => {
     const { id, ...updates } = args;
-    db.update(vehicles)
-      .set(cleanObject({ ...updates, updated_at: new Date().toISOString(), dirty: 1 }))
+    const now = new Date().toISOString();
+    const result = db.update(vehicles)
+      .set(cleanObject({ ...updates, updated_at: now, sync_status: 'pending' }))
       .where(eq(vehicles.id, id))
-      .run();
-    const v = db.select().from(vehicles).where(eq(vehicles.id, id)).get()!;
-    return vehicleWithRelations(v);
+      .returning().get();
+    return vehicleWithRelations(result);
   });
 
-  ipcMain.handle('db:vehicles:delete', (_e, args: { id: number }) => {
-    db.update(vehicles).set({ deleted_at: new Date().toISOString(), dirty: 1 }).where(eq(vehicles.id, args.id)).run();
+  ipcMain.handle('db:vehicles:delete', (_e, args: { id: string }) => {
+    const now = new Date().toISOString();
+    db.update(vehicles).set({ is_deleted: 1, sync_status: 'pending', updated_at: now }).where(eq(vehicles.id, args.id)).run();
   });
 
   // ── Rentals CRUD ──
-  ipcMain.handle('db:rentals:getAll', (_e, args: { user_id: number }) => {
+  ipcMain.handle('db:rentals:getAll', (_e, args: { user_id: string }) => {
     return db.select().from(rentals)
-      .where(and(eq(rentals.user_id, args.user_id), isNull(rentals.deleted_at)))
+      .where(and(eq(rentals.user_id, args.user_id), eq(rentals.is_deleted, 0)))
       .orderBy(desc(rentals.start_date))
       .all();
   });
 
-  ipcMain.handle('db:rentals:getById', (_e, args: { id: number; user_id: number }) => {
+  ipcMain.handle('db:rentals:getById', (_e, args: { id: string; user_id: string }) => {
     return db.select().from(rentals)
-      .where(and(eq(rentals.id, args.id), eq(rentals.user_id, args.user_id), isNull(rentals.deleted_at)))
+      .where(and(eq(rentals.id, args.id), eq(rentals.user_id, args.user_id), eq(rentals.is_deleted, 0)))
       .get() ?? null;
   });
 
-  ipcMain.handle('db:rentals:create', (_e, args: InsertDto<'rentals'>) => {
+  ipcMain.handle('db:rentals:create', (_e, args: InsertDto<'rentals'> & { user_id: string }) => {
     const now = new Date().toISOString();
-    const result = db.insert(rentals).values(cleanObject({
+    return db.insert(rentals).values(cleanObject({
       ...args,
+      id: randomUUID(),
+      device_id: DEVICE_ID,
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
       created_at: now,
       updated_at: now,
-      dirty: 1
-    })).run();
-    return db.select().from(rentals).where(eq(rentals.id, result.lastInsertRowid as number)).get();
+    })).returning().get();
   });
 
-  ipcMain.handle('db:rentals:update', (_e, args: UpdateDto<'rentals'> & { id: number; user_id: number }) => {
+  ipcMain.handle('db:rentals:update', (_e, args: UpdateDto<'rentals'> & { id: string; user_id: string }) => {
     const { id, user_id, ...updates } = args;
-    db.update(rentals)
-      .set(cleanObject({ ...updates, updated_at: new Date().toISOString(), dirty: 1 }))
+    const now = new Date().toISOString();
+    return db.update(rentals)
+      .set(cleanObject({ ...updates, updated_at: now, sync_status: 'pending' }))
       .where(and(eq(rentals.id, id), eq(rentals.user_id, user_id)))
-      .run();
-    return db.select().from(rentals).where(eq(rentals.id, id)).get();
+      .returning().get();
   });
 
-  ipcMain.handle('db:rentals:delete', (_e, args: { id: number; user_id: number }) => {
-    db.update(rentals).set({ deleted_at: new Date().toISOString(), dirty: 1 })
+  ipcMain.handle('db:rentals:delete', (_e, args: { id: string; user_id: string }) => {
+    const now = new Date().toISOString();
+    db.update(rentals).set({ is_deleted: 1, sync_status: 'pending', updated_at: now })
       .where(and(eq(rentals.id, args.id), eq(rentals.user_id, args.user_id)))
       .run();
   });
 
   // ── Maintenance Records CRUD ──
-  ipcMain.handle('db:maintenance:getAll', (_e, args: { user_id: number }) => {
+  ipcMain.handle('db:maintenance:getAll', (_e, args: { user_id: string }) => {
     return db.select().from(maintenanceRecords)
-      .where(and(eq(maintenanceRecords.user_id, args.user_id), isNull(maintenanceRecords.deleted_at)))
+      .where(and(eq(maintenanceRecords.user_id, args.user_id), eq(maintenanceRecords.is_deleted, 0)))
       .orderBy(desc(maintenanceRecords.entry_date))
       .all();
   });
 
-  ipcMain.handle('db:maintenance:getById', (_e, args: { id: number; user_id: number }) => {
+  ipcMain.handle('db:maintenance:getById', (_e, args: { id: string; user_id: string }) => {
     return db.select().from(maintenanceRecords)
-      .where(and(eq(maintenanceRecords.id, args.id), eq(maintenanceRecords.user_id, args.user_id), isNull(maintenanceRecords.deleted_at)))
+      .where(and(eq(maintenanceRecords.id, args.id), eq(maintenanceRecords.user_id, args.user_id), eq(maintenanceRecords.is_deleted, 0)))
       .get() ?? null;
   });
 
-  ipcMain.handle('db:maintenance:create', (_e, args: InsertDto<'maintenanceRecords'>) => {
+  ipcMain.handle('db:maintenance:create', (_e, args: InsertDto<'maintenanceRecords'> & { user_id: string }) => {
     const now = new Date().toISOString();
-    const result = db.insert(maintenanceRecords).values(cleanObject({
+    return db.insert(maintenanceRecords).values(cleanObject({
       ...args,
+      id: randomUUID(),
+      device_id: DEVICE_ID,
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
       created_at: now,
       updated_at: now,
-      dirty: 1
-    })).run();
-    return db.select().from(maintenanceRecords).where(eq(maintenanceRecords.id, result.lastInsertRowid as number)).get();
+    })).returning().get();
   });
 
-  ipcMain.handle('db:maintenance:update', (_e, args: UpdateDto<'maintenanceRecords'> & { id: number; user_id: number }) => {
+  ipcMain.handle('db:maintenance:update', (_e, args: UpdateDto<'maintenanceRecords'> & { id: string; user_id: string }) => {
     const { id, user_id, ...updates } = args;
-    db.update(maintenanceRecords)
-      .set(cleanObject({ ...updates, updated_at: new Date().toISOString(), dirty: 1 }))
+    const now = new Date().toISOString();
+    return db.update(maintenanceRecords)
+      .set(cleanObject({ ...updates, updated_at: now, sync_status: 'pending' }))
       .where(and(eq(maintenanceRecords.id, id), eq(maintenanceRecords.user_id, user_id)))
-      .run();
-    return db.select().from(maintenanceRecords).where(eq(maintenanceRecords.id, id)).get();
+      .returning().get();
   });
 
-  ipcMain.handle('db:maintenance:delete', (_e, args: { id: number; user_id: number }) => {
-    db.update(maintenanceRecords).set({ deleted_at: new Date().toISOString(), dirty: 1 })
+  ipcMain.handle('db:maintenance:delete', (_e, args: { id: string; user_id: string }) => {
+    const now = new Date().toISOString();
+    db.update(maintenanceRecords).set({ is_deleted: 1, sync_status: 'pending', updated_at: now })
       .where(and(eq(maintenanceRecords.id, args.id), eq(maintenanceRecords.user_id, args.user_id)))
       .run();
   });
 
   // ── Workshops CRUD ──
   ipcMain.handle('db:workshops:getAll', () => {
-    return db.select().from(workshops).where(isNull(workshops.deleted_at)).orderBy(workshops.name).all();
+    return db.select().from(workshops).where(eq(workshops.is_deleted, 0)).orderBy(workshops.name).all();
   });
 
-  ipcMain.handle('db:workshops:getById', (_e, args: { id: number }) => {
-    return db.select().from(workshops).where(and(eq(workshops.id, args.id), isNull(workshops.deleted_at))).get() ?? null;
+  ipcMain.handle('db:workshops:getById', (_e, args: { id: string }) => {
+    return db.select().from(workshops).where(and(eq(workshops.id, args.id), eq(workshops.is_deleted, 0))).get() ?? null;
   });
 
   ipcMain.handle('db:workshops:create', (_e, args: InsertDto<'workshops'>) => {
     const now = new Date().toISOString();
-    const result = db.insert(workshops).values(cleanObject({
+    return db.insert(workshops).values(cleanObject({
       ...args,
+      id: randomUUID(),
+      device_id: DEVICE_ID,
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
       created_at: now,
       updated_at: now,
-      dirty: 1
-    })).run();
-    return db.select().from(workshops).where(eq(workshops.id, result.lastInsertRowid as number)).get();
+    })).returning().get();
   });
 
-  ipcMain.handle('db:workshops:update', (_e, args: UpdateDto<'workshops'> & { id: number }) => {
+  ipcMain.handle('db:workshops:update', (_e, args: UpdateDto<'workshops'> & { id: string }) => {
     const { id, ...updates } = args;
-    db.update(workshops)
-      .set(cleanObject({ ...updates, updated_at: new Date().toISOString(), dirty: 1 }))
+    const now = new Date().toISOString();
+    return db.update(workshops)
+      .set(cleanObject({ ...updates, updated_at: now, sync_status: 'pending' }))
       .where(eq(workshops.id, id))
-      .run();
-    return db.select().from(workshops).where(eq(workshops.id, id)).get();
+      .returning().get();
   });
 
-  ipcMain.handle('db:workshops:delete', (_e, args: { id: number }) => {
-    db.update(workshops).set({ deleted_at: new Date().toISOString(), dirty: 1 }).where(eq(workshops.id, args.id)).run();
+  ipcMain.handle('db:workshops:delete', (_e, args: { id: string }) => {
+    const now = new Date().toISOString();
+    db.update(workshops).set({ is_deleted: 1, sync_status: 'pending', updated_at: now }).where(eq(workshops.id, args.id)).run();
   });
 
   // ── Vehicle Statuses CRUD ──
   ipcMain.handle('db:vehicleStatuses:getAll', () => {
-    return db.select().from(vehicleStatuses).where(isNull(vehicleStatuses.deleted_at)).all();
+    return db.select().from(vehicleStatuses).where(eq(vehicleStatuses.is_deleted, 0)).all();
   });
 
-  ipcMain.handle('db:vehicleStatuses:getById', (_e, args: { id: number }) => {
-    return db.select().from(vehicleStatuses).where(and(eq(vehicleStatuses.id, args.id), isNull(vehicleStatuses.deleted_at))).get() ?? null;
+  ipcMain.handle('db:vehicleStatuses:getById', (_e, args: { id: string }) => {
+    return db.select().from(vehicleStatuses).where(and(eq(vehicleStatuses.id, args.id), eq(vehicleStatuses.is_deleted, 0))).get() ?? null;
   });
 
   ipcMain.handle('db:vehicleStatuses:create', (_e, args: InsertDto<'vehicleStatuses'>) => {
     const now = new Date().toISOString();
-    const result = db.insert(vehicleStatuses).values(cleanObject({
+    return db.insert(vehicleStatuses).values(cleanObject({
       ...args,
+      id: randomUUID(),
+      device_id: DEVICE_ID,
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
       created_at: now,
       updated_at: now,
-      dirty: 1
-    })).run();
-    return db.select().from(vehicleStatuses).where(eq(vehicleStatuses.id, result.lastInsertRowid as number)).get();
+    })).returning().get();
   });
 
-  ipcMain.handle('db:vehicleStatuses:update', (_e, args: UpdateDto<'vehicleStatuses'> & { id: number }) => {
+  ipcMain.handle('db:vehicleStatuses:update', (_e, args: UpdateDto<'vehicleStatuses'> & { id: string }) => {
     const { id, ...updates } = args;
-    db.update(vehicleStatuses)
-      .set(cleanObject({ ...updates, updated_at: new Date().toISOString(), dirty: 1 }))
+    const now = new Date().toISOString();
+    return db.update(vehicleStatuses)
+      .set(cleanObject({ ...updates, updated_at: now, sync_status: 'pending' }))
       .where(eq(vehicleStatuses.id, id))
-      .run();
-    return db.select().from(vehicleStatuses).where(eq(vehicleStatuses.id, id)).get();
+      .returning().get();
   });
 
-  ipcMain.handle('db:vehicleStatuses:delete', (_e, args: { id: number }) => {
-    db.update(vehicleStatuses).set({ deleted_at: new Date().toISOString(), dirty: 1 }).where(eq(vehicleStatuses.id, args.id)).run();
+  ipcMain.handle('db:vehicleStatuses:delete', (_e, args: { id: string }) => {
+    const now = new Date().toISOString();
+    db.update(vehicleStatuses).set({ is_deleted: 1, sync_status: 'pending', updated_at: now }).where(eq(vehicleStatuses.id, args.id)).run();
   });
 
   // ── Contracts CRUD ──
   ipcMain.handle('db:contracts:getAll', () => {
-    return db.select().from(contracts).where(isNull(contracts.deleted_at)).orderBy(desc(contracts.created_at)).all();
+    return db.select().from(contracts).where(eq(contracts.is_deleted, 0)).orderBy(desc(contracts.created_at)).all();
   });
 
-  ipcMain.handle('db:contracts:getById', (_e, args: { id: number }) => {
-    return db.select().from(contracts).where(and(eq(contracts.id, args.id), isNull(contracts.deleted_at))).get() ?? null;
+  ipcMain.handle('db:contracts:getById', (_e, args: { id: string }) => {
+    return db.select().from(contracts).where(and(eq(contracts.id, args.id), eq(contracts.is_deleted, 0))).get() ?? null;
   });
 
-  ipcMain.handle('db:contracts:getByRental', (_e, args: { rental_id: number }) => {
-    return db.select().from(contracts).where(and(eq(contracts.rental_id, args.rental_id), isNull(contracts.deleted_at))).get() ?? null;
+  ipcMain.handle('db:contracts:getByRental', (_e, args: { rental_id: string }) => {
+    return db.select().from(contracts).where(and(eq(contracts.rental_id, args.rental_id), eq(contracts.is_deleted, 0))).get() ?? null;
   });
 
   ipcMain.handle('db:contracts:create', (_e, args: InsertDto<'contracts'>) => {
     const now = new Date().toISOString();
-    const result = db.insert(contracts).values({
+    return db.insert(contracts).values({
       ...args,
+      id: randomUUID(),
+      device_id: DEVICE_ID,
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
       created_at: now,
       updated_at: now,
-      dirty: 1
-    }).run();
-    return db.select().from(contracts).where(eq(contracts.id, result.lastInsertRowid as number)).get();
+    }).returning().get();
   });
 
-  ipcMain.handle('db:contracts:delete', (_e, args: { id: number }) => {
-    db.update(contracts).set({ deleted_at: new Date().toISOString(), dirty: 1 }).where(eq(contracts.id, args.id)).run();
+  ipcMain.handle('db:contracts:delete', (_e, args: { id: string }) => {
+    const now = new Date().toISOString();
+    db.update(contracts).set({ is_deleted: 1, sync_status: 'pending', updated_at: now }).where(eq(contracts.id, args.id)).run();
   });
 
   // ── Documents CRUD ──
   ipcMain.handle('db:documents:getAll', () => {
-    return db.select().from(documents).where(isNull(documents.deleted_at)).orderBy(desc(documents.created_at)).all();
+    return db.select().from(documents).where(eq(documents.is_deleted, 0)).orderBy(desc(documents.created_at)).all();
   });
 
-  ipcMain.handle('db:documents:getByParent', (_e, args: { parent_id: number; origin_type: string }) => {
+  ipcMain.handle('db:documents:getByParent', (_e, args: { parent_id: string; origin_type: string }) => {
     return db.select().from(documents)
-      .where(and(eq(documents.parent_id, args.parent_id), eq(documents.origin_type, args.origin_type), isNull(documents.deleted_at)))
+      .where(and(eq(documents.parent_id, args.parent_id), eq(documents.origin_type, args.origin_type), eq(documents.is_deleted, 0)))
       .orderBy(desc(documents.created_at))
       .all();
   });
 
   ipcMain.handle('db:documents:create', (_e, args: InsertDto<'documents'>) => {
     const now = new Date().toISOString();
-    const result = db.insert(documents).values(cleanObject({
+    return db.insert(documents).values(cleanObject({
       ...args,
+      id: randomUUID(),
+      device_id: DEVICE_ID,
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
       created_at: now,
       updated_at: now,
-      dirty: 1
-    })).run();
-    return db.select().from(documents).where(eq(documents.id, result.lastInsertRowid as number)).get();
+    })).returning().get();
   });
 
-  ipcMain.handle('db:documents:delete', (_e, args: { id: number }) => {
-    db.update(documents).set({ deleted_at: new Date().toISOString(), dirty: 1 }).where(eq(documents.id, args.id)).run();
+  ipcMain.handle('db:documents:delete', (_e, args: { id: string }) => {
+    const now = new Date().toISOString();
+    db.update(documents).set({ is_deleted: 1, sync_status: 'pending', updated_at: now }).where(eq(documents.id, args.id)).run();
   });
 
   // ── Roles CRUD ──
   ipcMain.handle('db:roles:getAll', () => {
-    return db.select().from(roles).where(isNull(roles.deleted_at)).orderBy(roles.name).all()
+    return db.select().from(roles).where(eq(roles.is_deleted, 0)).orderBy(roles.name).all()
       .map(r => ({ ...r, permissions: JSON.parse(r.permissions) }));
   });
 
-  ipcMain.handle('db:roles:getById', (_e, args: { id: number }) => {
-    const r = db.select().from(roles).where(and(eq(roles.id, args.id), isNull(roles.deleted_at))).get();
+  ipcMain.handle('db:roles:getById', (_e, args: { id: string }) => {
+    const r = db.select().from(roles).where(and(eq(roles.id, args.id), eq(roles.is_deleted, 0))).get();
     if (!r) return null;
     return { ...r, permissions: JSON.parse(r.permissions) };
   });
@@ -501,34 +543,39 @@ export function registerIpcHandlers(): void {
     const { permissions, ...rest } = args;
     const result = db.insert(roles).values(cleanObject({
       ...rest,
+      id: randomUUID(),
+      device_id: DEVICE_ID,
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
       permissions: JSON.stringify(permissions),
       created_at: now,
       updated_at: now,
-    })).run();
-    const r = db.select().from(roles).where(eq(roles.id, result.lastInsertRowid as number)).get()!;
-    return { ...r, permissions: JSON.parse(r.permissions) };
+    })).returning().get();
+    return { ...result, permissions: JSON.parse(result.permissions) };
   });
 
-  ipcMain.handle('db:roles:update', (_e, args: UpdateDto<'roles'> & { id: number; permissions: string[] }) => {
+  ipcMain.handle('db:roles:update', (_e, args: UpdateDto<'roles'> & { id: string; permissions: string[] }) => {
     const now = new Date().toISOString();
     const { id, permissions, ...updates } = args;
-    db.update(roles).set(cleanObject({
+    const result = db.update(roles).set(cleanObject({
       ...updates,
       permissions: JSON.stringify(permissions),
       updated_at: now,
-    })).where(eq(roles.id, id)).run();
-    const r = db.select().from(roles).where(eq(roles.id, id)).get()!;
-    return { ...r, permissions: JSON.parse(r.permissions) };
+      sync_status: 'pending',
+    })).where(eq(roles.id, id)).returning().get();
+    return { ...result, permissions: JSON.parse(result.permissions) };
   });
 
-  ipcMain.handle('db:roles:delete', (_e, args: { id: number }) => {
-    db.update(roles).set({ deleted_at: new Date().toISOString() }).where(eq(roles.id, args.id)).run();
+  ipcMain.handle('db:roles:delete', (_e, args: { id: string }) => {
+    const now = new Date().toISOString();
+    db.update(roles).set({ is_deleted: 1, sync_status: 'pending', updated_at: now }).where(eq(roles.id, args.id)).run();
   });
 
   // ── Users CRUD ──
   ipcMain.handle('db:users:getAll', () => {
-    const users = db.select().from(appUsers).where(isNull(appUsers.deleted_at)).orderBy(appUsers.name).all();
-    const allRoles = db.select().from(roles).all();
+    const users = db.select().from(appUsers).where(eq(appUsers.is_deleted, 0)).orderBy(appUsers.name).all();
+    const allRoles = db.select().from(roles).where(eq(roles.is_deleted, 0)).all();
     const roleMap = new Map(allRoles.map(r => [r.id, r]));
     return users.map(u => {
       const role = roleMap.get(u.role_id);
@@ -536,41 +583,46 @@ export function registerIpcHandlers(): void {
     });
   });
 
-  ipcMain.handle('db:users:getById', (_e, args: { id: number }) => {
-    const u = db.select().from(appUsers).where(and(eq(appUsers.id, args.id), isNull(appUsers.deleted_at))).get();
+  ipcMain.handle('db:users:getById', (_e, args: { id: string }) => {
+    const u = db.select().from(appUsers).where(and(eq(appUsers.id, args.id), eq(appUsers.is_deleted, 0))).get();
     if (!u) return null;
-    const role = db.select().from(roles).where(eq(roles.id, u.role_id)).get();
+    const role = db.select().from(roles).where(and(eq(roles.id, u.role_id), eq(roles.is_deleted, 0))).get();
     return { ...u, role: role ? { ...role, permissions: JSON.parse(role.permissions) } : undefined };
   });
 
   ipcMain.handle('db:users:create', (_e, args: InsertDto<'appUsers'>) => {
     const now = new Date().toISOString();
-    const result = db.insert(appUsers).values(cleanObject({
+    return db.insert(appUsers).values(cleanObject({
       ...args,
+      id: randomUUID(),
+      device_id: DEVICE_ID,
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
       created_at: now,
       updated_at: now,
-    })).run();
-    return db.select().from(appUsers).where(eq(appUsers.id, result.lastInsertRowid as number)).get();
+    })).returning().get();
   });
 
-  ipcMain.handle('db:users:update', (_e, args: UpdateDto<'appUsers'> & { id: number }) => {
+  ipcMain.handle('db:users:update', (_e, args: UpdateDto<'appUsers'> & { id: string }) => {
     const { id, ...updates } = args;
-    db.update(appUsers).set(cleanObject({ ...updates, updated_at: new Date().toISOString() })).where(eq(appUsers.id, id)).run();
-    return db.select().from(appUsers).where(eq(appUsers.id, id)).get();
+    const now = new Date().toISOString();
+    return db.update(appUsers).set(cleanObject({ ...updates, updated_at: now, sync_status: 'pending' })).where(eq(appUsers.id, id)).returning().get();
   });
 
-  ipcMain.handle('db:users:delete', (_e, args: { id: number }) => {
-    db.update(appUsers).set({ deleted_at: new Date().toISOString() }).where(eq(appUsers.id, args.id)).run();
+  ipcMain.handle('db:users:delete', (_e, args: { id: string }) => {
+    const now = new Date().toISOString();
+    db.update(appUsers).set({ is_deleted: 1, sync_status: 'pending', updated_at: now }).where(eq(appUsers.id, args.id)).run();
   });
 
   ipcMain.handle('db:users:login', (_e, args: { email: string; password?: string }) => {
     let user = args.password
-      ? db.select().from(appUsers).where(and(eq(appUsers.email, args.email), eq(appUsers.password, args.password), isNull(appUsers.deleted_at))).get()
-      : db.select().from(appUsers).where(and(eq(appUsers.email, args.email), isNull(appUsers.deleted_at))).get();
+      ? db.select().from(appUsers).where(and(eq(appUsers.email, args.email), eq(appUsers.password, args.password), eq(appUsers.is_deleted, 0))).get()
+      : db.select().from(appUsers).where(and(eq(appUsers.email, args.email), eq(appUsers.is_deleted, 0))).get();
 
     if (!user) return null;
 
-    const role = db.select().from(roles).where(eq(roles.id, user.role_id)).get();
+    const role = db.select().from(roles).where(and(eq(roles.id, user.role_id), eq(roles.is_deleted, 0))).get();
     return {
       id: user.id,
       name: user.name,

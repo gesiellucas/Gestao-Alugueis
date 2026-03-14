@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
 
   // In production (Electron), assets must be referenced with relative paths
   // so that file:// URLs resolve correctly from the out/ directory.
-  assetPrefix: isProd ? './' : '',
+  assetPrefix: '',
 
   images: {
     // Image optimization is not available in static export

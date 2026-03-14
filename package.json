@@ -17,10 +17,10 @@
     "electron:build": "npm run build && npm run electron:compile && electron-builder --config electron-builder.config.js",
     "electron:build:win": "npm run electron:build -- --win",
     "postinstall": "electron-rebuild -f -w better-sqlite3",
-    "db:generate": "drizzle-kit generate --config=database/drizzle.config.ts && drizzle-kit generate --config=database/drizzle.pg.config.ts",
+    "db:generate": "cross-env DRIZZLE_TARGET=sqlite drizzle-kit generate --config=database/drizzle.config.ts && cross-env DRIZZLE_TARGET=pg drizzle-kit generate --config=database/drizzle.pg.config.ts",
     "db:studio": "drizzle-kit studio --config=database/drizzle.studio.config.ts",
-    "db:push:supabase": "drizzle-kit push --config=database/drizzle.pg.config.ts",
-    "db:push:sqlite": "drizzle-kit push --config=database/drizzle.config.ts"
+    "db:push:supabase": "cross-env DRIZZLE_TARGET=pg drizzle-kit push --config=database/drizzle.pg.config.ts",
+    "db:push:sqlite": "cross-env DRIZZLE_TARGET=sqlite drizzle-kit push --config=database/drizzle.config.ts"
   },
   "dependencies": {
     "@google/genai": "^1.40.0",

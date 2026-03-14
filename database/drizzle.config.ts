@@ -3,18 +3,19 @@ import path from 'path';
 import os from 'os';
 import type { Config } from 'drizzle-kit';
 
-// Caminho padrão do banco SQLite em desenvolvimento (mesmo local que o Electron usa)
-// Pode ser sobrescrito com a variável SQLITE_DB_PATH no .env
+// Para diferenciar entre SQLite (local) e PostgreSQL (Supabase/Sync)
+const isPg = process.env.DRIZZLE_TARGET === 'pg';
+
 const defaultDbPath = path.join(
   os.homedir(),
   'AppData', 'Roaming', 'Electron', 'gc-loca-moto.sqlite'
 );
 
 export default {
-  schema: './database/schema/sqlite.ts',
-  out: './database/migrations/sqlite',
-  dialect: 'sqlite',
+  schema: isPg ? './database/schema/postgres.ts' : './database/schema/sqlite.ts',
+  out: isPg ? './database/migrations/postgres' : './database/migrations/sqlite',
+  dialect: isPg ? 'postgresql' : 'sqlite',
   dbCredentials: {
-    url: `file:${process.env.SQLITE_DB_PATH ?? defaultDbPath}`,
+    url: isPg ? (process.env.SUPABASE_DB_URL ?? '') : `file:${process.env.SQLITE_DB_PATH ?? defaultDbPath}`,
   },
 } satisfies Config;

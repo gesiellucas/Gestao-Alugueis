@@ -46,7 +46,7 @@ function FileIcon({ ext }: { ext: string }) {
 
 export const AluguelDetalhePage: React.FC = () => {
   const params = useParams();
-  const id = Number(params.id);
+  const id = params.id as string;
   const router = useRouter();
   const { rentalContracts, customers, vehicles } = useAppContext();
   const [activeTab, setActiveTab] = useState<Tab>("aluguel");
@@ -55,8 +55,8 @@ export const AluguelDetalhePage: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [docsLoading, setDocsLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [contractId, setContractId] = useState<number | null>(null);
-  const [deleting, setDeleting] = useState<number | null>(null);
+  const [contractId, setContractId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 

@@ -13,7 +13,7 @@ export const VeiculoNovoPage: React.FC = () => {
 
   const [form, setForm] = useState<{
     plate: string;
-    model_id: number | "";
+    model_id: string | "";
     year: number;
     mileage: number;
     default_monthly_rate: number;
@@ -69,7 +69,7 @@ export const VeiculoNovoPage: React.FC = () => {
 
       const newVehicle = await localVehiclesApi.create({
         plate: form.plate,
-        model_id: Number(finalModelId),
+        model_id: finalModelId as string,
         year: form.year,
         status_id: VEHICLE_STATUS_IDS.AVAILABLE,
         mileage: form.mileage,
@@ -137,7 +137,7 @@ export const VeiculoNovoPage: React.FC = () => {
                   <select
                     className="flex-1 bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border appearance-none"
                     value={form.model_id}
-                    onChange={(e) => setForm({ ...form, model_id: e.target.value === "" ? "" : Number(e.target.value) })}
+                    onChange={(e) => setForm({ ...form, model_id: e.target.value })}
                     required
                   >
                     <option value="">Selecione um modelo...</option>

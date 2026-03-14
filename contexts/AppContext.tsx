@@ -38,9 +38,9 @@ interface AppContextType {
   rentalContracts: RentalContract[];
   setRentalContracts: React.Dispatch<React.SetStateAction<RentalContract[]>>;
   handleAddMaintenanceRecord: (record: MaintenanceRecord) => Promise<void>;
-  handleFinishMaintenance: (recordId: number) => Promise<void>;
-  handleCreateRental: (vehicleId: number, customerId: number, monthlyRate: number, startDate: string) => Promise<RentalContract>;
-  handleEndRental: (vehicleId: number) => Promise<void>;
+  handleFinishMaintenance: (recordId: string) => Promise<void>;
+  handleCreateRental: (vehicleId: string, customerId: string, monthlyRate: number, startDate: string) => Promise<RentalContract>;
+  handleEndRental: (vehicleId: string) => Promise<void>;
   loading: boolean;
   error: string | null;
   refreshData: () => Promise<void>;
@@ -90,8 +90,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Função para carregar todos os dados
   const loadData = async () => {
-    const userIdStr = typeof window !== 'undefined' ? localStorage.getItem('electron_user_id') : null;
-    const userId = userIdStr ? Number(userIdStr) : null;
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('electron_user_id') : null;
 
     if (!userId) {
       setLoading(false);
@@ -167,7 +166,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const handleFinishMaintenance = async (recordId: number) => {
+  const handleFinishMaintenance = async (recordId: string) => {
     try {
       const record = maintenanceRecords.find((r) => r.id === recordId);
       if (!record) return;
@@ -206,8 +205,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const handleCreateRental = async (
-    vehicleId: number,
-    customerId: number,
+    vehicleId: string,
+    customerId: string,
     monthlyRate: number,
     startDate: string,
   ): Promise<RentalContract> => {
@@ -249,7 +248,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const handleEndRental = async (vehicleId: number) => {
+  const handleEndRental = async (vehicleId: string) => {
     try {
       const activeContract = rentalContracts.find(
         (c) => c.vehicle_id === vehicleId && c.status === "ACTIVE",

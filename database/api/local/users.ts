@@ -6,15 +6,15 @@ export const localUsersApi = {
         return ipcInvoke<AppUser[]>('db:users:getAll');
     },
 
-    async create(user: Omit<AppUser, 'id' | 'role' | 'created_at' | 'updated_at'>): Promise<AppUser> {
+    async create(user: { name: string; email: string; password?: string; role_id: string }): Promise<AppUser> {
         return ipcInvoke<AppUser>('db:users:create', user);
     },
 
-    async update(id: number, updates: Partial<Omit<AppUser, 'id' | 'role' | 'created_at' | 'updated_at'>>): Promise<void> {
+    async update(id: string, updates: Partial<Omit<AppUser, 'id' | 'role' | 'created_at' | 'updated_at'>>): Promise<void> {
         return ipcInvoke<void>('db:users:update', { id, ...updates });
     },
 
-    async delete(id: number): Promise<void> {
+    async delete(id: string): Promise<void> {
         await ipcInvoke('db:users:delete', { id });
     },
 

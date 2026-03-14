@@ -45,7 +45,7 @@ export function useFullSync() {
  * Auto-sync hook — triggers an initial sync on mount and then periodically.
  * Listens to network online events or interval sweeps to coordinate with the Background Engine.
  */
-export function useAutoSync(userId: number | null, intervalMinutes = 5) {
+export function useAutoSync(userId: string | number | null, intervalMinutes = 5) {
   const syncMutation = useFullSync();
   const { data: status } = useSyncStatus();
   const client = useQueryClient();

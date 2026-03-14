@@ -12,7 +12,7 @@ export const OficinaNovePage: React.FC = () => {
   const { vehicles, workshops, handleAddMaintenanceRecord } = useAppContext();
 
   const [selectedPlate, setSelectedPlate] = useState(searchParams.get("plate") ?? "");
-  const [selectedWorkshopId, setSelectedWorkshopId] = useState<number | "">("");
+  const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | "">("");
   const { user } = useAppContext();
   const [form, setForm] = useState({
     type: MaintenanceType.PREVENTIVE,
@@ -29,18 +29,25 @@ export const OficinaNovePage: React.FC = () => {
     const vehicle = vehicles.find((v) => v.plate === selectedPlate);
     if (!vehicle || !form.mechanic_name || !form.description) return;
 
+    const now = new Date().toISOString();
     const record: MaintenanceRecord = {
-      id: 0,
+      id: crypto.randomUUID(),
       user_id: user!.id,
       vehicle_id: vehicle.id,
       workshop_id: selectedWorkshopId || null,
       vehicle_plate: vehicle.plate,
-      entry_date: new Date().toISOString(),
+      entry_date: now,
       status: "OPEN",
       cost: 0,
       type: form.type,
       mechanic_name: form.mechanic_name,
       description: form.description,
+      created_at: now,
+      updated_at: now,
+      device_id: 'local',
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
     };
 
     try {
@@ -94,7 +101,7 @@ export const OficinaNovePage: React.FC = () => {
             <select
               className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border appearance-none"
               value={selectedWorkshopId}
-              onChange={(e) => setSelectedWorkshopId(e.target.value === "" ? "" : Number(e.target.value))}
+              onChange={(e) => setSelectedWorkshopId(e.target.value)}
               required
             >
               <option value="">Selecione a oficina...</option>

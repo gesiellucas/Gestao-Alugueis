@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AppUser } from "../types";
 import { Bike, LogIn, Lock, Mail, AlertCircle, ShieldCheck } from "lucide-react";
 import { localUsersApi } from "../database/api/local/users";
@@ -18,6 +18,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[DEBUG] handleLogin triggered');
     setError("");
     setLoading(true);
 
@@ -27,7 +28,9 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         setSuccess("Instruções de recuperação enviadas para o seu e-mail.");
         setTimeout(() => setIsRecovering(false), 3000);
       } else {
+        console.log('[DEBUG] Calling localUsersApi.login with:', email);
         const user = await localUsersApi.login(email, password);
+        console.log('[DEBUG] login result:', user ? 'success' : 'failed');
         if (user) {
           if (typeof window !== 'undefined') {
             localStorage.setItem('electron_user_id', String(user.id));
@@ -38,12 +41,47 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           setError("E-mail ou senha inválidos.");
         }
       }
-    } catch (err) {
-      setError("Erro ao tentar conectar. Tente novamente.");
+    } catch (err: any) {
+      console.error('[DEBUG] Login error:', err);
+      setError(`Erro ao conectar: ${err.message || 'Erro desconhecido'}`);
+      // Alerta visível para capturar o erro antes do refresh
+      alert(`Erro de conexão: ${err.message || 'Verifique os logs do sistema'}`);
     } finally {
       setLoading(false);
     }
   };
+
+  // Check bridge status on mount
+  const [bridgeStatus, setBridgeStatus] = useState<string>("Verificando...");
+  useEffect(() => {
+    console.log('[DEBUG] Checking bridge status...');
+    
+    const checkBridge = () => {
+      if (typeof window !== 'undefined' && (window as any).electronAPI) {
+        console.log('[DEBUG] Bridge found!');
+        setBridgeStatus("Conectado ao Electron");
+        (window as any).electronAPI.invoke('app:isElectron').then(() => {
+          setBridgeStatus("Ponte IPC Ativa");
+        }).catch((err: any) => {
+          console.error('[DEBUG] IPC invoke failed:', err);
+          setBridgeStatus(`Erro IPC: ${err.message}`);
+        });
+        return true;
+      }
+      return false;
+    };
+
+    if (!checkBridge()) {
+      // Fallback: wait a bit or show error
+      const timeout = setTimeout(() => {
+        if (!checkBridge()) {
+          console.error('[DEBUG] Bridge timeout - not found after 5s');
+          setBridgeStatus("Erro: Ponte não encontrada (Timeout)");
+        }
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#004AAD] flex items-center justify-center p-6 relative overflow-hidden">
@@ -158,7 +196,21 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </form>
 
         <div className="mt-10 text-center">
-          <p className="text-blue-300/60 text-xs font-bold uppercase tracking-widest">
+          {/* Bridge Status Indicator (Diagnostic) */}
+          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col items-center gap-2">
+            <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+              bridgeStatus.includes('Ponte IPC Ativa') ? 'bg-green-100 text-green-700' : 
+              bridgeStatus.includes('Erro') ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'
+            }`}>
+              {bridgeStatus}
+            </div>
+            <div className="text-[10px] text-slate-400 font-medium space-y-1 text-center">
+              <p>Ambiente: {typeof window !== 'undefined' && (window as any).electronAPI ? 'ELECTRON' : 'WEB'}</p>
+              <p>Origem: {typeof window !== 'undefined' ? window.location.origin : 'N/A'}</p>
+              <p>Path: {typeof window !== 'undefined' ? window.location.pathname : 'N/A'}</p>
+            </div>
+          </div>
+          <p className="text-blue-300/60 text-xs font-bold uppercase tracking-widest mt-4">
             GC Locamoto © {new Date().getFullYear()}
           </p>
         </div>

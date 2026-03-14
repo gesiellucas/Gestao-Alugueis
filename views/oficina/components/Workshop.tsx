@@ -18,7 +18,7 @@ interface WorkshopProps {
   vehicles: Vehicle[];
   records: MaintenanceRecord[];
   onAddRecord: (record: MaintenanceRecord) => void;
-  onFinishMaintenance: (recordId: number) => void;
+  onFinishMaintenance: (recordId: string) => void;
 }
 
 export const Workshop: React.FC<WorkshopProps> = ({
@@ -48,17 +48,24 @@ export const Workshop: React.FC<WorkshopProps> = ({
     const vehicle = vehicles.find((v) => v.plate === selectedPlate);
     if (!vehicle || !newRecord.mechanic_name || !newRecord.description) return;
 
+    const now = new Date().toISOString();
     const record: MaintenanceRecord = {
-      id: Date.now(),
-      user_id: 0, // Will be set by service/IPC
+      id: crypto.randomUUID(),
+      user_id: '', // Will be set by service/IPC
       vehicle_id: vehicle.id,
       vehicle_plate: vehicle.plate,
-      entry_date: new Date().toISOString(),
+      entry_date: now,
       status: "OPEN",
       cost: 0,
       type: newRecord.type as MaintenanceType,
       mechanic_name: newRecord.mechanic_name!,
       description: newRecord.description!,
+      created_at: now,
+      updated_at: now,
+      device_id: 'local',
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
     };
 
     onAddRecord(record);

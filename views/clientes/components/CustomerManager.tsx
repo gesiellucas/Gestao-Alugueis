@@ -21,7 +21,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
   vehicles,
 }) => {
   // Helper to find which vehicle a customer is using
-  const getCustomerVehicle = (customerId: number) => {
+  const getCustomerVehicle = (customerId: string) => {
     return vehicles.find((v) => v.current_renter_id === customerId);
   };
 

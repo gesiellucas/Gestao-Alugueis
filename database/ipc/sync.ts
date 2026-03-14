@@ -28,7 +28,20 @@ export function initSyncEngine() {
   initSupabaseClient();
   startPolling(5 * 60 * 1000);
 
+  // Sync imediatamente ao iniciar (se credenciais já existirem)
+  if (supabase) {
+    runSync().catch(() => {});
+  }
+
   ipcMain.handle('sync:force', async () => {
+    return await runSync();
+  });
+
+  // Reinicializa o cliente Supabase (chamado após configurar credenciais no setup)
+  ipcMain.handle('sync:reinit', async () => {
+    supabase = null;
+    initSupabaseClient();
+    if (!supabase) return { success: false, reason: 'No Supabase credentials after reinit' };
     return await runSync();
   });
 }
@@ -36,8 +49,15 @@ export function initSyncEngine() {
 function initSupabaseClient() {
   try {
     const db = getRawDb();
-    const urlRow = db.prepare("SELECT value FROM config WHERE key = 'NEXT_PUBLIC_SUPABASE_URL'").get() as { value: string } | undefined;
-    const anonKeyRow = db.prepare("SELECT value FROM config WHERE key = 'NEXT_PUBLIC_SUPABASE_ANON_KEY'").get() as { value: string } | undefined;
+    // Check both key naming conventions (legacy NEXT_PUBLIC_* and new supabase_*)
+    const urlRow = (
+      db.prepare("SELECT value FROM config WHERE key = 'NEXT_PUBLIC_SUPABASE_URL'").get() ??
+      db.prepare("SELECT value FROM config WHERE key = 'supabase_url'").get()
+    ) as { value: string } | undefined;
+    const anonKeyRow = (
+      db.prepare("SELECT value FROM config WHERE key = 'NEXT_PUBLIC_SUPABASE_ANON_KEY'").get() ??
+      db.prepare("SELECT value FROM config WHERE key = 'supabase_anon_key'").get()
+    ) as { value: string } | undefined;
 
     if (urlRow?.value && anonKeyRow?.value) {
       supabase = createClient(urlRow.value, anonKeyRow.value);
@@ -85,13 +105,13 @@ async function runSync() {
 async function pushChanges() {
   const db = getRawDb();
 
-  // Se nunca sincronizou globalmente, vamos marcar tudo como dirty para garantir que o Supabase tenha os dados iniciais
+  // Se nunca sincronizou globalmente, vamos marcar tudo como pending para garantir que o Supabase tenha os dados iniciais
   const globalLastSync = db.prepare("SELECT value FROM config WHERE key = 'last_sync_at'").get() as { value: string } | undefined;
   if (!globalLastSync?.value) {
-    console.log(`[Sync] First time sync detected. Marking all records as dirty...`);
+    console.log(`[Sync] First time sync detected. Marking all records as pending...`);
     for (const table of SYNC_TABLES) {
       try {
-        db.prepare(`UPDATE ${table} SET dirty = 1 WHERE dirty = 0`).run();
+        db.prepare(`UPDATE ${table} SET sync_status = 'pending' WHERE sync_status = 'synced'`).run();
       } catch (e) {
         // Silently fail if table doesn't exist yet
       }
@@ -101,21 +121,19 @@ async function pushChanges() {
   }
 
   for (const table of SYNC_TABLES) {
-    const dirtyRecords = db.prepare(`SELECT * FROM ${table} WHERE dirty = 1`).all() as Record<string, unknown>[];
+    const dirtyRecords = db.prepare(`SELECT * FROM ${table} WHERE sync_status = 'pending'`).all() as Record<string, unknown>[];
     
-    console.log(`[Sync] Table "${table}": found ${dirtyRecords.length} dirty records.`);
+    console.log(`[Sync] Table "${table}": found ${dirtyRecords.length} pending records.`);
     
     if (dirtyRecords.length === 0) {
       continue;
     }
 
     const recordsToPush = dirtyRecords.map(record => {
-      const { dirty, ...rest } = record as any;
+      const rest = { ...record } as any;
 
       if (SHARED_TABLES.has(table)) {
         delete rest.user_id;
-      } else if (rest.user_id === 1 || rest.user_id === '1') {
-        rest.user_id = 1;
       }
 
       return rest;
@@ -130,7 +148,7 @@ async function pushChanges() {
 
     const ids = dirtyRecords.map(r => (r as any).id);
     const placeholders = ids.map(() => '?').join(',');
-    db.prepare(`UPDATE ${table} SET dirty = 0 WHERE id IN (${placeholders})`).run(...ids);
+    db.prepare(`UPDATE ${table} SET sync_status = 'synced' WHERE id IN (${placeholders})`).run(...ids);
   }
 }
 
@@ -171,34 +189,24 @@ function upsertLocally(table: string, records: any[]) {
   if (records.length === 0) return;
 
   const tableInfo = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
-  const validColumns = tableInfo.map(info => info.name).filter(col => col !== 'dirty');
+  const validColumns = tableInfo.map(info => info.name);
 
-  for (const record of records) {
-    if (!SHARED_TABLES.has(table)) {
-      if (!record.user_id || record.user_id === 0) {
-        record.user_id = 1;
-      }
-    } else {
-      delete record.user_id;
-    }
-
-    if (record.deleted_at === undefined) record.deleted_at = null;
-  }
-
-  const placeholders = validColumns.map(() => '?').join(', ');
   const assignments = validColumns.map(c => `${c} = excluded.${c}`).join(', ');
 
+  const placeholders = validColumns.map(() => '?').join(', ');
   const stmt = db.prepare(`
-    INSERT INTO ${table} (${validColumns.join(', ')}, dirty)
-    VALUES (${placeholders}, 0)
+    INSERT INTO ${table} (${validColumns.join(', ')})
+    VALUES (${placeholders})
     ON CONFLICT(id) DO UPDATE SET
-      ${assignments},
-      dirty = 0
+      ${assignments}
     WHERE excluded.updated_at >= ${table}.updated_at
   `);
 
   const insertMany = db.transaction((items: any[]) => {
     for (const item of items) {
+      // Ensure specific fields exist and have correct values
+      if (item.sync_status === undefined) item.sync_status = 'synced';
+      
       const values = validColumns.map(c => {
         const val = item[c];
         if (val === undefined) return null;

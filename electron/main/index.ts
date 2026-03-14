@@ -1,9 +1,26 @@
-import { app, BrowserWindow, shell, protocol, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, protocol, ipcMain, net } from 'electron';
 import path from 'path';
+import fs from 'fs';
+import { pathToFileURL } from 'url';
 import 'dotenv/config';
 import { initDatabase, registerIpcHandlers } from '../../database/ipc/handlers';
 import { getRawDb } from '../../database/client/sqlite';
 import { initSyncEngine } from '../../database/ipc/sync';
+
+// Register custom protocol schemes as privileged.
+// This must be done before the app is ready and before any windows are created.
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'app',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      allowServiceWorkers: true,
+      corsEnabled: true,
+    },
+  },
+]);
 
 // Define app identity para ícone correto na barra de tarefas do Windows
 app.setAppUserModelId('br.com.gclocamoto.app');
@@ -25,13 +42,44 @@ app.whenReady().then(() => {
   const outDir = path.join(app.getAppPath(), 'out');
 
   if (!isDev) {
-    protocol.registerFileProtocol('app', (request, callback) => {
-      const pathname = new URL(request.url).pathname;
-      const hasExt = path.extname(pathname).length > 0;
-      const target = hasExt
-        ? path.join(outDir, pathname)
-        : path.join(outDir, 'index.html');
-      callback({ path: target });
+    // Protocol handle (modern API)
+    protocol.handle('app', async (request) => {
+      const url = new URL(request.url);
+      let pathname = decodeURIComponent(url.pathname);
+
+      // Handle the 'app://app/' prefix
+      if (pathname.startsWith('/')) {
+        pathname = pathname.substring(1);
+      }
+
+      // 1. Determine local path within the 'out' folder
+      let targetPath = path.join(app.getAppPath(), 'out', pathname);
+
+      // 2. SPA Fallback & Extensionless Routing
+      if (!path.extname(targetPath)) {
+        const potentialHtml = path.join(targetPath, 'index.html');
+        if (fs.existsSync(potentialHtml)) {
+          targetPath = potentialHtml;
+        } else if (fs.existsSync(targetPath + '.html')) {
+          targetPath = targetPath + '.html';
+        } else if (!fs.existsSync(targetPath)) {
+          // Fallback to root index.html for unknown routes (SPA behavior)
+          targetPath = path.join(app.getAppPath(), 'out', 'index.html');
+        }
+      } 
+      // 3. Nested Assets Fix (_next folder)
+      else if (!fs.existsSync(targetPath) && pathname.includes('_next/')) {
+        const assetPath = pathname.substring(pathname.indexOf('_next/'));
+        targetPath = path.join(app.getAppPath(), 'out', assetPath);
+      }
+
+      try {
+        const fileUrl = pathToFileURL(targetPath).href;
+        return await net.fetch(fileUrl);
+      } catch (err) {
+        console.error(`[Protocol] Failed to fetch: ${request.url} -> ${targetPath}`, err);
+        return new Response('Not Found', { status: 404 });
+      }
     });
   }
 
@@ -58,6 +106,10 @@ function createWindow(): void {
     ? path.join(process.resourcesPath, 'icon.ico')
     : path.resolve('public/icon-app.png');
 
+  const preloadPath = path.join(__dirname, '..', 'preload', 'index.js');
+  console.log('[Main] Preload path:', preloadPath);
+  console.log('[Main] Preload exists?', fs.existsSync(preloadPath));
+
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 800,
@@ -68,7 +120,7 @@ function createWindow(): void {
     frame: false,
     backgroundColor: '#004AAD',
     webPreferences: {
-      preload: path.join(__dirname, '..', 'preload', 'index.js'),
+      preload: preloadPath,
       contextIsolation: true,  // Required for security
       nodeIntegration: false,  // Required for security
       sandbox: false,          // Allow preload to use Node APIs
@@ -87,7 +139,7 @@ function createWindow(): void {
     mainWindow.loadURL('http://localhost:3000');
     mainWindow.webContents.openDevTools();
   } else {
-    mainWindow.loadURL('app://./index.html');
+    mainWindow.loadURL('app://app/index.html');
   }
 
   // Open external links in system browser

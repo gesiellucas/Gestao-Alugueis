@@ -10,6 +10,7 @@ export default function SetupPage() {
   const [anonKey, setAnonKey] = useState('');
   const [publishableKey, setPublishableKey] = useState('');
   const [testing, setTesting] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -48,11 +49,20 @@ export default function SetupPage() {
       await ipcInvoke('db:config:set', { key: 'supabase_anon_key',        value: anonKey });
       await ipcInvoke('db:config:set', { key: 'supabase_publishable_key', value: publishableKey });
 
+      // Inicializa o cliente Supabase e faz o primeiro sync
+      setSyncing(true);
+      const syncResult = await ipcInvoke<{ success: boolean; reason?: string }>('sync:reinit', {});
+      if (!syncResult?.success) {
+        console.warn('Initial sync warning:', syncResult?.reason);
+        // Sync falhou mas credenciais estão salvas — segue em frente
+      }
+
       router.replace('/');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro desconhecido ao conectar.');
     } finally {
       setTesting(false);
+      setSyncing(false);
     }
   };
 
@@ -113,12 +123,12 @@ export default function SetupPage() {
         {/* Save button */}
         <button
           onClick={handleSave}
-          disabled={testing || !url || !anonKey || !publishableKey}
+          disabled={testing || syncing || !url || !anonKey || !publishableKey}
           className="w-full py-4 bg-slate-900 text-white rounded-xl font-black text-sm
                      disabled:opacity-40 disabled:cursor-not-allowed
                      hover:bg-slate-800 transition-colors"
         >
-          {testing ? 'Testando conexão...' : 'Salvar e Conectar'}
+          {syncing ? 'Sincronizando dados...' : testing ? 'Testando conexão...' : 'Salvar e Conectar'}
         </button>
 
         <p className="text-center text-xs text-slate-400">

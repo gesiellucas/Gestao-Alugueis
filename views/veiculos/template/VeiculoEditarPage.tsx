@@ -7,7 +7,7 @@ import { ArrowLeft, Save } from "lucide-react";
 
 export const VeiculoEditarPage: React.FC = () => {
   const params = useParams();
-  const id = Number(params.id);
+  const id = params.id as string;
   const router = useRouter();
   const { vehicles, setVehicles, vehicleModels } = useAppContext();
 
@@ -15,7 +15,7 @@ export const VeiculoEditarPage: React.FC = () => {
 
   const [form, setForm] = useState<{
     plate: string;
-    model_id: number | "";
+    model_id: string | "";
     year: number;
     mileage: number;
   }>({
@@ -53,7 +53,7 @@ export const VeiculoEditarPage: React.FC = () => {
     try {
       await localVehiclesApi.update(id, {
         plate: form.plate,
-        model_id: Number(form.model_id),
+        model_id: form.model_id || vehicle.model_id,
         year: form.year,
         mileage: form.mileage,
       });
@@ -64,10 +64,10 @@ export const VeiculoEditarPage: React.FC = () => {
             ? {
                 ...v,
                 plate: form.plate,
-                model_id: Number(form.model_id),
+                model_id: form.model_id || v.model_id,
                 year: form.year,
                 mileage: form.mileage,
-                model: vehicleModels.find(m => m.id === Number(form.model_id)),
+                model: vehicleModels.find(m => m.id === form.model_id),
               }
             : v,
         ),
@@ -128,7 +128,7 @@ export const VeiculoEditarPage: React.FC = () => {
               <select
                 className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border appearance-none"
                 value={form.model_id}
-                onChange={(e) => setForm({ ...form, model_id: e.target.value === "" ? "" : Number(e.target.value) })}
+                onChange={(e) => setForm({ ...form, model_id: e.target.value })}
                 required
               >
                 <option value="">Selecione um modelo...</option>

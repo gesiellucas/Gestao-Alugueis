@@ -13,26 +13,27 @@ const BUCKET = 'contract-documents';
 
 function mapRow(row: Record<string, unknown>): Document {
   return {
-    id: row.id as unknown as number,
-    parent_id: row.parent_id as unknown as number,
+    ...row,
+    id: row.id as string,
+    parent_id: row.parent_id as string,
     origin_type: row.origin_type as 'CONTRACT' | 'WORKSHOP',
     file_url: row.file_url as string,
-    created_at: row.created_at as string | undefined,
-    updated_at: row.updated_at as string | undefined,
-  };
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string,
+  } as Document;
 }
 
 export const supabaseDocumentsApi = {
   /**
    * Busca todos os documentos de um contrato.
    */
-  async getByContract(contractId: number): Promise<Document[]> {
+  async getByContract(contractId: string): Promise<Document[]> {
     const { data, error } = await supabase
       .from('documents')
       .select('*')
       .eq('parent_id', contractId)
       .eq('origin_type', 'CONTRACT')
-      .is('deleted_at', null)
+      .eq('is_deleted', 0)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -47,7 +48,7 @@ export const supabaseDocumentsApi = {
    * @param file       - Arquivo selecionado pelo usuário
    * @returns          - Documento criado com a URL pública do arquivo
    */
-  async uploadAndCreate(contractId: number, file: File): Promise<Document> {
+  async uploadAndCreate(contractId: string, file: File): Promise<Document> {
     // Gera um nome único para evitar colisões
     const ext = file.name.split('.').pop() ?? '';
     const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext ? `.${ext}` : ''}`;
@@ -97,7 +98,7 @@ export const supabaseDocumentsApi = {
     // Soft-delete no banco
     const { error: dbError } = await supabase
       .from('documents')
-      .update({ deleted_at: new Date().toISOString() })
+      .update({ is_deleted: 1, updated_at: new Date().toISOString() })
       .eq('id', doc.id);
 
     if (dbError) throw dbError;

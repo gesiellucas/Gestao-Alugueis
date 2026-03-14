@@ -18,7 +18,7 @@ export const AccessControl: React.FC = () => {
   const [isCreatingRole, setIsCreatingRole] = useState(false);
 
   // Form states
-  const [formDataUser, setFormDataUser] = useState({ name: '', email: '', password: '', role_id: '' as string | number });
+  const [formDataUser, setFormDataUser] = useState({ name: '', email: '', password: '', role_id: '' as string });
   const [formDataRole, setFormDataRole] = useState({ name: '', permissions: [] as string[] });
 
   const modules = [
@@ -53,7 +53,7 @@ export const AccessControl: React.FC = () => {
     if (!formDataUser.name || !formDataUser.email || !formDataUser.role_id) return alert('Preencha os campos.');
     const data = {
       ...formDataUser,
-      role_id: Number(formDataUser.role_id),
+      role_id: formDataUser.role_id,
     };
     if (isEditingUser) {
       await localUsersApi.update(isEditingUser.id, data);
@@ -78,14 +78,14 @@ export const AccessControl: React.FC = () => {
     loadData();
   };
 
-  const handleDeleteUser = async (id: number) => {
+  const handleDeleteUser = async (id: string) => {
     if (confirm('Tem certeza que deseja excluir o usuário?')) {
       await localUsersApi.delete(id);
       loadData();
     }
   };
 
-  const handleDeleteRole = async (id: number) => {
+  const handleDeleteRole = async (id: string) => {
     if (confirm('Atenção! Ao excluir este cargo, os usuários com ele perderão os acessos até que outro seja atribuído. Confirmar?')) {
       await localRolesApi.delete(id);
       loadData();
@@ -137,7 +137,7 @@ export const AccessControl: React.FC = () => {
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cargo</label>
-              <select value={formDataUser.role_id} onChange={e => setFormDataUser(prev => ({...prev, role_id: e.target.value === "" ? "" : Number(e.target.value)}))} className="w-full border-slate-300 rounded-xl p-2 bg-white">
+              <select value={formDataUser.role_id} onChange={e => setFormDataUser(prev => ({...prev, role_id: e.target.value}))} className="w-full border-slate-300 rounded-xl p-2 bg-white">
                 <option value="">Selecione um cargo</option>
                 {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
               </select>

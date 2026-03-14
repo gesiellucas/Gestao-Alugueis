@@ -21,7 +21,7 @@ export const VeiculosPage: React.FC = () => {
   const { vehicles, customers, rentalContracts, maintenanceRecords, vehicleStatuses } = useAppContext();
   const router = useRouter();
 
-  const [statusFilter, setStatusFilter] = useState<number | "TODOS">("TODOS");
+  const [statusFilter, setStatusFilter] = useState<string | "TODOS">("TODOS");
   const [plateFilter, setPlateFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState<string>("TODAS");
   const [sortKey, setSortKey] = useState<SortKey>("brand");
@@ -136,7 +136,7 @@ export const VeiculosPage: React.FC = () => {
         <div className="flex items-center gap-2">
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value === "TODOS" ? "TODOS" : Number(e.target.value))}
+            onChange={(e) => setStatusFilter(e.target.value)}
             className="px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#004AAD] focus:border-transparent transition-all"
           >
             <option value="TODOS">Todos os status</option>

@@ -11,68 +11,92 @@ export interface Database {
     Tables: {
       workshops: {
         Row: {
-          id: number;
+          id: string;
           name: string;
           address: string | null;
           status: 'ACTIVE' | 'INACTIVE';
           created_at: string;
           updated_at: string;
-          deleted_at: string | null;
+          updated_by: string | null;
+          device_id: string;
+          version: number;
+          is_deleted: number;
+          sync_status: string;
         };
         Insert: {
-          id?: number;
+          id: string;
           name: string;
           address?: string | null;
           status?: 'ACTIVE' | 'INACTIVE';
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Update: {
-          id?: number;
+          id?: string;
           name?: string;
           address?: string | null;
           status?: 'ACTIVE' | 'INACTIVE';
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id?: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Relationships: [];
       };
       app_users: {
         Row: {
-          id: number;
+          id: string;
           name: string;
           email: string;
-          role_id: number;
+          role_id: string;
           created_at: string;
           updated_at: string;
-          deleted_at: string | null;
+          updated_by: string | null;
+          device_id: string;
+          version: number;
+          is_deleted: number;
+          sync_status: string;
         };
         Insert: {
-          id?: number;
+          id: string;
           name: string;
           email: string;
-          role_id: number;
+          role_id: string;
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Update: {
-          id?: number;
+          id?: string;
           name?: string;
           email?: string;
-          role_id?: number;
+          role_id?: string;
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id?: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Relationships: [];
       };
       customers: {
         Row: {
-          id: number;
-          user_id: number;
+          id: string;
+          user_id: string;
           name: string;
           phone: string | null;
           cpf: string | null;
@@ -81,11 +105,15 @@ export interface Database {
           last_payment_date: string | null;
           created_at: string;
           updated_at: string;
-          deleted_at: string | null;
+          updated_by: string | null;
+          device_id: string;
+          version: number;
+          is_deleted: number;
+          sync_status: string;
         };
         Insert: {
-          id?: number;
-          user_id: number;
+          id: string;
+          user_id: string;
           name: string;
           phone?: string | null;
           cpf?: string | null;
@@ -94,11 +122,15 @@ export interface Database {
           last_payment_date?: string | null;
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Update: {
-          id?: number;
-          user_id?: number;
+          id?: string;
+          user_id?: string;
           name?: string;
           phone?: string | null;
           cpf?: string | null;
@@ -107,112 +139,152 @@ export interface Database {
           last_payment_date?: string | null;
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id?: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Relationships: [];
       };
       vehicle_models: {
         Row: {
-          id: number;
+          id: string;
           name: string;
           brand: string;
           image_url: string | null;
           status: 'ACTIVE' | 'INACTIVE';
           created_at: string;
           updated_at: string;
-          deleted_at: string | null;
+          updated_by: string | null;
+          device_id: string;
+          version: number;
+          is_deleted: number;
+          sync_status: string;
         };
         Insert: {
-          id?: number;
+          id: string;
           name: string;
           brand: string;
           image_url?: string | null;
           status?: 'ACTIVE' | 'INACTIVE';
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Update: {
-          id?: number;
+          id?: string;
           name?: string;
           brand?: string;
           image_url?: string | null;
           status?: 'ACTIVE' | 'INACTIVE';
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id?: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Relationships: [];
       };
       vehicle_statuses: {
         Row: {
-          id: number;
+          id: string;
           name: string;
           color: string;
           is_default: boolean;
           created_at: string;
           updated_at: string;
-          deleted_at: string | null;
+          updated_by: string | null;
+          device_id: string;
+          version: number;
+          is_deleted: number;
+          sync_status: string;
         };
         Insert: {
-          id?: number;
+          id: string;
           name: string;
           color?: string;
           is_default?: boolean;
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Update: {
-          id?: number;
+          id?: string;
           name?: string;
           color?: string;
           is_default?: boolean;
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id?: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Relationships: [];
       };
       vehicles: {
         Row: {
-          id: number;
+          id: string;
           plate: string;
-          model_id: number;
+          model_id: string;
           year: number;
-          status_id: number;
+          status_id: string;
           mileage: number;
-          current_renter_id: number | null;
+          current_renter_id: string | null;
           default_monthly_rate: number;
           created_at: string;
           updated_at: string;
-          deleted_at: string | null;
+          updated_by: string | null;
+          device_id: string;
+          version: number;
+          is_deleted: number;
+          sync_status: string;
         };
         Insert: {
-          id?: number;
+          id: string;
           plate: string;
-          model_id: number;
+          model_id: string;
           year: number;
-          status_id: number;
+          status_id: string;
           mileage?: number;
-          current_renter_id?: number | null;
+          current_renter_id?: string | null;
           default_monthly_rate?: number;
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Update: {
-          id?: number;
+          id?: string;
           plate?: string;
-          model_id?: number;
+          model_id?: string;
           year?: number;
-          status_id?: number;
+          status_id?: string;
           mileage?: number;
-          current_renter_id?: number | null;
+          current_renter_id?: string | null;
           default_monthly_rate?: number;
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id?: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Relationships: [
           {
@@ -240,43 +312,55 @@ export interface Database {
       };
       rentals: {
         Row: {
-          id: number;
-          user_id: number;
-          vehicle_id: number;
-          customer_id: number;
+          id: string;
+          user_id: string;
+          vehicle_id: string;
+          customer_id: string;
           start_date: string;
           end_date: string | null;
           monthly_rate: number;
           status: 'ACTIVE' | 'ENDED';
           created_at: string;
           updated_at: string;
-          deleted_at: string | null;
+          updated_by: string | null;
+          device_id: string;
+          version: number;
+          is_deleted: number;
+          sync_status: string;
         };
         Insert: {
-          id?: number;
-          user_id: number;
-          vehicle_id: number;
-          customer_id: number;
+          id: string;
+          user_id: string;
+          vehicle_id: string;
+          customer_id: string;
           start_date: string;
           end_date?: string | null;
           monthly_rate: number;
           status?: 'ACTIVE' | 'ENDED';
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Update: {
-          id?: number;
-          user_id?: number;
-          vehicle_id?: number;
-          customer_id?: number;
+          id?: string;
+          user_id?: string;
+          vehicle_id?: string;
+          customer_id?: string;
           start_date?: string;
           end_date?: string | null;
           monthly_rate?: number;
           status?: 'ACTIVE' | 'ENDED';
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id?: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Relationships: [
           {
@@ -297,25 +381,37 @@ export interface Database {
       };
       contracts: {
         Row: {
-          id: number;
-          rental_id: number;
+          id: string;
+          rental_id: string;
           created_at: string;
           updated_at: string;
-          deleted_at: string | null;
+          updated_by: string | null;
+          device_id: string;
+          version: number;
+          is_deleted: number;
+          sync_status: string;
         };
         Insert: {
-          id?: number;
-          rental_id: number;
+          id: string;
+          rental_id: string;
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Update: {
-          id?: number;
-          rental_id?: number;
+          id?: string;
+          rental_id?: string;
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id?: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Relationships: [
           {
@@ -329,11 +425,11 @@ export interface Database {
       };
       maintenance_records: {
         Row: {
-          id: number;
-          user_id: number;
-          vehicle_id: number;
-          customer_id: number | null;
-          workshop_id: number | null;
+          id: string;
+          user_id: string;
+          vehicle_id: string;
+          customer_id: string | null;
+          workshop_id: string | null;
           vehicle_plate: string;
           entry_date: string;
           completion_date: string | null;
@@ -344,14 +440,18 @@ export interface Database {
           status: 'OPEN' | 'COMPLETED';
           created_at: string;
           updated_at: string;
-          deleted_at: string | null;
+          updated_by: string | null;
+          device_id: string;
+          version: number;
+          is_deleted: number;
+          sync_status: string;
         };
         Insert: {
-          id?: number;
-          user_id: number;
-          vehicle_id: number;
-          customer_id?: number | null;
-          workshop_id?: number | null;
+          id: string;
+          user_id: string;
+          vehicle_id: string;
+          customer_id?: string | null;
+          workshop_id?: string | null;
           vehicle_plate: string;
           entry_date?: string;
           completion_date?: string | null;
@@ -362,14 +462,18 @@ export interface Database {
           status?: 'OPEN' | 'COMPLETED';
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Update: {
-          id?: number;
-          user_id?: number;
-          vehicle_id?: number;
-          customer_id?: number | null;
-          workshop_id?: number | null;
+          id?: string;
+          user_id?: string;
+          vehicle_id?: string;
+          customer_id?: string | null;
+          workshop_id?: string | null;
           vehicle_plate?: string;
           entry_date?: string;
           completion_date?: string | null;
@@ -380,7 +484,11 @@ export interface Database {
           status?: 'OPEN' | 'COMPLETED';
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id?: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Relationships: [
           {
@@ -401,31 +509,43 @@ export interface Database {
       };
       documents: {
         Row: {
-          id: number;
-          parent_id: number;
+          id: string;
+          parent_id: string;
           origin_type: 'CONTRACT' | 'WORKSHOP';
           file_url: string;
           created_at: string;
           updated_at: string;
-          deleted_at: string | null;
+          updated_by: string | null;
+          device_id: string;
+          version: number;
+          is_deleted: number;
+          sync_status: string;
         };
         Insert: {
-          id?: number;
-          parent_id: number;
+          id: string;
+          parent_id: string;
           origin_type: 'CONTRACT' | 'WORKSHOP';
           file_url: string;
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Update: {
-          id?: number;
-          parent_id?: number;
+          id?: string;
+          parent_id?: string;
           origin_type?: 'CONTRACT' | 'WORKSHOP';
           file_url?: string;
           created_at?: string;
           updated_at?: string;
-          deleted_at?: string | null;
+          updated_by?: string | null;
+          device_id?: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
         };
         Relationships: [];
       };

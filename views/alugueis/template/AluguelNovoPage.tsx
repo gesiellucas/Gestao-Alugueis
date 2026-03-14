@@ -15,7 +15,7 @@ import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const AluguelNovoPage: React.FC = () => {
   const params = useParams();
-  const preselectedVehicleId = params.vehicleId ? Number(params.vehicleId) : undefined;
+  const preselectedVehicleId = params.vehicleId ? (params.vehicleId as string) : undefined;
   const router = useRouter();
   const { vehicles, customers, handleCreateRental } = useAppContext();
 
@@ -23,10 +23,10 @@ export const AluguelNovoPage: React.FC = () => {
     (v) => v.status_id === VEHICLE_STATUS_IDS.AVAILABLE,
   );
 
-  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(preselectedVehicleId ?? null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(preselectedVehicleId ?? null);
   const vehicle = vehicles.find((v) => v.id === selectedVehicleId);
 
-  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [monthlyRate, setMonthlyRate] = useState(
     vehicle?.default_monthly_rate?.toString() || "",
   );

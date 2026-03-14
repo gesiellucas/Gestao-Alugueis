@@ -9,7 +9,7 @@ export const OficinaPage: React.FC = () => {
   const { maintenanceRecords: records, workshops, handleFinishMaintenance } =
     useAppContext();
 
-  const [selectedWorkshopId, setSelectedWorkshopId] = useState<number | "">("");
+  const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | "">("");
 
   const filteredRecords = selectedWorkshopId
     ? records.filter((r) => r.workshop_id === selectedWorkshopId)
@@ -44,7 +44,7 @@ export const OficinaPage: React.FC = () => {
         <select
           className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all appearance-none min-w-[220px]"
           value={selectedWorkshopId}
-          onChange={(e) => setSelectedWorkshopId(e.target.value === "" ? "" : Number(e.target.value))}
+          onChange={(e) => setSelectedWorkshopId(e.target.value)}
         >
           <option value="">Todas as oficinas</option>
           {workshops.map((w) => (

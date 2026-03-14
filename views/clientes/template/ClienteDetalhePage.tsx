@@ -17,7 +17,7 @@ import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const ClienteDetalhePage: React.FC = () => {
   const params = useParams();
-  const id = Number(params.id);
+  const id = params.id as string;
   const router = useRouter();
   const { customers, vehicles } = useAppContext();
 

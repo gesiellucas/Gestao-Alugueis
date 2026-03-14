@@ -1,5 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 
+console.log('[PRELOAD] Preload script starting...');
+
 // Whitelist of all valid IPC channels for security
 const VALID_CHANNELS = [
   // Config

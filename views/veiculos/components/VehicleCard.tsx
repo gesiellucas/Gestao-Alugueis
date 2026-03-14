@@ -6,20 +6,20 @@ import { Hash, Circle, User, DollarSign, Wrench } from "lucide-react";
 import { VEHICLE_STATUS_IDS } from "../../../types";
 
 interface VehicleCardProps {
-  id: number;
+  id: string;
   image_url: string;
   model: string;
-  status_id: number;
+  status_id: string;
   statusName: string;
   statusColor: string;
   year: number;
   brand: string;
   plate: string;
   mileage: number;
-  current_renter_id?: number | null;
+  current_renter_id?: string | null;
   renterName?: string;
   monthly_rate: number;
-  maintenanceId?: number;
+  maintenanceId?: string;
 }
 
 export const VehicleCard = ({

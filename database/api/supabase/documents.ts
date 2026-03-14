@@ -73,10 +73,8 @@ export const supabaseDocumentsApi = {
     // 3. Salva registro na tabela documents
     const { data, error: insertError } = await supabase
       .from('documents')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .insert({
-        id: crypto.randomUUID(),
-        parent_id: String(contractId),
+        parent_id: contractId,
         origin_type: 'CONTRACT',
         file_url: fileUrl,
       } as any)

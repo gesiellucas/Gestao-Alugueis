@@ -35,14 +35,13 @@ export const supabaseContractsApi = {
    * Cria um contrato vinculado a um aluguel.
    */
   async create(rentalId: number): Promise<Contract> {
-    const { data, error } = await supabase
+    const { data, error: insertError } = await supabase
       .from('contracts')
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .insert({ id: crypto.randomUUID(), rental_id: rentalId } as any)
+      .insert({ rental_id: rentalId } as any)
       .select()
       .single();
 
-    if (error) throw error;
+    if (insertError) throw insertError;
     return mapRow(data as Record<string, unknown>);
   },
 

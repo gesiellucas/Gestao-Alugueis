@@ -43,8 +43,8 @@ export const ClienteNovoPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader 
-        title="Novo Cliente" 
+      <ModuleHeader
+        title="Novo Cliente"
         subtitle="Cadastre um novo locatário no sistema."
         breadcrumbs={[
           { label: "Clientes", href: "/clientes" },
@@ -52,20 +52,20 @@ export const ClienteNovoPage: React.FC = () => {
         ]}
       />
 
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="bg-[#004AAD] p-8">
-          <h3 className="font-black text-xl uppercase tracking-tighter text-white">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="bg-brand-blue p-4">
+          <h3 className="font-bold text-sm text-white">
             Cadastro de Cliente
           </h3>
         </div>
-        <form onSubmit={handleSubmit} className="p-10 space-y-6">
+        <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 rounded-xl p-4 font-medium text-sm">
               {error}
             </div>
           )}
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+            <label className="block text-xs font-bold text-slate-400 mb-2">
               Nome Completo
             </label>
             <input
@@ -80,7 +80,7 @@ export const ClienteNovoPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 mb-2">
                 Telefone (WhatsApp)
               </label>
               <input
@@ -93,7 +93,7 @@ export const ClienteNovoPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 mb-2">
                 CPF
               </label>
               <input
@@ -118,9 +118,9 @@ export const ClienteNovoPage: React.FC = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-bold shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save size={18} /> {submitting ? "Cadastrando..." : "Cadastrar"}
+              {submitting ? "Cadastrando..." : "Cadastrar"}
             </button>
           </div>
         </form>

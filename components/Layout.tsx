@@ -178,12 +178,12 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
 
         <div className="p-6 border-t border-white/10 bg-[#003d91]">
           <div className="mb-4 px-2 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#0C4AA5] flex items-center justify-center text-[10px] font-black text-white shadow-md shadow-orange-600/30">
+            <div className="w-8 h-8 rounded-full bg-[#0C4AA5] flex items-center justify-center text-[10px] font-bold text-white shadow-md shadow-orange-600/30">
               {user.name.charAt(0)}
             </div>
             <div className="overflow-hidden">
               <p className="text-xs font-bold truncate">{user.name}</p>
-              <p className="text-[10px] text-orange-300 font-black uppercase tracking-tighter">
+              <p className="text-[10px] text-orange-300 font-bold uppercase tracking-tighter">
                 {user.role?.name || "USUÁRIO"}
               </p>
             </div>
@@ -262,7 +262,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
               ))}
               {hasPerm('configuracoes') && (
                 <div className="space-y-2">
-                  <div className={`flex items-center gap-4 px-5 py-3 text-sm font-black uppercase tracking-widest ${isSettingsOpen ? "text-[#0C4AA5]" : "text-blue-300"}`}>
+                  <div className={`flex items-center gap-4 px-5 py-3 text-sm font-bold uppercase tracking-widest ${isSettingsOpen ? "text-[#0C4AA5]" : "text-blue-300"}`}>
                     <Settings size={18} />
                     Configurações
                   </div>

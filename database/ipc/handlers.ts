@@ -46,10 +46,12 @@ export function initDatabase(): void {
   }
 }
 
-// Helper to remove undefined values before binding to SQLite
+// Helper to remove undefined values and convert booleans to integers before binding to SQLite
 function cleanObject<T extends object>(obj: T): T {
   return Object.fromEntries(
-    Object.entries(obj).filter(([, v]) => v !== undefined)
+    Object.entries(obj)
+      .filter(([, v]) => v !== undefined)
+      .map(([k, v]) => [k, typeof v === 'boolean' ? (v ? 1 : 0) : v])
   ) as T;
 }
 

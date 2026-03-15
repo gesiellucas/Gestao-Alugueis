@@ -95,7 +95,7 @@ export const VeiculosPage: React.FC = () => {
   const Th = ({ col, label }: { col: SortKey; label: string }) => (
     <th
       onClick={() => handleSort(col)}
-      className="px-4 py-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider cursor-pointer select-none hover:text-blue-600 transition-colors whitespace-nowrap"
+      className="px-4 py-3 text-left text-xs font-bold text-white uppercase tracking-wider cursor-pointer select-none hover:text-blue-600 transition-colors whitespace-nowrap"
     >
       <span className="inline-flex items-center gap-1">
         {label}
@@ -106,18 +106,18 @@ export const VeiculosPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader 
-        title="Veículos" 
-        subtitle="Gestão completa das motocicletas GC Locamoto." 
+      <ModuleHeader
+        title="Veículos"
+        subtitle="Gestão completa das motocicletas GC Locamoto."
         breadcrumbs={[{ label: "Veículos" }]}
         extraHeader={
-        <Link
-          href="/veiculo/novo_veiculo"
-          className="bg-blue-600 text-white px-4 py-2 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2"
-        >
-          Nova Motocicleta
-        </Link>
-      }/>
+          <Link
+            href="/veiculo/novo_veiculo"
+            className="bg-brand-blue text-white px-4 py-2 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2"
+          >
+            Nova Motocicleta
+          </Link>
+        } />
 
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 flex items-center gap-3">
         <div className="flex flex-col sm:flex-row gap-3">
@@ -158,14 +158,12 @@ export const VeiculosPage: React.FC = () => {
         <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-slate-50 border-b border-slate-100">
-                <tr>
-                  <Th col="plate"        label="Placa" />
-                  <Th col="model"        label="Modelo" />
-                  <Th col="year"         label="Ano" />
-                  <Th col="mileage"      label="Km" />
-                  <Th col="renter"       label="Locatário / Situação" />
-                  <Th col="status"       label="Status" />
+              <thead className="bg-brand-blue text-white">
+                <tr className="[&>th]:px-6 [&>th]:py-4 [&>th]:text-left [&>th]:text-xs [&>th]:font-bold [&>th]:uppercase [&>th]:tracking-widest">
+                  <Th col="plate" label="Placa" />
+                  <Th col="model" label="Modelo" />
+                  <Th col="year" label="Ano" />
+                  <Th col="renter" label="Locatário / Situação" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -178,14 +176,12 @@ export const VeiculosPage: React.FC = () => {
                     <td className="px-4 py-3 font-mono font-bold text-slate-700">{row.plate}</td>
                     <td className="px-4 py-3 font-semibold text-[#004AAD]">{row.model}</td>
                     <td className="px-4 py-3 text-slate-500">{row.year}</td>
-                    <td className="px-4 py-3 text-slate-600">{row.mileage.toLocaleString("pt-BR")} km</td>
                     <td className="px-4 py-3">
                       {row.status_id === VEHICLE_STATUS_IDS.RENTED && row.renterId ? (
                         <button
                           onClick={(e) => { e.stopPropagation(); router.push(`/cliente/${row.renterId}`); }}
                           className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-semibold"
                         >
-                          <User size={13} />
                           {row.renter || "Ver locatário"}
                         </button>
                       ) : row.status_id === VEHICLE_STATUS_IDS.MAINTENANCE && row.maintenanceId ? (
@@ -193,24 +189,11 @@ export const VeiculosPage: React.FC = () => {
                           onClick={(e) => { e.stopPropagation(); router.push(`/oficina/${row.maintenanceId}`); }}
                           className="inline-flex items-center gap-1.5 text-amber-600 hover:text-amber-800 font-semibold"
                         >
-                          <Wrench size={13} />
                           Ver ticket
                         </button>
                       ) : (
                         <span className="text-green-600 font-semibold text-xs">Disponível</span>
                       )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className="px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border"
-                        style={{
-                          backgroundColor: `${row.statusColor}20`,
-                          color: row.statusColor,
-                          borderColor: `${row.statusColor}40`,
-                        }}
-                      >
-                        {row.status}
-                      </span>
                     </td>
                   </tr>
                 ))}

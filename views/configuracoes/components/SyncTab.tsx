@@ -31,8 +31,8 @@ export const SyncTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <ModuleHeader 
-        title="Sincronização de Banco de Dados" 
+      <ModuleHeader
+        title="Sincronização de Banco de Dados"
         subtitle="Garanta que seus dados estão salvos na nuvem (Supabase)."
         breadcrumbs={[
           { label: "Configurações", href: "/configuracoes" },
@@ -48,7 +48,7 @@ export const SyncTab: React.FC = () => {
                 <Server size={24} />
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   Status da Nuvem
                 </p>
                 <p className="text-lg font-bold text-slate-700">Offline-First Ativo</p>
@@ -60,7 +60,7 @@ export const SyncTab: React.FC = () => {
                 <RefreshCw size={24} className={syncMutation.isPending ? "animate-spin" : ""} />
               </div>
               <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   Alterações Pendentes
                 </p>
                 <p className="text-lg font-bold text-slate-700">
@@ -77,7 +77,7 @@ export const SyncTab: React.FC = () => {
               <button
                 onClick={handleManualSync}
                 disabled={syncMutation.isPending}
-                className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg"
+                className="w-full py-5 bg-blue-600 text-white rounded-2xl font-bold uppercase tracking-widest shadow-xl shadow-blue-600/20 hover:bg-blue-700 hover:-translate-y-1 transition-all disabled:opacity-50 disabled:hover:translate-y-0 disabled:cursor-not-allowed flex items-center justify-center gap-3 text-lg"
               >
                 <RefreshCw size={22} className={syncMutation.isPending ? "animate-spin" : ""} />
                 {syncMutation.isPending ? "Sincronizando..." : "Sincronizar Agora"}

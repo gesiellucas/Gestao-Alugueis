@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
-import { PlusCircle, ShieldAlert, Clock, CheckCircle, Building2 } from "lucide-react";
+import { ShieldAlert, Clock, CheckCircle, Building2 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const OficinaPage: React.FC = () => {
@@ -32,7 +32,7 @@ export const OficinaPage: React.FC = () => {
         extraHeader={
           <Link
             href="/oficina/novo_entrada"
-            className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-medium transition-all shadow-lg shadow-amber-100 active:scale-95 flex items-center gap-2"
+            className="bg-brand-blue hover:bg-brand-blue/90 text-white px-4 py-2 rounded-xl font-medium transition-all active:scale-95 flex items-center gap-2"
           >
             Registrar Entrada
           </Link>
@@ -40,7 +40,6 @@ export const OficinaPage: React.FC = () => {
 
       {/* Workshop Filter */}
       <div className="flex items-center gap-3">
-        <Building2 size={18} className="text-slate-400 shrink-0" />
         <select
           className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all appearance-none min-w-[220px]"
           value={selectedWorkshopId}
@@ -57,12 +56,11 @@ export const OficinaPage: React.FC = () => {
 
       {/* Active Maintenance Table */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-amber-50">
-          <ShieldAlert size={18} className="text-amber-500" />
-          <h3 className="font-bold text-[#004AAD] uppercase tracking-tight text-sm">
+        <div className="flex bg-brand-blue items-center gap-3 px-6 py-4 border-b border-slate-100">
+          <h3 className="font-bold text-white uppercase tracking-tight text-sm">
             Em Manutenção Agora
           </h3>
-          <span className="ml-auto bg-amber-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
+          <span className="ml-auto bg-amber-500 text-white text-xs px-2.5 py-0.5 rounded-full">
             {activeRecords.length}
           </span>
         </div>
@@ -122,12 +120,11 @@ export const OficinaPage: React.FC = () => {
 
       {/* History Table */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50">
-          <CheckCircle size={18} className="text-green-500" />
-          <h3 className="font-bold text-[#004AAD] uppercase tracking-tight text-sm">
+        <div className="flex bg-brand-blue items-center gap-3 px-6 py-4 border-b border-slate-100">
+          <h3 className="font-bold text-white uppercase tracking-tight text-sm">
             Histórico de Manutenções
           </h3>
-          <span className="ml-auto bg-slate-200 text-slate-600 text-xs font-bold px-2.5 py-0.5 rounded-full">
+          <span className="ml-auto bg-slate-200 text-slate-600 text-xs px-2.5 py-0.5 rounded-full">
             {historyRecords.length}
           </span>
         </div>
@@ -140,12 +137,12 @@ export const OficinaPage: React.FC = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100">
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Placa</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Tipo</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Mecânico</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Observação</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Concluído</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Custo</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Placa</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Tipo</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Observação</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Concluído</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Custo</th>
                 </tr>
               </thead>
               <tbody>
@@ -154,7 +151,7 @@ export const OficinaPage: React.FC = () => {
                     <td className="px-6 py-4">
                       <Link
                         href={`/oficina/${record.vehicle_id}`}
-                        className="font-black text-slate-600 bg-slate-100 px-3 py-1 rounded-lg text-sm uppercase tracking-tight hover:bg-slate-200 transition-colors"
+                        className="font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-lg text-sm uppercase tracking-tight hover:bg-slate-200 transition-colors"
                       >
                         {record.vehicle_plate}
                       </Link>

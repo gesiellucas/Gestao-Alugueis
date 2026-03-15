@@ -65,7 +65,7 @@ export const VehicleCard = ({
         {image_url ? <img src={image_url} alt={model} /> : null}
         <div className="absolute top-4 right-4">
           <span
-            className="px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border"
+            className="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase tracking-widest border"
             style={{
               backgroundColor: `${statusColor}20`,
               color: statusColor,
@@ -78,7 +78,7 @@ export const VehicleCard = ({
       </div>
       <div className="p-4">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">
+          <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">
             {brand}
           </span>
           <span className="text-xs font-bold text-slate-400">{year}</span>
@@ -87,7 +87,7 @@ export const VehicleCard = ({
           {model}
         </h3>
 
-        <div className="flex flex-col [&>p]:text-sm [&>p]:font-black [&>p]:text-slate-700 [&>p>span]:font-normal py-4">
+        <div className="flex flex-col [&>p]:text-sm [&>p]:font-bold [&>p]:text-slate-700 [&>p>span]:font-normal py-4">
           <p>
             Placa: <span>{plate}</span>
           </p>
@@ -112,7 +112,7 @@ export const VehicleCard = ({
                 <p className="text-[10px] font-bold text-blue-600 uppercase">
                   Locatário Atual
                 </p>
-                <p className="text-xs font-black text-blue-900 truncate">
+                <p className="text-xs font-bold text-blue-900 truncate">
                   {renterName || "Cliente Ativo"}
                 </p>
               </div>
@@ -129,7 +129,7 @@ export const VehicleCard = ({
                 <p className="text-[10px] font-bold text-amber-600 uppercase">
                   Em Manutenção
                 </p>
-                <p className="text-xs font-black text-amber-900 truncate">
+                <p className="text-xs font-bold text-amber-900 truncate">
                   Ver Ticket
                 </p>
               </div>

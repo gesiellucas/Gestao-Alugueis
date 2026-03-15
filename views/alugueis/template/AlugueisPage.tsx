@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { Search, Calendar, User, Bike, DollarSign, CheckCircle, XCircle, Plus } from "lucide-react";
+import { Search } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const AlugueisPage: React.FC = () => {
@@ -66,7 +66,7 @@ export const AlugueisPage: React.FC = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => router.push("/alugueis/novo")}
-              className="flex items-center gap-2 px-4 py-2.5 bg-[#004AAD] text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors shadow-md shadow-blue-200"
+              className="flex items-center gap-2 px-4 py-2.5 bg-brand-blue text-white rounded-xl text-sm font-medium hover:bg-brand-blue-dark transition-colors shadow-md shadow-blue-200 ring-1 ring-black/10"
             >
               Novo Aluguel
             </button>
@@ -85,18 +85,18 @@ export const AlugueisPage: React.FC = () => {
               placeholder="Buscar por cliente, placa, modelo ou CPF..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#004AAD] focus:border-transparent transition-all"
+              className="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent transition-all"
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center justify-center">
             {["TODOS", "ACTIVE", "ENDED"].map((status) => (
               <button
                 key={status}
                 onClick={() => setStatusFilter(status)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all ${statusFilter === status
-                  ? "bg-blue-600 text-white shadow-md shadow-blue-200"
-                  : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium tracking-wider transition-all ${statusFilter === status
+                  ? "bg-brand-blue text-white shadow-md shadow-blue-200"
+                  : "bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/20"
                   }`}
               >
                 {status === "TODOS" ? "Todos" : status === "ACTIVE" ? "Ativos" : "Encerrados"}
@@ -109,15 +109,14 @@ export const AlugueisPage: React.FC = () => {
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-[#004AAD] text-white">
-              <tr>
-                <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Status</th>
-                <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Cliente</th>
-                <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">CPF</th>
-                <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Placa</th>
-                <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Início</th>
-                <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Duração</th>
-                <th className="px-6 py-4 text-left text-xs font-black uppercase tracking-widest">Valor Mensal</th>
+            <thead className="bg-brand-blue text-white">
+              <tr className="[&>th]:text-center [&>th]:px-6 [&>th]:py-4 [&>th]:text-left [&>th]:text-xs [&>th]:font-bold [&>th]:uppercase [&>th]:tracking-widest">
+                <th>Cliente</th>
+                <th>CPF</th>
+                <th>Placa</th>
+                <th>Início</th>
+                <th>Status</th>
+                <th>Valor Mensal</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -136,17 +135,6 @@ export const AlugueisPage: React.FC = () => {
                     onClick={() => router.push(`/alugueis/${contract.id}`)}
                   >
                     <td className="px-6 py-4">
-                      {contract.status === "ACTIVE" ? (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-green-100 text-green-700 border border-green-200">
-                          Ativo
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-700 border border-slate-200">
-                          Encerrado
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4">
                       <button
                         onClick={(e) => { e.stopPropagation(); router.push(`/cliente/${contract.customer_id}`); }}
                         className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-bold text-sm transition-colors"
@@ -163,13 +151,22 @@ export const AlugueisPage: React.FC = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-slate-600">
                         <span className="text-sm font-medium">{formatDate(contract.start_date)}</span>
+                        <span className="text-sm font-bold text-slate-700">{calculateDuration(contract.start_date)}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-slate-700">{calculateDuration(contract.start_date)}</span>
+                      {contract.status === "ACTIVE" ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold uppercase tracking-widest bg-green-100 text-green-700 border border-green-200">
+                          Ativo
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-bold uppercase tracking-widest bg-slate-100 text-slate-700 border border-slate-200">
+                          Encerrado
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 text-green-600 font-black">
+                      <div className="flex items-center gap-1.5 text-green-600 font-bold">
                         <span>R$ {contract.monthly_rate?.toFixed(2) ?? '0.00'}</span>
                       </div>
                     </td>
@@ -180,35 +177,6 @@ export const AlugueisPage: React.FC = () => {
           </table>
         </div>
       </div>
-
-      {filteredContracts.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-green-50 rounded-xl border border-green-100">
-              <p className="text-xs font-black text-green-600 uppercase tracking-widest mb-1">Contratos Ativos</p>
-              <p className="text-3xl font-black text-green-700">
-                {filteredContracts.filter((c) => c.status === "ACTIVE").length}
-              </p>
-            </div>
-            <div className="text-center p-4 bg-slate-50 rounded-xl border border-slate-100">
-              <p className="text-xs font-black text-slate-600 uppercase tracking-widest mb-1">Contratos Encerrados</p>
-              <p className="text-3xl font-black text-slate-700">
-                {filteredContracts.filter((c) => c.status === "ENDED").length}
-              </p>
-            </div>
-            <div className="text-center p-4 bg-blue-50 rounded-xl border border-blue-100">
-              <p className="text-xs font-black text-blue-600 uppercase tracking-widest mb-1">Receita Mensal Ativa</p>
-              <p className="text-3xl font-black text-blue-700">
-                R${" "}
-                {filteredContracts
-                  .filter((c) => c.status === "ACTIVE")
-                  .reduce((sum, c) => sum + c.monthly_rate, 0)
-                  .toFixed(2)}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

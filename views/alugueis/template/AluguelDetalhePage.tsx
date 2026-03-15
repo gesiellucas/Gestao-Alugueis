@@ -146,22 +146,20 @@ export const AluguelDetalhePage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <ModuleHeader 
-        title={`Contrato ${id}`} 
-        subtitle="Detalhes do aluguel e documentos vinculados." 
+      <ModuleHeader
+        title={`Contrato ${id}`}
+        subtitle="Detalhes do aluguel e documentos vinculados."
         breadcrumbs={[
           { label: "Aluguéis", href: "/alugueis" },
           { label: String(id) }
         ]}
         extraHeader={
           <span
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-widest border ${
-              isActive
-                ? "bg-green-100 text-green-700 border-green-200"
-                : "bg-slate-100 text-slate-600 border-slate-200"
-            }`}
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest border ${isActive
+              ? "bg-green-100 text-green-700 border-green-200"
+              : "bg-slate-100 text-slate-600 border-slate-200"
+              }`}
           >
-            {isActive ? <CheckCircle size={12} /> : <XCircle size={12} />}
             {isActive ? "Ativo" : "Encerrado"}
           </span>
         }
@@ -172,27 +170,23 @@ export const AluguelDetalhePage: React.FC = () => {
         <div className="flex border-b border-slate-100">
           <button
             onClick={() => setActiveTab("aluguel")}
-            className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 text-sm font-black uppercase tracking-wider transition-colors ${
-              activeTab === "aluguel"
-                ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/40"
-                : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 text-sm font-bold transition-colors ${activeTab === "aluguel"
+              ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/40"
+              : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+              }`}
           >
-            <Bike size={16} />
             Aluguel
           </button>
           <button
             onClick={() => setActiveTab("contrato")}
-            className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 text-sm font-black uppercase tracking-wider transition-colors ${
-              activeTab === "contrato"
-                ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/40"
-                : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 px-6 py-4 text-sm font-bold transition-colors ${activeTab === "contrato"
+              ? "text-blue-600 border-b-2 border-blue-600 bg-blue-50/40"
+              : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
+              }`}
           >
-            <FileText size={16} />
             Documentos
             {documents.length > 0 && (
-              <span className="bg-blue-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">
+              <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
                 {documents.length}
               </span>
             )}
@@ -205,8 +199,8 @@ export const AluguelDetalhePage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Customer */}
               <div className="space-y-1">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <User size={12} /> Cliente
+                <p className="text-sm font-bold text-slate-400 flex items-center gap-1.5">
+                  Cliente
                 </p>
                 {customer ? (
                   <Link
@@ -227,8 +221,8 @@ export const AluguelDetalhePage: React.FC = () => {
 
               {/* Vehicle */}
               <div className="space-y-1">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
-                  <Bike size={12} /> Veículo
+                <p className="text-sm font-bold text-slate-400 flex items-center gap-1.5">
+                  Veículo
                 </p>
                 {vehicle ? (
                   <Link
@@ -243,7 +237,7 @@ export const AluguelDetalhePage: React.FC = () => {
                 {vehicle && (
                   <p className="text-sm text-slate-500 font-medium">
                     {vehicle.model?.brand} &bull;{" "}
-                    <span className="font-black text-slate-700">{vehicle.plate}</span>
+                    <span className="font-bold text-slate-700">{vehicle.plate}</span>
                   </p>
                 )}
               </div>
@@ -251,7 +245,7 @@ export const AluguelDetalhePage: React.FC = () => {
 
             <div className="divide-y divide-slate-100">
               <div className="flex items-center justify-between py-3">
-                <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
                   <Calendar size={12} /> Início
                 </span>
                 <span className="font-bold text-slate-700">
@@ -259,7 +253,7 @@ export const AluguelDetalhePage: React.FC = () => {
                 </span>
               </div>
               <div className="flex items-center justify-between py-3">
-                <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
                   <Calendar size={12} /> Término
                 </span>
                 <span className="font-bold text-slate-700">
@@ -267,16 +261,16 @@ export const AluguelDetalhePage: React.FC = () => {
                 </span>
               </div>
               <div className="flex items-center justify-between py-3">
-                <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
                   <Clock size={12} /> Duração
                 </span>
                 <span className="font-bold text-slate-700">{duration}</span>
               </div>
               <div className="flex items-center justify-between py-3">
-                <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
                   <DollarSign size={12} /> Valor mensal
                 </span>
-                <span className="font-black text-green-600 text-lg">
+                <span className="font-bold text-green-600 text-lg">
                   {(rental.monthly_rate ?? 0).toLocaleString("pt-BR", {
                     style: "currency",
                     currency: "BRL",
@@ -292,13 +286,13 @@ export const AluguelDetalhePage: React.FC = () => {
           <div className="p-6 space-y-4">
             {/* Upload */}
             <div className="flex items-center justify-between">
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+              <p className="text-sm font-bold text-slate-400">
                 Arquivos do contrato
               </p>
               <button
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
-                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-colors"
+                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors"
               >
                 <Upload size={14} />
                 {uploading ? "Enviando..." : "Anexar arquivo"}

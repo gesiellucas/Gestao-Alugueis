@@ -46,8 +46,8 @@ export const ClienteDetalhePage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader 
-        title={customer.name} 
+      <ModuleHeader
+        title={customer.name}
         subtitle={`Informações detalhadas do cliente ${customer.cpf}.`}
         breadcrumbs={[
           { label: "Clientes", href: "/clientes" },
@@ -66,7 +66,7 @@ export const ClienteDetalhePage: React.FC = () => {
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-10">
           <div className="flex items-start gap-6 mb-8">
-            <div className="w-20 h-20 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-black text-3xl border border-blue-100">
+            <div className="w-20 h-20 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-bold text-3xl border border-blue-100">
               {customer.name.charAt(0)}
             </div>
             <div className="flex-1">
@@ -75,11 +75,11 @@ export const ClienteDetalhePage: React.FC = () => {
                   {customer.name}
                 </h2>
                 {customer.active_contract ? (
-                  <span className="bg-green-100 text-green-700 text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest border border-green-200 flex items-center gap-1">
+                  <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-green-200 flex items-center gap-1">
                     <CheckCircle size={12} /> Ativo
                   </span>
                 ) : (
-                  <span className="bg-slate-100 text-slate-500 text-xs font-black px-3 py-1 rounded-full uppercase tracking-widest border border-slate-200">
+                  <span className="bg-slate-100 text-slate-500 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-slate-200">
                     Inativo
                   </span>
                 )}
@@ -102,12 +102,12 @@ export const ClienteDetalhePage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p
-                    className={`text-[10px] font-black uppercase tracking-widest ${hasDebt ? "text-red-400" : "text-green-400"}`}
+                    className={`text-[10px] font-bold uppercase tracking-widest ${hasDebt ? "text-red-400" : "text-green-400"}`}
                   >
                     {hasDebt ? "Débito Pendente" : "Situação Financeira"}
                   </p>
                   <p
-                    className={`font-black text-3xl mt-2 ${hasDebt ? "text-red-600" : "text-green-600"}`}
+                    className={`font-bold text-3xl mt-2 ${hasDebt ? "text-red-600" : "text-green-600"}`}
                   >
                     R$ {customer.balance_due.toFixed(2)}
                   </p>
@@ -127,7 +127,7 @@ export const ClienteDetalhePage: React.FC = () => {
             </div>
 
             <div className="p-6 rounded-xl bg-slate-50 border border-slate-200">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1">
                 <Bike size={12} /> Veículo Vinculado
               </p>
               {vehicle ? (
@@ -139,7 +139,7 @@ export const ClienteDetalhePage: React.FC = () => {
                     {vehicle.model?.name || 'Modelo desconhecido'}
                   </p>
                   <div className="flex items-center gap-3 mt-1">
-                    <span className="text-xs font-black bg-blue-600 text-white px-2 py-1 rounded">
+                    <span className="text-xs font-bold bg-blue-600 text-white px-2 py-1 rounded">
                       {vehicle.plate}
                     </span>
                     <span className="text-sm text-slate-500 font-medium">
@@ -160,7 +160,7 @@ export const ClienteDetalhePage: React.FC = () => {
               onClick={() =>
                 window.open(`https://wa.me/${customer.phone}`, "_blank")
               }
-              className="flex-1 py-4 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-md shadow-green-100"
+              className="flex-1 py-4 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl font-bold text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-md shadow-green-100"
             >
               <MessageSquare size={18} /> Enviar WhatsApp
             </button>

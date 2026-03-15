@@ -83,23 +83,23 @@ export const VeiculoDetalhePage: React.FC = () => {
   return (
     <div className="space-y-8">
 
-      <ModuleHeader 
-        title={`${vehicle.plate}`} 
-        subtitle={vehicle.model?.name || 'Moto'} 
+      <ModuleHeader
+        title={`${vehicle.plate}`}
+        subtitle={vehicle.model?.name || 'Moto'}
         breadcrumbs={[
           { label: "Veículos", href: "/veiculos" },
           { label: vehicle.plate }
         ]}
         extraHeader={<span
-        className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border"
-        style={{
-          backgroundColor: `${statusColor}20`,
-          color: statusColor,
-          borderColor: `${statusColor}40`,
-        }}
-      >
-        {statusName}
-      </span>} />
+          className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border"
+          style={{
+            backgroundColor: `${statusColor}20`,
+            color: statusColor,
+            borderColor: `${statusColor}40`,
+          }}
+        >
+          {statusName}
+        </span>} />
 
       < div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4" >
         <button
@@ -201,11 +201,11 @@ export const VeiculoDetalhePage: React.FC = () => {
           <div className="p-8 flex flex-col justify-center gap-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-black text-blue-600 bg-blue-50 px-3 py-1 rounded uppercase">
+                <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded uppercase">
                   {vehicle.model?.brand || "Marca"}
                 </span>
                 <span
-                  className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border"
+                  className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border"
                   style={{
                     backgroundColor: `${statusColor}20`,
                     color: statusColor,
@@ -222,25 +222,25 @@ export const VeiculoDetalhePage: React.FC = () => {
 
             <div className="divide-y divide-slate-100">
               <div className="flex items-center justify-between py-3">
-                <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
                   <Hash size={12} /> Placa
                 </span>
-                <span className="font-black text-slate-700 font-mono tracking-tight">{vehicle.plate}</span>
+                <span className="font-bold text-slate-700 font-mono tracking-tight">{vehicle.plate}</span>
               </div>
               <div className="flex items-center justify-between py-3">
-                <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
                   <Calendar size={12} /> Ano
                 </span>
                 <span className="font-bold text-slate-700">{vehicle.year}</span>
               </div>
               <div className="flex items-center justify-between py-3">
-                <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
                   <Circle size={12} /> Quilometragem
                 </span>
                 <span className="font-bold text-slate-700">{vehicle.mileage.toLocaleString()} km</span>
               </div>
               <div className="flex items-center justify-between py-3">
-                <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
                   <User size={12} /> Locatário
                 </span>
                 {renter ? (
@@ -256,7 +256,7 @@ export const VeiculoDetalhePage: React.FC = () => {
               </div>
               {renter && (
                 <div className="flex items-center justify-between py-3">
-                  <span className="flex items-center gap-2 text-xs font-black text-slate-400 uppercase tracking-widest">
+                  <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
                     <User size={12} /> Telefone
                   </span>
                   <span className="font-bold text-slate-700">{renter.phone}</span>
@@ -271,10 +271,10 @@ export const VeiculoDetalhePage: React.FC = () => {
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
         <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-blue-50">
           <KeyRound size={18} className="text-blue-600" />
-          <h3 className="font-black text-[#004AAD] uppercase tracking-tight text-sm">
+          <h3 className="font-bold text-[#004AAD] uppercase tracking-tight text-sm">
             Histórico de Aluguéis
           </h3>
-          <span className="ml-auto bg-blue-600 text-white text-xs font-black px-2.5 py-0.5 rounded-full">
+          <span className="ml-auto bg-blue-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
             {vehicleRentals.length}
           </span>
         </div>
@@ -287,11 +287,11 @@ export const VeiculoDetalhePage: React.FC = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Cliente</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Início</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Término</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Valor/mês</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Situação</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Cliente</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Início</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Término</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Valor/mês</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Situação</th>
                 </tr>
               </thead>
               <tbody>
@@ -324,11 +324,11 @@ export const VeiculoDetalhePage: React.FC = () => {
                       </td>
                       <td className="px-6 py-4">
                         {contract.status === "ACTIVE" ? (
-                          <span className="bg-green-100 text-green-700 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-200 inline-flex items-center gap-1">
+                          <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-200 inline-flex items-center gap-1">
                             <CheckCircle size={10} /> Ativo
                           </span>
                         ) : (
-                          <span className="bg-slate-100 text-slate-500 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-slate-200">
+                          <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-slate-200">
                             Encerrado
                           </span>
                         )}
@@ -346,10 +346,10 @@ export const VeiculoDetalhePage: React.FC = () => {
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
         <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50">
           <Wrench size={18} className="text-slate-500" />
-          <h3 className="font-black text-[#004AAD] uppercase tracking-tight text-sm">
+          <h3 className="font-bold text-[#004AAD] uppercase tracking-tight text-sm">
             Histórico de Manutenção
           </h3>
-          <span className="ml-auto bg-slate-200 text-slate-600 text-xs font-black px-2.5 py-0.5 rounded-full">
+          <span className="ml-auto bg-slate-200 text-slate-600 text-xs font-bold px-2.5 py-0.5 rounded-full">
             {vehicleRecords.length}
           </span>
         </div>
@@ -362,12 +362,12 @@ export const VeiculoDetalhePage: React.FC = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Tipo</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Mecânico</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Observação</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Entrada</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Conclusão</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Situação</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Tipo</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Observação</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Entrada</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Conclusão</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Situação</th>
                 </tr>
               </thead>
               <tbody>
@@ -386,11 +386,11 @@ export const VeiculoDetalhePage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       {record.status === "OPEN" ? (
-                        <span className="bg-amber-100 text-amber-700 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-amber-200 inline-flex items-center gap-1">
+                        <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-amber-200 inline-flex items-center gap-1">
                           <Wrench size={10} /> Em andamento
                         </span>
                       ) : (
-                        <span className="bg-green-100 text-green-700 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-200 inline-flex items-center gap-1">
+                        <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-200 inline-flex items-center gap-1">
                           <CheckCircle size={10} /> Concluído
                         </span>
                       )}

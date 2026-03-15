@@ -71,11 +71,11 @@ export const ClientesPage: React.FC = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Cliente</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">CPF</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Veículo</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Situação</th>
-                  <th className="text-left px-6 py-3 text-xs font-black text-slate-400 uppercase tracking-widest">Débito</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Cliente</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">CPF</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Veículo</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Situação</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Débito</th>
                   <th className="px-6 py-3"></th>
                 </tr>
               </thead>
@@ -97,7 +97,7 @@ export const ClientesPage: React.FC = () => {
                       <td className="px-6 py-4">
                         {vehicle ? (
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-black bg-blue-600 text-white px-2 py-0.5 rounded">
+                            <span className="text-xs font-bold bg-blue-600 text-white px-2 py-0.5 rounded">
                               {vehicle.plate}
                             </span>
                           </div>
@@ -107,17 +107,17 @@ export const ClientesPage: React.FC = () => {
                       </td>
                       <td className="px-6 py-4">
                         {customer.active_contract ? (
-                          <span className="bg-green-100 text-green-700 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-200 inline-flex items-center gap-1">
+                          <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-200 inline-flex items-center gap-1">
                             Ativo
                           </span>
                         ) : (
-                          <span className="bg-slate-100 text-slate-500 text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest border border-slate-200">
+                          <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-slate-200">
                             Inativo
                           </span>
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <div className={`inline-flex items-center gap-1.5 font-black text-sm ${hasDebt ? "text-red-600" : "text-green-600"}`}>
+                        <div className={`inline-flex items-center gap-1.5 font-bold text-sm ${hasDebt ? "text-red-600" : "text-green-600"}`}>
                           {(customer.balance_due ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                         </div>
                       </td>

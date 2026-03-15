@@ -59,13 +59,13 @@ export const ClienteEditarPage: React.FC = () => {
         prev.map((c) =>
           c.id === id
             ? {
-                ...c,
-                name: form.name,
-                phone: form.phone,
-                cpf: form.cpf,
-                active_contract: form.active_contract,
-                balance_due: form.balance_due,
-              }
+              ...c,
+              name: form.name,
+              phone: form.phone,
+              cpf: form.cpf,
+              active_contract: form.active_contract,
+              balance_due: form.balance_due,
+            }
             : c,
         ),
       );
@@ -79,8 +79,8 @@ export const ClienteEditarPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader 
-        title="Editar Cliente" 
+      <ModuleHeader
+        title="Editar Cliente"
         subtitle={`Atualizando dados de ${customer.name}.`}
         breadcrumbs={[
           { label: "Clientes", href: "/clientes" },
@@ -91,7 +91,7 @@ export const ClienteEditarPage: React.FC = () => {
 
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="bg-[#004AAD] p-8">
-          <h3 className="font-black text-xl uppercase tracking-tighter text-white">
+          <h3 className="font-bold text-xl uppercase tracking-tighter text-white">
             {customer.name}
           </h3>
         </div>
@@ -102,7 +102,7 @@ export const ClienteEditarPage: React.FC = () => {
             </div>
           )}
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
               Nome Completo
             </label>
             <input
@@ -116,7 +116,7 @@ export const ClienteEditarPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Telefone (WhatsApp)
               </label>
               <input
@@ -128,7 +128,7 @@ export const ClienteEditarPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 CPF
               </label>
               <input
@@ -143,7 +143,7 @@ export const ClienteEditarPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Débito Pendente (R$)
               </label>
               <input
@@ -161,7 +161,7 @@ export const ClienteEditarPage: React.FC = () => {
               />
             </div>
             <div className="flex items-center gap-4">
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">
                 Contrato Ativo
               </label>
               <button
@@ -194,7 +194,7 @@ export const ClienteEditarPage: React.FC = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-bold uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={18} /> {submitting ? "Salvando..." : "Salvar Alterações"}
             </button>

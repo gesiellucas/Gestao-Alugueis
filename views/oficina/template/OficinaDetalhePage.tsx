@@ -56,8 +56,8 @@ export const OficinaDetalhePage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader 
-        title={vehicle.plate} 
+      <ModuleHeader
+        title={vehicle.plate}
         subtitle={`Histórico de manutenções da moto ${vehicle.model?.name || 'Moto'}.`}
         breadcrumbs={[
           { label: "Oficina", href: "/oficina" },
@@ -88,7 +88,7 @@ export const OficinaDetalhePage: React.FC = () => {
                 {vehicle.model?.name || 'Modelo desconhecido'}
               </h2>
               <span
-                className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border"
+                className="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border"
                 style={{
                   backgroundColor: `${statusColor}20`,
                   color: statusColor,
@@ -100,29 +100,29 @@ export const OficinaDetalhePage: React.FC = () => {
             </div>
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-slate-50 p-4 rounded-xl">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
                   <Hash size={10} /> Placa
                 </p>
-                <p className="text-lg font-black text-slate-700 font-mono">
+                <p className="text-lg font-bold text-slate-700 font-mono">
                   {vehicle.plate}
                 </p>
               </div>
               <div className="bg-slate-50 p-4 rounded-xl">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
                   <Circle size={10} /> Km
                 </p>
-                <p className="text-lg font-black text-slate-700">
+                <p className="text-lg font-bold text-slate-700">
                   {vehicle.mileage.toLocaleString()}
                 </p>
               </div>
               <div
                 className={`p-4 rounded-xl ${activeRecords.length > 0 ? "bg-amber-50 border border-amber-200" : "bg-green-50 border border-green-200"}`}
               >
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
                   Status Oficina
                 </p>
                 <p
-                  className={`text-lg font-black ${activeRecords.length > 0 ? "text-amber-700" : "text-green-700"}`}
+                  className={`text-lg font-bold ${activeRecords.length > 0 ? "text-amber-700" : "text-green-700"}`}
                 >
                   {activeRecords.length > 0
                     ? `${activeRecords.length} aberto(s)`
@@ -164,7 +164,7 @@ export const OficinaDetalhePage: React.FC = () => {
                   </div>
                   <button
                     onClick={() => handleFinishMaintenance(record.id)}
-                    className="bg-green-500 hover:bg-green-600 text-white font-black py-3 px-6 rounded-xl transition-all uppercase text-xs tracking-widest whitespace-nowrap"
+                    className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl transition-all uppercase text-xs tracking-widest whitespace-nowrap"
                   >
                     Finalizar e Liberar
                   </button>
@@ -208,7 +208,7 @@ export const OficinaDetalhePage: React.FC = () => {
                       </p>
                     )}
                     {record.cost > 0 && (
-                      <p className="text-slate-700 font-black">
+                      <p className="text-slate-700 font-bold">
                         R$ {record.cost.toFixed(2)}
                       </p>
                     )}

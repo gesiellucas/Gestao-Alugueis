@@ -62,13 +62,13 @@ export const VeiculoEditarPage: React.FC = () => {
         prev.map((v) =>
           v.id === id
             ? {
-                ...v,
-                plate: form.plate,
-                model_id: form.model_id || v.model_id,
-                year: form.year,
-                mileage: form.mileage,
-                model: vehicleModels.find(m => m.id === form.model_id),
-              }
+              ...v,
+              plate: form.plate,
+              model_id: form.model_id || v.model_id,
+              year: form.year,
+              mileage: form.mileage,
+              model: vehicleModels.find(m => m.id === form.model_id),
+            }
             : v,
         ),
       );
@@ -96,7 +96,7 @@ export const VeiculoEditarPage: React.FC = () => {
 
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
         <div className="bg-[#004AAD] p-8">
-          <h3 className="font-black text-xl uppercase tracking-tighter text-white">
+          <h3 className="font-bold text-xl uppercase tracking-tighter text-white">
             {vehicle.plate} - {vehicle.model?.name || 'Modelo desconhecido'}
           </h3>
         </div>
@@ -108,7 +108,7 @@ export const VeiculoEditarPage: React.FC = () => {
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Placa
               </label>
               <input
@@ -122,7 +122,7 @@ export const VeiculoEditarPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Modelo
               </label>
               <select
@@ -138,7 +138,7 @@ export const VeiculoEditarPage: React.FC = () => {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Ano
               </label>
               <input
@@ -153,7 +153,7 @@ export const VeiculoEditarPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Quilometragem
               </label>
               <input
@@ -179,7 +179,7 @@ export const VeiculoEditarPage: React.FC = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-bold uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={18} /> {submitting ? "Salvando..." : "Salvar Alterações"}
             </button>

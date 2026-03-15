@@ -59,8 +59,8 @@ export const OficinaNovePage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader 
-        title="Registrar Entrada" 
+      <ModuleHeader
+        title="Registrar Entrada"
         subtitle="Entrada de veículo para manutenção técnica."
         breadcrumbs={[
           { label: "Oficina", href: "/oficina" },
@@ -68,15 +68,15 @@ export const OficinaNovePage: React.FC = () => {
         ]}
       />
 
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="bg-[#004AAD] p-8">
-          <h3 className="font-black text-xl uppercase tracking-tighter text-white">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="bg-brand-blue p-4">
+          <h3 className="font-bold text-white">
             Entrada de Veículo na Oficina
           </h3>
         </div>
         <form onSubmit={handleSubmit} className="p-10 space-y-6">
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+            <label className="block text-xs font-bold text-slate-400   mb-2">
               Moto da Frota
             </label>
             <select
@@ -95,7 +95,7 @@ export const OficinaNovePage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+            <label className="block text-xs font-bold text-slate-400   mb-2">
               Oficina
             </label>
             <select
@@ -114,7 +114,7 @@ export const OficinaNovePage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+            <label className="block text-xs font-bold text-slate-400   mb-2">
               Tipo de Serviço
             </label>
             <select
@@ -133,7 +133,7 @@ export const OficinaNovePage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+            <label className="block text-xs font-bold text-slate-400   mb-2">
               Mecânico Responsável
             </label>
             <input
@@ -149,7 +149,7 @@ export const OficinaNovePage: React.FC = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+            <label className="block text-xs font-bold text-slate-400   mb-2">
               Observações Técnicas
             </label>
             <textarea
@@ -174,9 +174,9 @@ export const OficinaNovePage: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2"
+              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-bold   shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2"
             >
-              <Save size={18} /> Registrar
+              Registrar
             </button>
           </div>
         </form>

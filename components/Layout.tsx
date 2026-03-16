@@ -24,8 +24,6 @@ import {
   Database,
 } from "lucide-react";
 import { SyncIndicator } from "./SyncIndicator";
-import { useAutoSync } from "../hooks/useSync";
-
 interface LayoutProps {
   user: AppUser;
   onLogout: () => void;
@@ -36,9 +34,6 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isElectron, setIsElectron] = useState(false);
   const pathname = usePathname();
-
-  // Trigger SQLite background sync with Supabase on mount/login
-  useAutoSync(user.id);
 
   useEffect(() => {
     setIsElectron(!!window.electronAPI?.isElectron);

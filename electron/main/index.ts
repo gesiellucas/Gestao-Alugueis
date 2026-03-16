@@ -66,7 +66,7 @@ app.whenReady().then(() => {
           // Fallback to root index.html for unknown routes (SPA behavior)
           targetPath = path.join(app.getAppPath(), 'out', 'index.html');
         }
-      } 
+      }
       // 3. Nested Assets Fix (_next folder)
       else if (!fs.existsSync(targetPath) && pathname.includes('_next/')) {
         const assetPath = pathname.substring(pathname.indexOf('_next/'));

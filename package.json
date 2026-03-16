@@ -20,7 +20,10 @@
     "db:generate": "cross-env DRIZZLE_TARGET=sqlite drizzle-kit generate --config=database/drizzle.config.ts && cross-env DRIZZLE_TARGET=pg drizzle-kit generate --config=database/drizzle.pg.config.ts",
     "db:studio": "drizzle-kit studio --config=database/drizzle.studio.config.ts",
     "db:push:supabase": "cross-env DRIZZLE_TARGET=pg drizzle-kit push --config=database/drizzle.pg.config.ts",
-    "db:push:sqlite": "cross-env DRIZZLE_TARGET=sqlite drizzle-kit push --config=database/drizzle.config.ts"
+    "db:push:sqlite": "cross-env DRIZZLE_TARGET=sqlite drizzle-kit push --config=database/drizzle.config.ts",
+    "db:supabase:drop": "node database/scripts/supabase-drop.mjs",
+    "db:supabase:fresh": "node database/scripts/supabase-fresh.mjs",
+    "db:seed": "node database/scripts/supabase-seed.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.40.0",

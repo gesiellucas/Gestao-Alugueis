@@ -18,8 +18,6 @@ import {
   vehicleStatuses,
   workshops,
 } from '../schema/sqlite';
-import { runSeed } from './seed';
-
 // ─── Initialization ───────────────────────────────────────────────────────────
 
 export function initDatabase(): void {
@@ -38,10 +36,8 @@ export function initDatabase(): void {
 
   try {
     initDb(dbPath, migrationsFolder);
-    runSeed(getDb());
   } catch (error) {
     console.error('Failed to initialize database:', error);
-    // Em desenvolvimento, vamos logar onde ele tentou procurar
     console.error('Tried migrations at:', migrationsFolder);
   }
 }
@@ -51,7 +47,13 @@ function cleanObject<T extends object>(obj: T): T {
   return Object.fromEntries(
     Object.entries(obj)
       .filter(([, v]) => v !== undefined)
-      .map(([k, v]) => [k, typeof v === 'boolean' ? (v ? 1 : 0) : v])
+      .map(([k, v]) => {
+        if (typeof v === 'boolean') return [k, v ? 1 : 0];
+        if (v instanceof Date) return [k, v.toISOString()];
+        if (Array.isArray(v)) return [k, JSON.stringify(v)];
+        if (v !== null && typeof v === 'object') return [k, JSON.stringify(v)];
+        return [k, v];
+      })
   ) as T;
 }
 

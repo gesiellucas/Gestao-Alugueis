@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import { getRawDb } from '../client/sqlite';
 
 let supabase: ReturnType<typeof createClient> | null = null;
-let syncInterval: NodeJS.Timeout | null = null;
 let isSyncing = false;
 
 // Tabelas sincronizadas (app_users NÃO sincroniza — contém senha local)
@@ -26,13 +25,8 @@ const SHARED_TABLES = new Set([
 
 export function initSyncEngine() {
   initSupabaseClient();
-  startPolling(5 * 60 * 1000);
 
-  // Sync imediatamente ao iniciar (se credenciais já existirem)
-  if (supabase) {
-    runSync().catch(() => {});
-  }
-
+  // Sync manual via IPC — não há polling automático
   ipcMain.handle('sync:force', async () => {
     return await runSync();
   });
@@ -66,13 +60,6 @@ function initSupabaseClient() {
   } catch {
     // Credenciais ainda não configuradas
   }
-}
-
-function startPolling(intervalMs: number) {
-  if (syncInterval) clearInterval(syncInterval);
-  syncInterval = setInterval(() => {
-    if (!isSyncing) runSync().catch(() => {});
-  }, intervalMs);
 }
 
 // ─── Core Sync ────────────────────────────────────────────────────────────────
@@ -122,9 +109,9 @@ async function pushChanges() {
 
   for (const table of SYNC_TABLES) {
     const dirtyRecords = db.prepare(`SELECT * FROM ${table} WHERE sync_status = 'pending'`).all() as Record<string, unknown>[];
-    
+
     console.log(`[Sync] Table "${table}": found ${dirtyRecords.length} pending records.`);
-    
+
     if (dirtyRecords.length === 0) {
       continue;
     }
@@ -206,7 +193,7 @@ function upsertLocally(table: string, records: any[]) {
     for (const item of items) {
       // Ensure specific fields exist and have correct values
       if (item.sync_status === undefined) item.sync_status = 'synced';
-      
+
       const values = validColumns.map(c => {
         const val = item[c];
         if (val === undefined) return null;
@@ -235,7 +222,7 @@ function setupRealtimeSubscriptions() {
       } else if (payload.eventType === 'DELETE') {
         try {
           getRawDb().prepare(`DELETE FROM ${payload.table} WHERE id = ?`).run((payload.old as any).id);
-        } catch {}
+        } catch { }
       }
     })
     .subscribe();

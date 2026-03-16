@@ -1,12 +1,12 @@
-import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import { migrate } from 'drizzle-orm/better-sqlite3/migrator';
+import { createClient, type Client } from '@libsql/client';
+import { drizzle, type LibSQLDatabase } from 'drizzle-orm/libsql';
+import { migrate } from 'drizzle-orm/libsql/migrator';
 import * as schema from '../schema/sqlite';
 
-export type DrizzleDb = ReturnType<typeof drizzle<typeof schema>>;
+export type DrizzleDb = LibSQLDatabase<typeof schema>;
 
 let _db: DrizzleDb | null = null;
-let _sqlite: Database.Database | null = null;
+let _client: Client | null = null;
 
 /**
  * Inicializa o banco SQLite com Drizzle ORM e aplica migrações pendentes.
@@ -15,14 +15,19 @@ let _sqlite: Database.Database | null = null;
  * @param dbPath - Caminho absoluto para o arquivo .sqlite
  * @param migrationsFolder - Caminho absoluto para a pasta de migrações geradas pelo drizzle-kit
  */
-export function initDb(dbPath: string, migrationsFolder: string): DrizzleDb {
-  _sqlite = new Database(dbPath);
-  _sqlite.pragma('journal_mode = WAL');
+export async function initDb(dbPath: string, migrationsFolder: string): Promise<DrizzleDb> {
+  // Converte o caminho para formato URL compatível com libsql em Windows
+  const url = `file:${dbPath.replace(/\\/g, '/')}`;
+  
+  _client = createClient({ url });
 
-  _db = drizzle(_sqlite, { schema });
-  migrate(_db, { migrationsFolder });
+  // Aplica PRAGMAs através da execução direta
+  await _client.execute('PRAGMA journal_mode = WAL');
+  await _client.execute('PRAGMA foreign_keys = ON');
 
-  _sqlite.pragma('foreign_keys = ON');
+  _db = drizzle(_client, { schema });
+  
+  await migrate(_db, { migrationsFolder });
 
   return _db;
 }
@@ -39,14 +44,14 @@ export function getDb(): DrizzleDb {
 }
 
 /**
- * Retorna a instância raw do better-sqlite3.
- * Usada pelo sync engine para queries dinâmicas (PRAGMA, upsert genérico).
+ * Retorna a instância Client (libsql).
+ * Usada pelo sync engine para queries dinâmicas.
  */
-export function getRawDb(): Database.Database {
-  if (!_sqlite) {
+export function getRawDb(): Client {
+  if (!_client) {
     throw new Error('Database not initialized. Call initDb() first.');
   }
-  return _sqlite;
+  return _client;
 }
 
 export * from '../schema/sqlite';

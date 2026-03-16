@@ -38,7 +38,7 @@ const isDev = process.env.NODE_ENV === 'development';
 
 // Register custom protocol BEFORE app is ready
 // This allows the SPA to handle all routes with a single index.html
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   const outDir = path.join(app.getAppPath(), 'out');
 
   if (!isDev) {
@@ -83,13 +83,30 @@ app.whenReady().then(() => {
     });
   }
 
-  initDatabase();
+  // 1. Initialize database
+  try {
+    await initDatabase();
+  } catch (err) {
+    console.error('[Main] Failed to initialize database. App will not start.', err);
+    return; // Stop execution
+  }
 
-  // Inject Supabase credentials into local SQLite config (from .env, se disponível)
+  // 2. Inject Supabase credentials into local SQLite config (from .env)
   if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    const rawDb = getRawDb();
-    rawDb.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').run('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL);
-    rawDb.prepare('INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)').run('NEXT_PUBLIC_SUPABASE_ANON_KEY', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+    try {
+      const db = getRawDb();
+      // Using execute for batching or direct execution with libsql client
+      await db.execute({
+        sql: 'INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)',
+        args: ['NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL]
+      });
+      await db.execute({
+        sql: 'INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)',
+        args: ['NEXT_PUBLIC_SUPABASE_ANON_KEY', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY]
+      });
+    } catch (err) {
+      console.error('[Main] Failed to inject Supabase credentials:', err);
+    }
   }
 
   registerIpcHandlers();

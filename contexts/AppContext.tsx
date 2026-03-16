@@ -83,7 +83,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             localStorage.removeItem("electron_user_email");
             localStorage.removeItem("electron_user_id");
           }
-        }).catch(() => {});
+        }).catch(() => { });
       }
     }
   }, []);
@@ -184,10 +184,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         prev.map((r) =>
           r.id === recordId
             ? {
-                ...r,
-                status: "COMPLETED",
-                completion_date: new Date().toISOString(),
-              }
+              ...r,
+              status: "COMPLETED",
+              completion_date: new Date().toISOString(),
+            }
             : r,
         ),
       );

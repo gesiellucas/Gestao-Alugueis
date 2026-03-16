@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Hash, Circle, User, DollarSign, Wrench } from "lucide-react";
 import { VEHICLE_STATUS_IDS } from "../../../types";
+import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
 
 interface VehicleCardProps {
   id: string;
@@ -39,6 +40,7 @@ export const VehicleCard = ({
   maintenanceId,
 }: VehicleCardProps) => {
   const router = useRouter();
+  const hasFinanceAccess = useFinanceAccess();
 
   const handleClientClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -94,9 +96,11 @@ export const VehicleCard = ({
           <p>
             Km: <span>{mileage.toLocaleString()}</span>
           </p>
-          <p>
-            Valor: <span>R$ {monthly_rate.toFixed(2)}</span>
-          </p>
+          {hasFinanceAccess && (
+            <p>
+              Valor: <span>R$ {monthly_rate.toFixed(2)}</span>
+            </p>
+          )}
         </div>
 
         <div className="space-y-3">

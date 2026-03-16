@@ -1,5 +1,7 @@
+'use client';
 import React from "react";
 import { Customer, Vehicle } from "../../../types";
+import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
 import {
   User,
   Phone,
@@ -20,6 +22,8 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
   customers,
   vehicles,
 }) => {
+  const hasFinanceAccess = useFinanceAccess();
+
   // Helper to find which vehicle a customer is using
   const getCustomerVehicle = (customerId: string) => {
     return vehicles.find((v) => v.current_renter_id === customerId);
@@ -109,27 +113,29 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
                     )}
                   </div>
 
-                  <div
-                    className={`p-4 rounded-xl flex items-center justify-between border ${hasDebt ? "bg-red-50 border-red-100" : "bg-green-50 border-green-100"}`}
-                  >
-                    <div>
-                      <p
-                        className={`text-[10px] font-bold uppercase tracking-widest ${hasDebt ? "text-red-400" : "text-green-400"}`}
-                      >
-                        {hasDebt ? "Débito Pendente" : "Situação Financeira"}
-                      </p>
-                      <p
-                        className={`font-bold text-lg ${hasDebt ? "text-red-600" : "text-green-600"}`}
-                      >
-                        R$ {customer.balance_due.toFixed(2)}
-                      </p>
+                  {hasFinanceAccess && (
+                    <div
+                      className={`p-4 rounded-xl flex items-center justify-between border ${hasDebt ? "bg-red-50 border-red-100" : "bg-green-50 border-green-100"}`}
+                    >
+                      <div>
+                        <p
+                          className={`text-[10px] font-bold uppercase tracking-widest ${hasDebt ? "text-red-400" : "text-green-400"}`}
+                        >
+                          {hasDebt ? "Débito Pendente" : "Situação Financeira"}
+                        </p>
+                        <p
+                          className={`font-bold text-lg ${hasDebt ? "text-red-600" : "text-green-600"}`}
+                        >
+                          R$ {customer.balance_due.toFixed(2)}
+                        </p>
+                      </div>
+                      {hasDebt ? (
+                        <AlertCircle className="text-red-400" size={24} />
+                      ) : (
+                        <CheckCircle className="text-green-400" size={24} />
+                      )}
                     </div>
-                    {hasDebt ? (
-                      <AlertCircle className="text-red-400" size={24} />
-                    ) : (
-                      <CheckCircle className="text-green-400" size={24} />
-                    )}
-                  </div>
+                  )}
                 </div>
 
                 <div className="flex gap-3">

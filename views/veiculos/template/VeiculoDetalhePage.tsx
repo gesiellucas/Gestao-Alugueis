@@ -17,6 +17,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
 
 export const VeiculoDetalhePage: React.FC = () => {
   const params = useParams();
@@ -27,6 +28,7 @@ export const VeiculoDetalhePage: React.FC = () => {
   const [endingRental, setEndingRental] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
 
+  const hasFinanceAccess = useFinanceAccess();
   const vehicle = vehicles.find((v) => v.id === id);
 
   if (!vehicle) {
@@ -162,10 +164,12 @@ export const VeiculoDetalhePage: React.FC = () => {
                   <span className="font-bold text-slate-700">Início:</span>{" "}
                   {new Date(activeContract.start_date).toLocaleDateString()}
                 </p>
-                <p className="text-slate-500">
-                  <span className="font-bold text-slate-700">Valor mensal:</span>{" "}
-                  R$ {activeContract.monthly_rate.toFixed(2)}
-                </p>
+                {hasFinanceAccess && (
+                  <p className="text-slate-500">
+                    <span className="font-bold text-slate-700">Valor mensal:</span>{" "}
+                    R$ {activeContract.monthly_rate.toFixed(2)}
+                  </p>
+                )}
               </div>
             )}
             <div className="flex gap-3">
@@ -290,7 +294,7 @@ export const VeiculoDetalhePage: React.FC = () => {
                   <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Cliente</th>
                   <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Início</th>
                   <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Término</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Valor/mês</th>
+                  {hasFinanceAccess && <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Valor/mês</th>}
                   <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Situação</th>
                 </tr>
               </thead>
@@ -319,9 +323,11 @@ export const VeiculoDetalhePage: React.FC = () => {
                           ? new Date(contract.end_date).toLocaleDateString()
                           : "—"}
                       </td>
-                      <td className="px-6 py-4 font-bold text-slate-700">
-                        {contract.monthly_rate.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      </td>
+                      {hasFinanceAccess && (
+                        <td className="px-6 py-4 font-bold text-slate-700">
+                          {contract.monthly_rate.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                        </td>
+                      )}
                       <td className="px-6 py-4">
                         {contract.status === "ACTIVE" ? (
                           <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-200 inline-flex items-center gap-1">

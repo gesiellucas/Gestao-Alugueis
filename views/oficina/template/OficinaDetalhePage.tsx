@@ -12,6 +12,7 @@ import {
   Circle,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
 
 export const OficinaDetalhePage: React.FC = () => {
   const params = useParams();
@@ -19,6 +20,7 @@ export const OficinaDetalhePage: React.FC = () => {
   const router = useRouter();
   const { vehicles, maintenanceRecords, handleFinishMaintenance } =
     useAppContext();
+  const hasFinanceAccess = useFinanceAccess();
 
   const vehicle = vehicles.find((v) => v.id === id);
   const vehicleRecords = maintenanceRecords
@@ -207,7 +209,7 @@ export const OficinaDetalhePage: React.FC = () => {
                         {new Date(record.completion_date).toLocaleDateString()}
                       </p>
                     )}
-                    {record.cost > 0 && (
+                    {hasFinanceAccess && record.cost > 0 && (
                       <p className="text-slate-700 font-bold">
                         R$ {record.cost.toFixed(2)}
                       </p>

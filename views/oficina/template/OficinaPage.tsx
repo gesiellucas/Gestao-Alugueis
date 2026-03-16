@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
 import { ShieldAlert, Clock, CheckCircle, Building2 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
 
 export const OficinaPage: React.FC = () => {
   const { maintenanceRecords: records, workshops, handleFinishMaintenance } =
     useAppContext();
+  const hasFinanceAccess = useFinanceAccess();
 
   const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | "">("");
 
@@ -142,7 +144,7 @@ export const OficinaPage: React.FC = () => {
                   <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</th>
                   <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Observação</th>
                   <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Concluído</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Custo</th>
+                  {hasFinanceAccess && <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Custo</th>}
                 </tr>
               </thead>
               <tbody>
@@ -164,11 +166,13 @@ export const OficinaPage: React.FC = () => {
                         ? new Date(record.completion_date).toLocaleDateString()
                         : "—"}
                     </td>
-                    <td className="px-6 py-4 font-bold text-slate-700">
-                      {record.cost != null
-                        ? record.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-                        : "—"}
-                    </td>
+                    {hasFinanceAccess && (
+                      <td className="px-6 py-4 font-bold text-slate-700">
+                        {record.cost != null
+                          ? record.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+                          : "—"}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

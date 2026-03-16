@@ -1,5 +1,7 @@
+'use client';
 import React, { useState } from 'react';
 import { Customer, Vehicle } from '../../../types';
+import { useFinanceAccess } from '../../../hooks/useFinanceAccess';
 import { generateWhatsAppMessage } from '../../../services/geminiService';
 import { MessageSquare, Send, Sparkles, AlertCircle } from 'lucide-react';
 
@@ -9,6 +11,7 @@ interface BillingProps {
 }
 
 export const Billing: React.FC<BillingProps> = ({ customers, vehicles }) => {
+  const hasFinanceAccess = useFinanceAccess();
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [generatedMessage, setGeneratedMessage] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -66,7 +69,10 @@ export const Billing: React.FC<BillingProps> = ({ customers, vehicles }) => {
                       <p className="font-medium text-slate-900">{customer.name}</p>
                       <p className="text-xs text-slate-500">Venc: {customer.last_payment_date}</p>
                     </div>
-                    <span className="text-red-600 font-bold text-sm">R$ {customer.balance_due.toFixed(2)}</span>
+                    {hasFinanceAccess
+                      ? <span className="text-red-600 font-bold text-sm">R$ {customer.balance_due.toFixed(2)}</span>
+                      : <span className="text-slate-300 font-bold text-sm select-none">•••</span>
+                    }
                   </div>
                 </button>
               ))

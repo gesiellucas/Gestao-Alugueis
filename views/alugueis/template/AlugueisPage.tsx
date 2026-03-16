@@ -4,10 +4,12 @@ import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { Search } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
 
 export const AlugueisPage: React.FC = () => {
   const { rentalContracts, customers, vehicles } = useAppContext();
   const router = useRouter();
+  const hasFinanceAccess = useFinanceAccess();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("TODOS");
@@ -116,7 +118,7 @@ export const AlugueisPage: React.FC = () => {
                 <th>Placa</th>
                 <th>Início</th>
                 <th>Status</th>
-                <th>Valor Mensal</th>
+                {hasFinanceAccess && <th>Valor Mensal</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -165,11 +167,13 @@ export const AlugueisPage: React.FC = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 text-green-600 font-bold">
-                        <span>R$ {contract.monthly_rate?.toFixed(2) ?? '0.00'}</span>
-                      </div>
-                    </td>
+                    {hasFinanceAccess && (
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1.5 text-green-600 font-bold">
+                          <span>R$ {contract.monthly_rate?.toFixed(2) ?? '0.00'}</span>
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))
               )}

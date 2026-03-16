@@ -78,7 +78,7 @@ async function getConfig(key: string): Promise<string | null> {
 }
 
 async function setConfig(key: string, value: string): Promise<void> {
-    await getDb().insert(config).values({ key, value }).onConflictDoUpdate({ target: config.key, set: { value } });
+  await getDb().insert(config).values({ key, value }).onConflictDoUpdate({ target: config.key, set: { value } });
 }
 
 // ─── Sync metadata helpers ────────────────────────────────────────────────────
@@ -102,9 +102,9 @@ async function upsertBatchRaw(table: string, columns: string[], rows: Record<str
   const client = getRawDb();
   const colList = columns.join(', ');
   const placeholders = columns.map(c => `:${c}`).join(', ');
-  
+
   const sql = `INSERT OR REPLACE INTO ${table} (${colList}) VALUES (${placeholders})`;
-  
+
   const batch = rows.map(item => ({
     sql,
     args: item as any,
@@ -188,15 +188,16 @@ export function registerIpcHandlers(): void {
 
   // ── Customers CRUD ──
   ipcMain.handle('db:customers:getAll', async (_e, args: { user_id: string }) => {
+    console.log('getAll customers');
     return await getDb().select().from(customers)
-      .where(and(eq(customers.user_id, args.user_id), eq(customers.is_deleted, 0)))
+      .where(eq(customers.is_deleted, 0))
       .orderBy(customers.name)
       .all();
   });
 
   ipcMain.handle('db:customers:getById', async (_e, args: { id: string; user_id: string }) => {
     return (await getDb().select().from(customers)
-      .where(and(eq(customers.id, args.id), eq(customers.user_id, args.user_id), eq(customers.is_deleted, 0)))
+      .where(and(eq(customers.id, args.id), eq(customers.is_deleted, 0)))
       .get()) ?? null;
   });
 
@@ -602,14 +603,14 @@ export function registerIpcHandlers(): void {
     const roleMap = new Map(allRoles.map(r => [r.id, r]));
     return users.map(u => {
       const role = roleMap.get(u.role_id);
-      return { 
-        ...u, 
-        role: role ? { 
-          ...role, 
-          permissions: typeof role.permissions === 'string' 
-            ? JSON.parse(role.permissions) 
-            : role.permissions 
-        } : undefined 
+      return {
+        ...u,
+        role: role ? {
+          ...role,
+          permissions: typeof role.permissions === 'string'
+            ? JSON.parse(role.permissions)
+            : role.permissions
+        } : undefined
       };
     });
   });
@@ -654,17 +655,17 @@ export function registerIpcHandlers(): void {
     if (!user) return null;
 
     const role = await getDb().select().from(roles).where(and(eq(roles.id, user.role_id), eq(roles.is_deleted, 0))).get();
-    
+
     // Don't leak password in session
     const { password: _, ...userSafe } = user;
 
     return {
       ...userSafe,
-      role: role ? { 
-        ...role, 
-        permissions: typeof role.permissions === 'string' 
-          ? JSON.parse(role.permissions) 
-          : role.permissions 
+      role: role ? {
+        ...role,
+        permissions: typeof role.permissions === 'string'
+          ? JSON.parse(role.permissions)
+          : role.permissions
       } : undefined,
     };
   });

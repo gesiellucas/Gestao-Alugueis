@@ -21,6 +21,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
 
 type Tab = "aluguel" | "contrato";
 
@@ -49,6 +50,7 @@ export const AluguelDetalhePage: React.FC = () => {
   const id = params.id as string;
   const router = useRouter();
   const { rentalContracts, customers, vehicles } = useAppContext();
+  const hasFinanceAccess = useFinanceAccess();
   const [activeTab, setActiveTab] = useState<Tab>("aluguel");
 
   // Documents state
@@ -266,17 +268,19 @@ export const AluguelDetalhePage: React.FC = () => {
                 </span>
                 <span className="font-bold text-slate-700">{duration}</span>
               </div>
-              <div className="flex items-center justify-between py-3">
-                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  <DollarSign size={12} /> Valor mensal
-                </span>
-                <span className="font-bold text-green-600 text-lg">
-                  {(rental.monthly_rate ?? 0).toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
-                </span>
-              </div>
+              {hasFinanceAccess && (
+                <div className="flex items-center justify-between py-3">
+                  <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    <DollarSign size={12} /> Valor mensal
+                  </span>
+                  <span className="font-bold text-green-600 text-lg">
+                    {(rental.monthly_rate ?? 0).toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}

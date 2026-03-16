@@ -19,8 +19,9 @@ export const AluguelNovoPage: React.FC = () => {
   const router = useRouter();
   const { vehicles, customers, handleCreateRental } = useAppContext();
 
+  console.log(customers);
   const availableVehicles = vehicles.filter(
-    (v) => v.status_id === VEHICLE_STATUS_IDS.AVAILABLE,
+    (v) => v.vehicleStatus?.name === VEHICLE_STATUS_IDS.AVAILABLE,
   );
 
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(preselectedVehicleId ?? null);
@@ -45,6 +46,7 @@ export const AluguelNovoPage: React.FC = () => {
   }, [vehicle]);
 
   const availableCustomers = useMemo(() => {
+    console.log(customers);
     return customers.filter((c) => {
       const matchesSearch =
         !customerSearch ||

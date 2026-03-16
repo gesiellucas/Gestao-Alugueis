@@ -8,6 +8,7 @@ import type { InsertDto, UpdateDto } from '../../client/types';
 
 // user_id is read from the current session via Supabase auth in Electron
 function requireUserId(): string {
+  console.log('requireUserId');
   const userId = typeof localStorage !== 'undefined'
     ? localStorage.getItem('electron_user_id')
     : null;
@@ -21,11 +22,12 @@ function toBool(row: Customer & { active_contract: number | boolean }): Customer
 
 export const localCustomersApi = {
   async getAll(): Promise<Customer[]> {
+    console.log('getAll customers');
     const user_id = requireUserId();
+    console.log(user_id);
     try {
       const rows = await ipcInvoke<(Customer & { active_contract: number })[]>(
-        'db:customers:getAll',
-        { user_id }
+        'db:customers:getAll'
       );
       return rows.map(toBool);
     } catch (err) {

@@ -12,8 +12,10 @@ import {
   AlertCircle,
   MessageSquare,
   Bike,
+  Lock,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
 
 export const ClienteDetalhePage: React.FC = () => {
   const params = useParams();
@@ -21,6 +23,7 @@ export const ClienteDetalhePage: React.FC = () => {
   const router = useRouter();
   const { customers, vehicles } = useAppContext();
 
+  const hasFinanceAccess = useFinanceAccess();
   const customer = customers.find((c) => c.id === id);
   const vehicle = vehicles.find((v) => v.current_renter_id === id);
 
@@ -96,35 +99,45 @@ export const ClienteDetalhePage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div
-              className={`p-6 rounded-xl border ${hasDebt ? "bg-red-50 border-red-100" : "bg-green-50 border-green-100"}`}
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p
-                    className={`text-[10px] font-bold uppercase tracking-widest ${hasDebt ? "text-red-400" : "text-green-400"}`}
-                  >
-                    {hasDebt ? "Débito Pendente" : "Situação Financeira"}
-                  </p>
-                  <p
-                    className={`font-bold text-3xl mt-2 ${hasDebt ? "text-red-600" : "text-green-600"}`}
-                  >
-                    R$ {customer.balance_due.toFixed(2)}
-                  </p>
-                  {customer.last_payment_date && (
-                    <p className="text-xs text-slate-400 font-medium mt-2">
-                      Último pagamento:{" "}
-                      {new Date(customer.last_payment_date).toLocaleDateString()}
+            {hasFinanceAccess ? (
+              <div
+                className={`p-6 rounded-xl border ${hasDebt ? "bg-red-50 border-red-100" : "bg-green-50 border-green-100"}`}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p
+                      className={`text-[10px] font-bold uppercase tracking-widest ${hasDebt ? "text-red-400" : "text-green-400"}`}
+                    >
+                      {hasDebt ? "Débito Pendente" : "Situação Financeira"}
                     </p>
+                    <p
+                      className={`font-bold text-3xl mt-2 ${hasDebt ? "text-red-600" : "text-green-600"}`}
+                    >
+                      R$ {customer.balance_due.toFixed(2)}
+                    </p>
+                    {customer.last_payment_date && (
+                      <p className="text-xs text-slate-400 font-medium mt-2">
+                        Último pagamento:{" "}
+                        {new Date(customer.last_payment_date).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                  {hasDebt ? (
+                    <AlertCircle className="text-red-400" size={32} />
+                  ) : (
+                    <CheckCircle className="text-green-400" size={32} />
                   )}
                 </div>
-                {hasDebt ? (
-                  <AlertCircle className="text-red-400" size={32} />
-                ) : (
-                  <CheckCircle className="text-green-400" size={32} />
-                )}
               </div>
-            </div>
+            ) : (
+              <div className="p-6 rounded-xl border bg-slate-50 border-slate-200 flex items-center gap-4">
+                <Lock size={24} className="text-slate-300 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Situação Financeira</p>
+                  <p className="text-sm text-slate-300 font-medium mt-1">Acesso restrito</p>
+                </div>
+              </div>
+            )}
 
             <div className="p-6 rounded-xl bg-slate-50 border border-slate-200">
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-1">

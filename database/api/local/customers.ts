@@ -3,7 +3,7 @@
  * All operations go through the IPC bridge to the main process.
  */
 import { ipcInvoke } from '../../../lib/ipc';
-import { Customer } from '../../../types';
+import { Customer, PaginatedResult } from '../../../types';
 import type { InsertDto, UpdateDto } from '../../client/types';
 
 // user_id is read from the current session via Supabase auth in Electron
@@ -81,5 +81,13 @@ export const localCustomersApi = {
   async getByCpf(cpf: string): Promise<Customer | null> {
     const all = await this.getAll();
     return all.find((c) => c.cpf === cpf) ?? null;
+  },
+
+  async getPaginated(page: number, pageSize: number): Promise<PaginatedResult<Customer>> {
+    const result = await ipcInvoke<PaginatedResult<Customer & { active_contract: number }>>(
+      'db:customers:getPaginated',
+      { page, pageSize }
+    );
+    return { ...result, data: result.data.map(toBool) };
   },
 };

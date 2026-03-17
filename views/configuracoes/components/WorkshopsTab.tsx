@@ -4,6 +4,8 @@ import { Workshop } from "../../../types";
 import { localWorkshopsApi } from "../../../database/api/local/workshops";
 import { Building2, Plus, Edit2, Trash2, Check, X } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { TablePagination } from "@/components/TablePagination";
+import { usePagination } from "../../../hooks/usePagination";
 
 type FormData = { name: string; address: string; status: 'ACTIVE' | 'INACTIVE' };
 
@@ -87,6 +89,7 @@ export const WorkshopsTab: React.FC = () => {
   };
 
   const showForm = isCreating || editingId !== null;
+  const pagination = usePagination(workshops, 10);
 
   return (
     <div className="space-y-6">
@@ -167,6 +170,7 @@ export const WorkshopsTab: React.FC = () => {
       ) : workshops.length === 0 ? (
         <p className="text-slate-400 text-sm font-medium py-6 text-center italic">Nenhuma oficina cadastrada.</p>
       ) : (
+        <>
         <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
           <table className="w-full text-left p-6">
             <thead className="bg-slate-800 text-white">
@@ -178,7 +182,7 @@ export const WorkshopsTab: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {workshops.map(w => (
+              {pagination.paginatedItems.map(w => (
                 <tr key={w.id} className="border-b border-slate-50 hover:bg-slate-50 group">
                   <td className="py-4 font-bold text-slate-700">{w.name}</td>
                   <td className="py-4 text-slate-500 text-sm">{w.address || '—'}</td>
@@ -208,6 +212,15 @@ export const WorkshopsTab: React.FC = () => {
             </tbody>
           </table>
         </div>
+        <TablePagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          total={pagination.total}
+          pageSize={pagination.pageSize}
+          onPageChange={pagination.setPage}
+          onPageSizeChange={pagination.setPageSize}
+        />
+        </>
       )}
     </div>
   );

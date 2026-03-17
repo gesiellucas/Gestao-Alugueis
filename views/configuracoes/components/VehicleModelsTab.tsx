@@ -4,6 +4,8 @@ import { VehicleModel } from "../../../types";
 import { localVehicleModelsApi } from "../../../database/api/local/vehicleModels";
 import { Car, Plus, Edit2, Trash2, Check, X } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { TablePagination } from "@/components/TablePagination";
+import { usePagination } from "../../../hooks/usePagination";
 
 type FormData = { name: string; brand: string; status: 'ACTIVE' | 'INACTIVE' };
 
@@ -81,6 +83,7 @@ export const VehicleModelsTab: React.FC = () => {
   };
 
   const showForm = isCreating || editingId !== null;
+  const pagination = usePagination(models, 10);
 
   return (
     <div className="space-y-8">
@@ -160,6 +163,7 @@ export const VehicleModelsTab: React.FC = () => {
         ) : models.length === 0 ? (
           <p className="text-slate-400 text-sm font-medium py-6 text-center italic">Nenhum modelo cadastrado.</p>
         ) : (
+          <>
           <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidde">
             <table className="w-full text-left">
               <thead className="bg-slate-800 text-white">
@@ -171,7 +175,7 @@ export const VehicleModelsTab: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {models.map(m => (
+                {pagination.paginatedItems.map(m => (
                   <tr key={m.id} className="border-b border-slate-50 hover:bg-slate-50 group">
                     <td className="py-4 font-bold text-slate-700">{m.name}</td>
                     <td className="py-4 text-slate-500 text-sm">{m.brand}</td>
@@ -201,6 +205,15 @@ export const VehicleModelsTab: React.FC = () => {
               </tbody>
             </table>
           </div>
+          <TablePagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            pageSize={pagination.pageSize}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+          />
+          </>
         )}
       </div>
     </div>

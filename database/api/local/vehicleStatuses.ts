@@ -2,7 +2,7 @@
  * Local SQLite vehicle statuses API
  */
 import { ipcInvoke } from '../../../lib/ipc';
-import { VehicleStatusRecord } from '../../../types';
+import { VehicleStatusRecord, PaginatedResult } from '../../../types';
 
 export const localVehicleStatusesApi = {
     async getAll(): Promise<VehicleStatusRecord[]> {
@@ -23,5 +23,9 @@ export const localVehicleStatusesApi = {
 
     async delete(id: string): Promise<void> {
         await ipcInvoke('db:vehicleStatuses:delete', { id });
+    },
+
+    async getPaginated(page: number, pageSize: number): Promise<PaginatedResult<VehicleStatusRecord>> {
+        return ipcInvoke<PaginatedResult<VehicleStatusRecord>>('db:vehicleStatuses:getPaginated', { page, pageSize });
     },
 };

@@ -3,7 +3,7 @@
  * Vehicle models are shared across all users (no user_id filtering).
  */
 import { ipcInvoke } from '../../../lib/ipc';
-import { VehicleModel } from '../../../types';
+import { VehicleModel, PaginatedResult } from '../../../types';
 
 export const localVehicleModelsApi = {
     async getAll(): Promise<VehicleModel[]> {
@@ -29,5 +29,9 @@ export const localVehicleModelsApi = {
 
     async delete(id: string): Promise<void> {
         await ipcInvoke('db:vehicleModels:delete', { id });
+    },
+
+    async getPaginated(page: number, pageSize: number): Promise<PaginatedResult<VehicleModel>> {
+        return ipcInvoke<PaginatedResult<VehicleModel>>('db:vehicleModels:getPaginated', { page, pageSize });
     },
 };

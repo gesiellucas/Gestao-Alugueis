@@ -12,6 +12,8 @@ import {
   User,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { TablePagination } from "@/components/TablePagination";
+import { usePagination } from "../../../hooks/usePagination";
 
 export const ClientesPage: React.FC = () => {
   const { customers, vehicles } = useAppContext();
@@ -31,6 +33,8 @@ export const ClientesPage: React.FC = () => {
           v.plate.toLowerCase().includes(search.toLowerCase()),
       ),
   );
+
+  const pagination = usePagination(filtered, 10);
 
   return (
     <div className="space-y-8">
@@ -67,6 +71,7 @@ export const ClientesPage: React.FC = () => {
             Nenhum cliente encontrado.
           </div>
         ) : (
+          <>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="bg-brand-blue text-white">
@@ -80,7 +85,7 @@ export const ClientesPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((customer) => {
+                {pagination.paginatedItems.map((customer) => {
                   const vehicle = getCustomerVehicle(customer.id);
                   const hasDebt = customer.balance_due > 0;
 
@@ -152,6 +157,15 @@ export const ClientesPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+          <TablePagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            pageSize={pagination.pageSize}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+          />
+          </>
         )}
       </div>
     </div>

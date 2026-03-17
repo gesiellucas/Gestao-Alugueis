@@ -3,7 +3,7 @@
  * Vehicles are shared across all users (no user_id filtering).
  */
 import { ipcInvoke } from '../../../lib/ipc';
-import { Vehicle, VEHICLE_STATUS_IDS } from '../../../types';
+import { Vehicle, VEHICLE_STATUS_IDS, PaginatedResult } from '../../../types';
 import type { InsertDto, UpdateDto } from '../../client/types';
 
 export const localVehiclesApi = {
@@ -60,5 +60,9 @@ export const localVehiclesApi = {
 
   async updateMileage(id: string, mileage: number): Promise<Vehicle> {
     return this.update(id, { mileage });
+  },
+
+  async getPaginated(page: number, pageSize: number): Promise<PaginatedResult<Vehicle>> {
+    return ipcInvoke<PaginatedResult<Vehicle>>('db:vehicles:getPaginated', { page, pageSize });
   },
 };

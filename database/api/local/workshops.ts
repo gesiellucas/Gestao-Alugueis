@@ -2,7 +2,7 @@
  * Local SQLite workshops API
  */
 import { ipcInvoke } from '../../../lib/ipc';
-import { Workshop } from '../../../types';
+import { Workshop, PaginatedResult } from '../../../types';
 
 export const localWorkshopsApi = {
     async getAll(): Promise<Workshop[]> {
@@ -23,5 +23,9 @@ export const localWorkshopsApi = {
 
     async delete(id: string): Promise<void> {
         await ipcInvoke('db:workshops:delete', { id });
+    },
+
+    async getPaginated(page: number, pageSize: number): Promise<PaginatedResult<Workshop>> {
+        return ipcInvoke<PaginatedResult<Workshop>>('db:workshops:getPaginated', { page, pageSize });
     },
 };

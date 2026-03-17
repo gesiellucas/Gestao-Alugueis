@@ -1,3 +1,12 @@
+// Pagination types
+export interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
 // Seed IDs for default vehicle statuses (match vehicle_statuses table)
 // IDs devem corresponder aos registros no seed (vehicle_statuses)
 export const VEHICLE_STATUS_IDS = {

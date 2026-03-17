@@ -7,6 +7,8 @@ import { Document, MaintenanceRecord } from "../../../types";
 import { supabaseWorkshopDocumentsApi } from "../../../database/api/supabase/workshopDocuments";
 import { Clock, CheckCircle, Camera, X, ImageIcon } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { TablePagination } from "@/components/TablePagination";
+import { usePagination } from "../../../hooks/usePagination";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
 
 function PhotoCell({ record }: { record: MaintenanceRecord }) {
@@ -122,6 +124,9 @@ export const OficinaPage: React.FC = () => {
         new Date(b.entry_date).getTime() - new Date(a.entry_date).getTime(),
     );
 
+  const activePagination = usePagination(activeRecords, 10);
+  const historyPagination = usePagination(historyRecords, 10);
+
   return (
     <div className="space-y-8">
       <ModuleHeader
@@ -168,6 +173,7 @@ export const OficinaPage: React.FC = () => {
             Nenhum veículo em manutenção no momento.
           </div>
         ) : (
+          <>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -182,7 +188,7 @@ export const OficinaPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {activeRecords.map((record) => (
+                {activePagination.paginatedItems.map((record) => (
                   <tr key={record.id} onClick={() => router.push(`/oficina/${record.vehicle_id}`)} className="border-b border-slate-50 hover:bg-amber-50/40 transition-colors cursor-pointer">
                     <td className="px-6 py-4">
                       <span className="font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-lg text-sm uppercase tracking-tight">
@@ -215,6 +221,15 @@ export const OficinaPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+          <TablePagination
+            page={activePagination.page}
+            totalPages={activePagination.totalPages}
+            total={activePagination.total}
+            pageSize={activePagination.pageSize}
+            onPageChange={activePagination.setPage}
+            onPageSizeChange={activePagination.setPageSize}
+          />
+          </>
         )}
       </div>
 
@@ -233,6 +248,7 @@ export const OficinaPage: React.FC = () => {
             Nenhuma manutenção concluída ainda.
           </div>
         ) : (
+          <>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -246,7 +262,7 @@ export const OficinaPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {historyRecords.map((record) => (
+                {historyPagination.paginatedItems.map((record) => (
                   <tr key={record.id} onClick={() => router.push(`/oficina/${record.vehicle_id}`)} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors cursor-pointer">
                     <td className="px-6 py-4">
                       <span className="font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-lg text-sm uppercase tracking-tight">
@@ -273,6 +289,15 @@ export const OficinaPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+          <TablePagination
+            page={historyPagination.page}
+            totalPages={historyPagination.totalPages}
+            total={historyPagination.total}
+            pageSize={historyPagination.pageSize}
+            onPageChange={historyPagination.setPage}
+            onPageSizeChange={historyPagination.setPageSize}
+          />
+          </>
         )}
       </div>
     </div>

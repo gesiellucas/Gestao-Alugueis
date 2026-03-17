@@ -195,6 +195,19 @@ export function registerIpcHandlers(): void {
       .all();
   });
 
+  ipcMain.handle('db:customers:getPaginated', async (_e, args: { page: number; pageSize: number }) => {
+    const { page, pageSize } = args;
+    const offset = (page - 1) * pageSize;
+    const countResult = await getDb().select({ n: sql<number>`count(*)` }).from(customers).where(eq(customers.is_deleted, 0)).get();
+    const total = countResult?.n ?? 0;
+    const data = await getDb().select().from(customers)
+      .where(eq(customers.is_deleted, 0))
+      .orderBy(customers.name)
+      .limit(pageSize).offset(offset)
+      .all();
+    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  });
+
   ipcMain.handle('db:customers:getById', async (_e, args: { id: string }) => {
     return (await getDb().select().from(customers)
       .where(and(eq(customers.id, args.id), eq(customers.is_deleted, 0)))
@@ -237,6 +250,19 @@ export function registerIpcHandlers(): void {
     return await getDb().select().from(vehicleModels).where(eq(vehicleModels.is_deleted, 0)).orderBy(vehicleModels.name).all();
   });
 
+  ipcMain.handle('db:vehicleModels:getPaginated', async (_e, args: { page: number; pageSize: number }) => {
+    const { page, pageSize } = args;
+    const offset = (page - 1) * pageSize;
+    const countResult = await getDb().select({ n: sql<number>`count(*)` }).from(vehicleModels).where(eq(vehicleModels.is_deleted, 0)).get();
+    const total = countResult?.n ?? 0;
+    const data = await getDb().select().from(vehicleModels)
+      .where(eq(vehicleModels.is_deleted, 0))
+      .orderBy(vehicleModels.name)
+      .limit(pageSize).offset(offset)
+      .all();
+    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  });
+
   ipcMain.handle('db:vehicleModels:getById', async (_e, args: { id: string }) => {
     return (await getDb().select().from(vehicleModels).where(and(eq(vehicleModels.id, args.id), eq(vehicleModels.is_deleted, 0))).get()) ?? null;
   });
@@ -270,6 +296,24 @@ export function registerIpcHandlers(): void {
   });
 
   // ── Vehicles CRUD ──
+  ipcMain.handle('db:vehicles:getPaginated', async (_e, args: { page: number; pageSize: number }) => {
+    const { page, pageSize } = args;
+    const offset = (page - 1) * pageSize;
+    const countResult = await getDb().select({ n: sql<number>`count(*)` }).from(vehicles).where(eq(vehicles.is_deleted, 0)).get();
+    const total = countResult?.n ?? 0;
+    const rows = await getDb().select().from(vehicles)
+      .where(eq(vehicles.is_deleted, 0))
+      .orderBy(desc(vehicles.created_at))
+      .limit(pageSize).offset(offset)
+      .all();
+    const allModels = await getDb().select().from(vehicleModels).where(eq(vehicleModels.is_deleted, 0)).all();
+    const allStatuses = await getDb().select().from(vehicleStatuses).where(eq(vehicleStatuses.is_deleted, 0)).all();
+    const modelMap = new Map(allModels.map(m => [m.id, m]));
+    const statusMap = new Map(allStatuses.map(s => [s.id, s]));
+    const data = rows.map(v => ({ ...v, model: modelMap.get(v.model_id!) ?? null, vehicleStatus: statusMap.get(v.status_id) ?? null }));
+    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  });
+
   const vehicleWithRelations = async (vehicleRow: typeof vehicles.$inferSelect) => {
     const model = vehicleRow.model_id
       ? (await getDb().select().from(vehicleModels).where(and(eq(vehicleModels.id, vehicleRow.model_id), eq(vehicleModels.is_deleted, 0))).get()) ?? null
@@ -333,6 +377,19 @@ export function registerIpcHandlers(): void {
       .all();
   });
 
+  ipcMain.handle('db:rentals:getPaginated', async (_e, args: { user_id: string; page: number; pageSize: number }) => {
+    const { user_id, page, pageSize } = args;
+    const offset = (page - 1) * pageSize;
+    const countResult = await getDb().select({ n: sql<number>`count(*)` }).from(rentals).where(and(eq(rentals.user_id, user_id), eq(rentals.is_deleted, 0))).get();
+    const total = countResult?.n ?? 0;
+    const data = await getDb().select().from(rentals)
+      .where(and(eq(rentals.user_id, user_id), eq(rentals.is_deleted, 0)))
+      .orderBy(desc(rentals.start_date))
+      .limit(pageSize).offset(offset)
+      .all();
+    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  });
+
   ipcMain.handle('db:rentals:getById', async (_e, args: { id: string; user_id: string }) => {
     return (await getDb().select().from(rentals)
       .where(and(eq(rentals.id, args.id), eq(rentals.user_id, args.user_id), eq(rentals.is_deleted, 0)))
@@ -377,6 +434,19 @@ export function registerIpcHandlers(): void {
       .all();
   });
 
+  ipcMain.handle('db:maintenance:getPaginated', async (_e, args: { user_id: string; page: number; pageSize: number }) => {
+    const { user_id, page, pageSize } = args;
+    const offset = (page - 1) * pageSize;
+    const countResult = await getDb().select({ n: sql<number>`count(*)` }).from(maintenanceRecords).where(and(eq(maintenanceRecords.user_id, user_id), eq(maintenanceRecords.is_deleted, 0))).get();
+    const total = countResult?.n ?? 0;
+    const data = await getDb().select().from(maintenanceRecords)
+      .where(and(eq(maintenanceRecords.user_id, user_id), eq(maintenanceRecords.is_deleted, 0)))
+      .orderBy(desc(maintenanceRecords.entry_date))
+      .limit(pageSize).offset(offset)
+      .all();
+    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  });
+
   ipcMain.handle('db:maintenance:getById', async (_e, args: { id: string; user_id: string }) => {
     return (await getDb().select().from(maintenanceRecords)
       .where(and(eq(maintenanceRecords.id, args.id), eq(maintenanceRecords.user_id, args.user_id), eq(maintenanceRecords.is_deleted, 0)))
@@ -418,6 +488,19 @@ export function registerIpcHandlers(): void {
     return await getDb().select().from(workshops).where(eq(workshops.is_deleted, 0)).orderBy(workshops.name).all();
   });
 
+  ipcMain.handle('db:workshops:getPaginated', async (_e, args: { page: number; pageSize: number }) => {
+    const { page, pageSize } = args;
+    const offset = (page - 1) * pageSize;
+    const countResult = await getDb().select({ n: sql<number>`count(*)` }).from(workshops).where(eq(workshops.is_deleted, 0)).get();
+    const total = countResult?.n ?? 0;
+    const data = await getDb().select().from(workshops)
+      .where(eq(workshops.is_deleted, 0))
+      .orderBy(workshops.name)
+      .limit(pageSize).offset(offset)
+      .all();
+    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  });
+
   ipcMain.handle('db:workshops:getById', async (_e, args: { id: string }) => {
     return (await getDb().select().from(workshops).where(and(eq(workshops.id, args.id), eq(workshops.is_deleted, 0))).get()) ?? null;
   });
@@ -453,6 +536,18 @@ export function registerIpcHandlers(): void {
   // ── Vehicle Statuses CRUD ──
   ipcMain.handle('db:vehicleStatuses:getAll', async () => {
     return await getDb().select().from(vehicleStatuses).where(eq(vehicleStatuses.is_deleted, 0)).all();
+  });
+
+  ipcMain.handle('db:vehicleStatuses:getPaginated', async (_e, args: { page: number; pageSize: number }) => {
+    const { page, pageSize } = args;
+    const offset = (page - 1) * pageSize;
+    const countResult = await getDb().select({ n: sql<number>`count(*)` }).from(vehicleStatuses).where(eq(vehicleStatuses.is_deleted, 0)).get();
+    const total = countResult?.n ?? 0;
+    const data = await getDb().select().from(vehicleStatuses)
+      .where(eq(vehicleStatuses.is_deleted, 0))
+      .limit(pageSize).offset(offset)
+      .all();
+    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   });
 
   ipcMain.handle('db:vehicleStatuses:getById', async (_e, args: { id: string }) => {
@@ -492,6 +587,19 @@ export function registerIpcHandlers(): void {
     return await getDb().select().from(contracts).where(eq(contracts.is_deleted, 0)).orderBy(desc(contracts.created_at)).all();
   });
 
+  ipcMain.handle('db:contracts:getPaginated', async (_e, args: { page: number; pageSize: number }) => {
+    const { page, pageSize } = args;
+    const offset = (page - 1) * pageSize;
+    const countResult = await getDb().select({ n: sql<number>`count(*)` }).from(contracts).where(eq(contracts.is_deleted, 0)).get();
+    const total = countResult?.n ?? 0;
+    const data = await getDb().select().from(contracts)
+      .where(eq(contracts.is_deleted, 0))
+      .orderBy(desc(contracts.created_at))
+      .limit(pageSize).offset(offset)
+      .all();
+    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  });
+
   ipcMain.handle('db:contracts:getById', async (_e, args: { id: string }) => {
     return (await getDb().select().from(contracts).where(and(eq(contracts.id, args.id), eq(contracts.is_deleted, 0))).get()) ?? null;
   });
@@ -524,6 +632,19 @@ export function registerIpcHandlers(): void {
     return await getDb().select().from(documents).where(eq(documents.is_deleted, 0)).orderBy(desc(documents.created_at)).all();
   });
 
+  ipcMain.handle('db:documents:getPaginated', async (_e, args: { page: number; pageSize: number }) => {
+    const { page, pageSize } = args;
+    const offset = (page - 1) * pageSize;
+    const countResult = await getDb().select({ n: sql<number>`count(*)` }).from(documents).where(eq(documents.is_deleted, 0)).get();
+    const total = countResult?.n ?? 0;
+    const data = await getDb().select().from(documents)
+      .where(eq(documents.is_deleted, 0))
+      .orderBy(desc(documents.created_at))
+      .limit(pageSize).offset(offset)
+      .all();
+    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
+  });
+
   ipcMain.handle('db:documents:getByParent', async (_e, args: { parent_id: string; origin_type: string }) => {
     return await getDb().select().from(documents)
       .where(and(eq(documents.parent_id, args.parent_id), eq(documents.origin_type, args.origin_type), eq(documents.is_deleted, 0)))
@@ -554,6 +675,20 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('db:roles:getAll', async () => {
     const rows = await getDb().select().from(roles).where(eq(roles.is_deleted, 0)).orderBy(roles.name).all();
     return rows.map(r => ({ ...r, permissions: JSON.parse(r.permissions) }));
+  });
+
+  ipcMain.handle('db:roles:getPaginated', async (_e, args: { page: number; pageSize: number }) => {
+    const { page, pageSize } = args;
+    const offset = (page - 1) * pageSize;
+    const countResult = await getDb().select({ n: sql<number>`count(*)` }).from(roles).where(eq(roles.is_deleted, 0)).get();
+    const total = countResult?.n ?? 0;
+    const rows = await getDb().select().from(roles)
+      .where(eq(roles.is_deleted, 0))
+      .orderBy(roles.name)
+      .limit(pageSize).offset(offset)
+      .all();
+    const data = rows.map(r => ({ ...r, permissions: JSON.parse(r.permissions) }));
+    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   });
 
   ipcMain.handle('db:roles:getById', async (_e, args: { id: string }) => {
@@ -613,6 +748,28 @@ export function registerIpcHandlers(): void {
         } : undefined
       };
     });
+  });
+
+  ipcMain.handle('db:users:getPaginated', async (_e, args: { page: number; pageSize: number }) => {
+    const { page, pageSize } = args;
+    const offset = (page - 1) * pageSize;
+    const countResult = await getDb().select({ n: sql<number>`count(*)` }).from(appUsers).where(eq(appUsers.is_deleted, 0)).get();
+    const total = countResult?.n ?? 0;
+    const users = await getDb().select().from(appUsers)
+      .where(eq(appUsers.is_deleted, 0))
+      .orderBy(appUsers.name)
+      .limit(pageSize).offset(offset)
+      .all();
+    const allRoles = await getDb().select().from(roles).where(eq(roles.is_deleted, 0)).all();
+    const roleMap = new Map(allRoles.map(r => [r.id, r]));
+    const data = users.map(u => {
+      const role = roleMap.get(u.role_id);
+      return {
+        ...u,
+        role: role ? { ...role, permissions: typeof role.permissions === 'string' ? JSON.parse(role.permissions) : role.permissions } : undefined
+      };
+    });
+    return { data, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
   });
 
   ipcMain.handle('db:users:getById', async (_e, args: { id: string }) => {

@@ -6,6 +6,8 @@ import { useAppContext } from "../../../contexts/AppContext";
 import { VEHICLE_STATUS_IDS } from "../../../types";
 import { PlusCircle, Search, ChevronDown, ChevronUp, ChevronsUpDown, Wrench, User } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { TablePagination } from "@/components/TablePagination";
+import { usePagination } from "../../../hooks/usePagination";
 
 type SortKey = "brand" | "model" | "year" | "plate" | "mileage" | "monthly_rate" | "status" | "renter";
 type SortDir = "asc" | "desc";
@@ -92,6 +94,8 @@ export const VeiculosPage: React.FC = () => {
     return rows;
   }, [vehicles, customers, rentalContracts, maintenanceRecords, statusFilter, plateFilter, brandFilter, sortKey, sortDir, vehicleStatuses]);
 
+  const pagination = usePagination(tableRows, 10);
+
   const Th = ({ col, label }: { col: SortKey; label: string }) => (
     <th
       onClick={() => handleSort(col)}
@@ -167,7 +171,7 @@ export const VeiculosPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {tableRows.map((row) => (
+                {pagination.paginatedItems.map((row) => (
                   <tr
                     key={row.id}
                     onClick={() => router.push(`/veiculo/${row.id}`)}
@@ -200,6 +204,14 @@ export const VeiculosPage: React.FC = () => {
               </tbody>
             </table>
           </div>
+          <TablePagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            pageSize={pagination.pageSize}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+          />
         </div>
       )}
     </div>

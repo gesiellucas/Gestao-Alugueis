@@ -2,7 +2,7 @@
  * Local SQLite rental contracts API — mirrors services/api/rentalContracts.ts
  */
 import { ipcInvoke } from '../../../lib/ipc';
-import { RentalContract } from '../../../types';
+import { RentalContract, PaginatedResult } from '../../../types';
 import type { InsertDto, UpdateDto } from '../../client/types';
 
 // user_id is read from the current session via Supabase auth in Electron
@@ -66,5 +66,9 @@ export const localRentalsApi = {
       status: 'ENDED',
       end_date: new Date().toISOString().split('T')[0],
     });
+  },
+
+  async getPaginated(page: number, pageSize: number): Promise<PaginatedResult<RentalContract>> {
+    return ipcInvoke<PaginatedResult<RentalContract>>('db:rentals:getPaginated', { user_id: requireUserId(), page, pageSize });
   },
 };

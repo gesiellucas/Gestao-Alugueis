@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { Search } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { TablePagination } from "@/components/TablePagination";
+import { usePagination } from "../../../hooks/usePagination";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
 
 export const AlugueisPage: React.FC = () => {
@@ -43,6 +45,8 @@ export const AlugueisPage: React.FC = () => {
       return matchesSearch && matchesStatus;
     });
   }, [enrichedContracts, searchTerm, statusFilter]);
+
+  const pagination = usePagination(filteredContracts, 10);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("pt-BR");
@@ -122,7 +126,7 @@ export const AlugueisPage: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filteredContracts.length === 0 ? (
+              {pagination.paginatedItems.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-6 py-12 text-center">
                     <p className="text-slate-400 font-bold text-lg">Nenhum contrato encontrado</p>
@@ -130,7 +134,7 @@ export const AlugueisPage: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                filteredContracts.map((contract) => (
+                pagination.paginatedItems.map((contract) => (
                   <tr
                     key={contract.id}
                     className="hover:bg-slate-50 transition-colors cursor-pointer"
@@ -180,6 +184,14 @@ export const AlugueisPage: React.FC = () => {
             </tbody>
           </table>
         </div>
+        <TablePagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          total={pagination.total}
+          pageSize={pagination.pageSize}
+          onPageChange={pagination.setPage}
+          onPageSizeChange={pagination.setPageSize}
+        />
       </div>
     </div>
   );

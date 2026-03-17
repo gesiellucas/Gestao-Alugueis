@@ -4,6 +4,8 @@ import { VehicleStatusRecord } from "../../../types";
 import { localVehicleStatusesApi } from "../../../database/api/local/vehicleStatuses";
 import { Palette, Plus, Edit2, Trash2, Check, X, Lock } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { TablePagination } from "@/components/TablePagination";
+import { usePagination } from "../../../hooks/usePagination";
 
 type FormData = { name: string; color: string };
 
@@ -83,6 +85,7 @@ export const VehicleStatusesTab: React.FC = () => {
   };
 
   const showForm = isCreating || editingId !== null;
+  const pagination = usePagination(statuses, 10);
 
   return (
     <div className="space-y-6">
@@ -156,6 +159,7 @@ export const VehicleStatusesTab: React.FC = () => {
       ) : statuses.length === 0 ? (
         <p className="text-slate-400 text-sm font-medium py-6 text-center italic">Nenhum status cadastrado.</p>
       ) : (
+        <>
         <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
           <table className="w-full text-left">
             <thead className="bg-slate-800 text-white">
@@ -167,7 +171,7 @@ export const VehicleStatusesTab: React.FC = () => {
               </tr>
             </thead>
             <tbody>
-              {statuses.map(s => (
+              {pagination.paginatedItems.map(s => (
                 <tr key={s.id} className="border-b border-slate-50 hover:bg-slate-50 group">
                   <td className="py-4">
                     <div
@@ -210,6 +214,15 @@ export const VehicleStatusesTab: React.FC = () => {
             </tbody>
           </table>
         </div>
+        <TablePagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          total={pagination.total}
+          pageSize={pagination.pageSize}
+          onPageChange={pagination.setPage}
+          onPageSizeChange={pagination.setPageSize}
+        />
+        </>
       )}
     </div>
   );

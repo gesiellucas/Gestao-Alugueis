@@ -2,7 +2,7 @@
  * Local SQLite maintenance records API — mirrors services/api/maintenanceRecords.ts
  */
 import { ipcInvoke } from '../../../lib/ipc';
-import { MaintenanceRecord } from '../../../types';
+import { MaintenanceRecord, PaginatedResult } from '../../../types';
 import type { InsertDto, UpdateDto } from '../../client/types';
 
 // user_id is read from the current session via Supabase auth in Electron
@@ -68,5 +68,9 @@ export const localMaintenanceApi = {
     const today = new Date().toISOString().split('T')[0];
     const all = await this.getAll();
     return all.filter((r) => r.entry_date >= today);
+  },
+
+  async getPaginated(page: number, pageSize: number): Promise<PaginatedResult<MaintenanceRecord>> {
+    return ipcInvoke<PaginatedResult<MaintenanceRecord>>('db:maintenance:getPaginated', { user_id: requireUserId(), page, pageSize });
   },
 };

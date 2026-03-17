@@ -97,7 +97,7 @@ export const ConfiguracoesPage: React.FC = () => {
               { label: "Banco de Dados" }
             ]}
           />
-          <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
 
             <div className="p-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">

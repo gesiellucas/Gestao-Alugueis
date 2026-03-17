@@ -88,18 +88,6 @@ export const VeiculoNovoPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.push("/veiculos")}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
-        >
-          <ArrowLeft size={20} /> Voltar
-        </button>
-        <h2 className="text-3xl font-extrabold text-[#004AAD] uppercase tracking-tight">
-          Nova Motocicleta
-        </h2>
-      </div>
-
       <ModuleHeader
         title="Nova Motocicleta"
         subtitle="Cadastro de Veículo"

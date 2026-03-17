@@ -36,7 +36,7 @@ export const ClienteDetalhePage: React.FC = () => {
         >
           <ArrowLeft size={20} /> Voltar para Clientes
         </button>
-        <div className="bg-white rounded-[2.5rem] p-12 text-center shadow-sm">
+        <div className="bg-white rounded-xl p-12 text-center shadow-sm">
           <p className="text-slate-500 font-medium text-lg">
             Cliente não encontrado.
           </p>
@@ -66,7 +66,7 @@ export const ClienteDetalhePage: React.FC = () => {
         }
       />
 
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-10">
           <div className="flex items-start gap-6 mb-8">
             <div className="w-20 h-20 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-bold text-3xl border border-blue-100">

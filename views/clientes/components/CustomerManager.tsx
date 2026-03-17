@@ -66,7 +66,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
           return (
             <div
               key={customer.id}
-              className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300"
+              className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300"
             >
               <div className="p-8">
                 <div className="flex justify-between items-start mb-6">

@@ -1,9 +1,10 @@
 'use client';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
-import { VEHICLE_STATUS_IDS } from "../../../types";
+import { VEHICLE_STATUS_IDS, Document } from "../../../types";
+import { supabaseWorkshopDocumentsApi } from "../../../database/api/supabase/workshopDocuments";
 import {
   ArrowLeft,
   Pencil,
@@ -16,9 +17,71 @@ import {
   KeyRound,
   XCircle,
   ChevronDown,
+  ImageIcon,
+  X,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
+
+function PhotoCellReadOnly({ recordId }: { recordId: string }) {
+  const [photos, setPhotos] = useState<Document[]>([]);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const [loaded, setLoaded] = useState(false);
+
+  const loadPhotos = () => {
+    if (loaded) return;
+    setLoaded(true);
+    supabaseWorkshopDocumentsApi
+      .getByMaintenance(recordId)
+      .then(setPhotos)
+      .catch(() => setPhotos([]));
+  };
+
+  return (
+    <div className="flex items-center gap-1" onMouseEnter={loadPhotos}>
+      {photos.length > 0 ? (
+        <>
+          {photos.slice(0, 3).map((photo) => (
+            <button
+              key={photo.id}
+              onClick={() => setLightbox(photo.file_url)}
+              className="rounded overflow-hidden border border-slate-200 hover:border-blue-400 transition-colors"
+            >
+              <img src={photo.file_url} alt="" className="w-8 h-8 object-cover" />
+            </button>
+          ))}
+          {photos.length > 3 && (
+            <span className="text-xs text-slate-400 font-bold">+{photos.length - 3}</span>
+          )}
+        </>
+      ) : loaded ? (
+        <span className="text-xs text-slate-300">—</span>
+      ) : (
+        <ImageIcon size={14} className="text-slate-300" />
+      )}
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            onClick={() => setLightbox(null)}
+            className="absolute top-4 right-4 text-white/80 hover:text-white"
+          >
+            <X size={28} />
+          </button>
+          <img
+            src={lightbox}
+            alt="Foto ampliada"
+            className="max-w-full max-h-full object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export const VeiculoDetalhePage: React.FC = () => {
   const params = useParams();
@@ -42,7 +105,7 @@ export const VeiculoDetalhePage: React.FC = () => {
         >
           <ArrowLeft size={20} /> Voltar para Frota
         </button>
-        <div className="bg-white rounded-[2.5rem] p-12 text-center shadow-sm">
+        <div className="bg-white rounded-xl p-12 text-center shadow-sm">
           <p className="text-slate-500 font-medium text-lg">
             Veículo não encontrado.
           </p>
@@ -84,6 +147,7 @@ export const VeiculoDetalhePage: React.FC = () => {
     }
   };
 
+  console.log(vehicle)
   return (
     <div className="space-y-8">
 
@@ -192,16 +256,14 @@ export const VeiculoDetalhePage: React.FC = () => {
         </div>
       )}
 
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-2">
-          <div className="h-48 lg:h-auto bg-[#f8fafc] flex items-center justify-center p-6">
-            <img
-              src={vehicle.model?.image_url || undefined}
-              alt={vehicle.model?.name || 'Moto'}
-              className="max-w-full max-h-40 object-contain drop-shadow-xl"
-            />
-          </div>
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="flex items-center bg-brand-blue gap-3 px-6 py-4 border-b border-slate-100">
+          <h3 className="font-bold text-white text-sm">
+            Informações do Veículo
+          </h3>
+        </div>
 
+        <div className="grid grid-cols-1 lg:grid-cols-2">
           <div className="p-8 flex flex-col justify-center gap-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
@@ -273,9 +335,8 @@ export const VeiculoDetalhePage: React.FC = () => {
 
       {/* Rental History Table */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-blue-50">
-          <KeyRound size={18} className="text-blue-600" />
-          <h3 className="font-bold text-[#004AAD] uppercase tracking-tight text-sm">
+        <div className="flex items-center bg-brand-blue gap-3 px-6 py-4 border-b border-slate-100">
+          <h3 className="font-bold text-white text-sm">
             Histórico de Aluguéis
           </h3>
           <span className="ml-auto bg-blue-600 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
@@ -350,9 +411,8 @@ export const VeiculoDetalhePage: React.FC = () => {
 
       {/* Maintenance History Table */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
-        <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50">
-          <Wrench size={18} className="text-slate-500" />
-          <h3 className="font-bold text-[#004AAD] uppercase tracking-tight text-sm">
+        <div className="flex items-center bg-brand-blue gap-3 px-6 py-4 border-b border-slate-100">
+          <h3 className="font-bold text-white text-sm">
             Histórico de Manutenção
           </h3>
           <span className="ml-auto bg-slate-200 text-slate-600 text-xs font-bold px-2.5 py-0.5 rounded-full">
@@ -368,27 +428,27 @@ export const VeiculoDetalhePage: React.FC = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Tipo</th>
                   <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</th>
                   <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Observação</th>
                   <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Entrada</th>
                   <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Conclusão</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Fotos</th>
                   <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Situação</th>
                 </tr>
               </thead>
               <tbody>
                 {vehicleRecords.map((record) => (
-                  <tr key={record.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
-                    <td className="px-6 py-4 font-bold text-[#004AAD]">{record.type}</td>
-                    <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name}</td>
-                    <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description}</td>
+                  <tr key={record.id} onClick={() => router.push(`/oficina/${record.vehicle_id}`)} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors cursor-pointer">
+                    <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name || '—'}</td>
+                    <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description || '—'}</td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
                       {new Date(record.entry_date).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      {record.completion_date
-                        ? new Date(record.completion_date).toLocaleDateString()
-                        : "—"}
+                      {record.completion_date ? new Date(record.completion_date).toLocaleDateString() : '—'}
+                    </td>
+                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                      <PhotoCellReadOnly recordId={record.id} />
                     </td>
                     <td className="px-6 py-4">
                       {record.status === "OPEN" ? (

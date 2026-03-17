@@ -1,8 +1,10 @@
 'use client';
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
+import { Document, MaintenanceRecord } from "../../../types";
+import { supabaseWorkshopDocumentsApi } from "../../../database/api/supabase/workshopDocuments";
 import {
   ArrowLeft,
   Wrench,
@@ -10,9 +12,129 @@ import {
   Clock,
   Hash,
   Circle,
+  Camera,
+  Trash2,
+  X,
+  ImageIcon,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
+
+function MaintenancePhotos({ record }: { record: MaintenanceRecord }) {
+  const [photos, setPhotos] = useState<Document[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [lightbox, setLightbox] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    supabaseWorkshopDocumentsApi
+      .getByMaintenance(record.id)
+      .then(setPhotos)
+      .catch(() => setPhotos([]))
+      .finally(() => setLoading(false));
+  }, [record.id]);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    setUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const created = await supabaseWorkshopDocumentsApi.uploadAndCreate(record.id, file);
+        setPhotos((prev) => [created, ...prev]);
+      }
+    } catch (err) {
+      console.error('Erro ao enviar foto:', err);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleDelete = async (doc: Document) => {
+    setDeleting(doc.id);
+    try {
+      await supabaseWorkshopDocumentsApi.delete(doc);
+      setPhotos((prev) => prev.filter((d) => d.id !== doc.id));
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  return (
+    <div className="mt-3">
+      <div className="flex items-center gap-2 mb-2">
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+        >
+          <Camera size={14} />
+          {uploading ? "Enviando..." : "Adicionar fotos"}
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          className="hidden"
+          onChange={handleUpload}
+        />
+      </div>
+
+      {loading ? (
+        <p className="text-xs text-slate-400">Carregando fotos...</p>
+      ) : photos.length > 0 ? (
+        <div className="flex flex-wrap gap-2">
+          {photos.map((photo) => (
+            <div key={photo.id} className="relative group">
+              <button
+                onClick={() => setLightbox(photo.file_url)}
+                className="block rounded-lg overflow-hidden border border-slate-200 hover:border-blue-400 transition-colors"
+              >
+                <img
+                  src={photo.file_url}
+                  alt="Foto manutenção"
+                  className="w-20 h-20 object-cover"
+                />
+              </button>
+              <button
+                onClick={() => handleDelete(photo)}
+                disabled={deleting === photo.id}
+                className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
+              >
+                <Trash2 size={12} />
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setLightbox(null)}
+        >
+          <button
+            onClick={() => setLightbox(null)}
+            className="absolute top-4 right-4 text-white/80 hover:text-white"
+          >
+            <X size={28} />
+          </button>
+          <img
+            src={lightbox}
+            alt="Foto ampliada"
+            className="max-w-full max-h-full object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 
 export const OficinaDetalhePage: React.FC = () => {
   const params = useParams();
@@ -39,7 +161,7 @@ export const OficinaDetalhePage: React.FC = () => {
         >
           <ArrowLeft size={20} /> Voltar para Oficina
         </button>
-        <div className="bg-white rounded-[2.5rem] p-12 text-center shadow-sm">
+        <div className="bg-white rounded-xl p-12 text-center shadow-sm">
           <p className="text-slate-500 font-medium text-lg">
             Veículo não encontrado.
           </p>
@@ -75,7 +197,7 @@ export const OficinaDetalhePage: React.FC = () => {
         }
       />
 
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-3">
           <div className="h-56 lg:h-auto bg-[#f8fafc] flex items-center justify-center p-8">
             <img
@@ -136,100 +258,114 @@ export const OficinaDetalhePage: React.FC = () => {
         </div>
       </div>
 
-      {activeRecords.length > 0 && (
-        <div>
-          <h3 className="text-xl font-extrabold text-[#004AAD] mb-4 uppercase tracking-tight flex items-center gap-2">
-            <Wrench size={20} className="text-amber-500" /> Manutenção em
-            Andamento
+      {/* Active Maintenance Table */}
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+        <div className="flex items-center bg-brand-blue gap-3 px-6 py-4 border-b border-slate-100">
+          <Wrench size={16} className="text-white" />
+          <h3 className="font-bold text-white uppercase tracking-tight text-sm">
+            Em Manutenção
           </h3>
-          <div className="space-y-4">
-            {activeRecords.map((record) => (
-              <div
-                key={record.id}
-                className="bg-white rounded-xl p-6 shadow-sm border-l-4 border-amber-500"
-              >
-                <div className="flex flex-col md:flex-row justify-between items-start gap-4">
-                  <div className="space-y-2 flex-1">
-                    <p className="font-bold text-[#004AAD] text-lg">
-                      {record.type}
-                    </p>
-                    <p className="text-sm text-slate-600">
-                      {record.description}
-                    </p>
-                    <div className="flex items-center gap-4 text-xs text-slate-400 font-bold">
-                      <span className="flex items-center gap-1">
-                        <Clock size={14} /> Entrada:{" "}
-                        {new Date(record.entry_date).toLocaleDateString()}
-                      </span>
-                      <span>Mecânico: {record.mechanic_name}</span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleFinishMaintenance(record.id)}
-                    className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl transition-all uppercase text-xs tracking-widest whitespace-nowrap"
-                  >
-                    Finalizar e Liberar
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <span className="ml-auto bg-amber-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
+            {activeRecords.length}
+          </span>
         </div>
-      )}
+        {activeRecords.length === 0 ? (
+          <div className="py-10 text-center text-slate-400 font-medium text-sm">
+            Nenhum serviço em andamento.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50">
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Observação</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Entrada</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Fotos</th>
+                  <th className="px-6 py-3"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {activeRecords.map((record) => (
+                  <tr key={record.id} className="border-b border-slate-50 hover:bg-amber-50/40 transition-colors">
+                    <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name || '—'}</td>
+                    <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description || '—'}</td>
+                    <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
+                      {new Date(record.entry_date).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4">
+                      <MaintenancePhotos record={record} />
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button
+                        onClick={() => handleFinishMaintenance(record.id)}
+                        className="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-xl transition-all uppercase text-xs tracking-widest flex items-center gap-1.5 ml-auto whitespace-nowrap"
+                      >
+                        <CheckCircle size={14} /> Finalizar
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
-      {completedRecords.length > 0 && (
-        <div>
-          <h3 className="text-xl font-extrabold text-[#004AAD] mb-4 uppercase tracking-tight flex items-center gap-2">
-            <CheckCircle size={20} className="text-green-500" /> Histórico
-            Concluído
+      {/* Completed History Table */}
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+        <div className="flex items-center bg-brand-blue gap-3 px-6 py-4 border-b border-slate-100">
+          <CheckCircle size={16} className="text-white" />
+          <h3 className="font-bold text-white uppercase tracking-tight text-sm">
+            Histórico Concluído
           </h3>
-          <div className="space-y-4">
-            {completedRecords.map((record) => (
-              <div
-                key={record.id}
-                className="bg-white rounded-xl p-6 shadow-sm border-l-4 border-green-500"
-              >
-                <div className="flex justify-between items-start">
-                  <div className="space-y-2">
-                    <p className="font-bold text-[#004AAD]">{record.type}</p>
-                    <p className="text-sm text-slate-500">
-                      {record.description}
-                    </p>
-                    <p className="text-xs text-slate-400 font-bold">
-                      Mecânico: {record.mechanic_name}
-                    </p>
-                  </div>
-                  <div className="text-right text-sm space-y-1">
-                    <p className="text-slate-400">
-                      Entrada: {new Date(record.entry_date).toLocaleDateString()}
-                    </p>
-                    {record.completion_date && (
-                      <p className="text-green-600 font-bold">
-                        Saída:{" "}
-                        {new Date(record.completion_date).toLocaleDateString()}
-                      </p>
-                    )}
-                    {hasFinanceAccess && record.cost > 0 && (
-                      <p className="text-slate-700 font-bold">
-                        R$ {record.cost.toFixed(2)}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </div>
-            ))}
+          <span className="ml-auto bg-slate-200 text-slate-600 text-xs font-bold px-2.5 py-0.5 rounded-full">
+            {completedRecords.length}
+          </span>
+        </div>
+        {completedRecords.length === 0 ? (
+          <div className="py-10 text-center text-slate-400 font-medium text-sm">
+            Nenhuma manutenção concluída.
           </div>
-        </div>
-      )}
-
-      {vehicleRecords.length === 0 && (
-        <div className="bg-white rounded-[2.5rem] p-12 text-center shadow-sm">
-          <CheckCircle size={48} className="mx-auto mb-4 text-green-300" />
-          <p className="text-slate-500 font-medium">
-            Nenhum registro de oficina para este veículo.
-          </p>
-        </div>
-      )}
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-slate-100 bg-slate-50">
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Observação</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Entrada</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Conclusão</th>
+                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Fotos</th>
+                  {hasFinanceAccess && <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Custo</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {completedRecords.map((record) => (
+                  <tr key={record.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
+                    <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name || '—'}</td>
+                    <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description || '—'}</td>
+                    <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
+                      {new Date(record.entry_date).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
+                      {record.completion_date ? new Date(record.completion_date).toLocaleDateString() : '—'}
+                    </td>
+                    <td className="px-6 py-4">
+                      <MaintenancePhotos record={record} />
+                    </td>
+                    {hasFinanceAccess && (
+                      <td className="px-6 py-4 font-bold text-slate-700">
+                        {record.cost > 0 ? `R$ ${record.cost.toFixed(2)}` : '—'}
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

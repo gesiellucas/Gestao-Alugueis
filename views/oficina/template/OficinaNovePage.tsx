@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { MaintenanceType, MaintenanceRecord, VEHICLE_STATUS_IDS } from "../../../types";
+import { MaintenanceRecord, VEHICLE_STATUS_IDS } from "../../../types";
 import { ArrowLeft, Save } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 
@@ -15,7 +15,6 @@ export const OficinaNovePage: React.FC = () => {
   const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | "">("");
   const { user } = useAppContext();
   const [form, setForm] = useState({
-    type: MaintenanceType.PREVENTIVE,
     description: "",
     mechanic_name: "",
   });
@@ -27,7 +26,7 @@ export const OficinaNovePage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const vehicle = vehicles.find((v) => v.plate === selectedPlate);
-    if (!vehicle || !form.mechanic_name || !form.description) return;
+    if (!vehicle) return;
 
     const now = new Date().toISOString();
     const record: MaintenanceRecord = {
@@ -39,9 +38,9 @@ export const OficinaNovePage: React.FC = () => {
       entry_date: now,
       status: "OPEN",
       cost: 0,
-      type: form.type,
-      mechanic_name: form.mechanic_name,
-      description: form.description,
+      type: 'Revisão Periódica',
+      mechanic_name: form.mechanic_name || '',
+      description: form.description || '',
       created_at: now,
       updated_at: now,
       device_id: 'local',
@@ -115,26 +114,7 @@ export const OficinaNovePage: React.FC = () => {
 
           <div>
             <label className="block text-xs font-bold text-slate-400   mb-2">
-              Tipo de Serviço
-            </label>
-            <select
-              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 border appearance-none"
-              value={form.type}
-              onChange={(e) =>
-                setForm({ ...form, type: e.target.value as MaintenanceType })
-              }
-            >
-              {Object.values(MaintenanceType).map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-400   mb-2">
-              Mecânico Responsável
+              Mecânico Responsável <span className="text-slate-300 font-normal">(opcional)</span>
             </label>
             <input
               type="text"
@@ -144,13 +124,12 @@ export const OficinaNovePage: React.FC = () => {
                 setForm({ ...form, mechanic_name: e.target.value })
               }
               placeholder="Nome do técnico"
-              required
             />
           </div>
 
           <div>
             <label className="block text-xs font-bold text-slate-400   mb-2">
-              Observações Técnicas
+              Observações Técnicas <span className="text-slate-300 font-normal">(opcional)</span>
             </label>
             <textarea
               className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 border resize-none"
@@ -160,7 +139,6 @@ export const OficinaNovePage: React.FC = () => {
                 setForm({ ...form, description: e.target.value })
               }
               placeholder="Descreva o que será feito..."
-              required
             />
           </div>
 

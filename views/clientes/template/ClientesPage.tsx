@@ -69,13 +69,13 @@ export const ClientesPage: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Cliente</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">CPF</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Veículo</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Situação</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Débito</th>
+              <thead className="bg-brand-blue text-white">
+                <tr className="[&>th]:text-center [&>th]:px-6 [&>th]:py-4 [&>th]:text-left [&>th]:text-xs [&>th]:font-bold [&>th]:uppercase [&>th]:tracking-widest">
+                  <th>Cliente</th>
+                  <th>CPF</th>
+                  <th>Veículo</th>
+                  <th>Situação</th>
+                  <th>Débito</th>
                   <th className="px-6 py-3"></th>
                 </tr>
               </thead>
@@ -88,7 +88,7 @@ export const ClientesPage: React.FC = () => {
                     <tr key={customer.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
                       <td className="px-6 py-4">
                         <Link href={`/cliente/${customer.id}`} className="flex items-center gap-3 group">
-                          <span className="font-bold text-[#004AAD] group-hover:text-blue-600 transition-colors">
+                          <span className="font-bold text-brand-blue group-hover:text-blue-600 transition-colors">
                             {customer.name}
                           </span>
                         </Link>

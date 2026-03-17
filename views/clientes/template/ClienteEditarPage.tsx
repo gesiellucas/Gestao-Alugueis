@@ -33,7 +33,7 @@ export const ClienteEditarPage: React.FC = () => {
         >
           <ArrowLeft size={20} /> Voltar
         </button>
-        <div className="bg-white rounded-[2.5rem] p-12 text-center shadow-sm">
+        <div className="bg-white rounded-xl p-12 text-center shadow-sm">
           <p className="text-slate-500 font-medium text-lg">
             Cliente não encontrado.
           </p>
@@ -89,7 +89,7 @@ export const ClienteEditarPage: React.FC = () => {
         ]}
       />
 
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="bg-[#004AAD] p-8">
           <h3 className="font-bold text-xl uppercase tracking-tighter text-white">
             {customer.name}

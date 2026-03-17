@@ -49,7 +49,8 @@
       "Bash(sed -i 's/model_id: number | \"\"\"\";/model_id: string | \"\"\"\";/' \"views/veiculos/template/VeiculoNovoPage.tsx\")",
       "Bash(sed -i 's/model_id: e.target.value === \"\"\"\" ? \"\"\"\" : Number\\(e.target.value\\)/model_id: e.target.value/' \"views/veiculos/template/VeiculoNovoPage.tsx\")",
       "Read(//c/Users/ADMIN/AppData/Roaming/gc-locamoto-pro//**)",
-      "Read(//c/Users/ADMIN/AppData/Roaming/Electron//**)"
+      "Read(//c/Users/ADMIN/AppData/Roaming/Electron//**)",
+      "Bash(find 'd:\\\\Workspace\\\\GitHub\\\\Gestao Alugueis\\\\database\\\\api\\\\local' -name *.ts -type f)"
     ]
   }
 }

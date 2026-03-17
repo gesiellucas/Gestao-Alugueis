@@ -31,7 +31,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
           return (
             <div
               key={vehicle.id}
-              className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
               <div className="h-48 bg-[#f8fafc] relative flex items-center justify-center p-6">
                 <img

@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { localVehiclesApi } from "../../../database/api/local/vehicles";
 import { ArrowLeft, Save } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const VeiculoEditarPage: React.FC = () => {
   const params = useParams();
@@ -36,7 +37,7 @@ export const VeiculoEditarPage: React.FC = () => {
         >
           <ArrowLeft size={20} /> Voltar
         </button>
-        <div className="bg-white rounded-[2.5rem] p-12 text-center shadow-sm">
+        <div className="bg-white rounded-xl p-12 text-center shadow-sm">
           <p className="text-slate-500 font-medium text-lg">
             Veículo não encontrado.
           </p>
@@ -82,21 +83,19 @@ export const VeiculoEditarPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.push(`/veiculo/${id}`)}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
-        >
-          <ArrowLeft size={20} /> Voltar
-        </button>
-        <h2 className="text-3xl font-extrabold text-[#004AAD] uppercase tracking-tight">
-          Editar Veículo
-        </h2>
-      </div>
 
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="bg-[#004AAD] p-8">
-          <h3 className="font-bold text-xl uppercase tracking-tighter text-white">
+
+      <ModuleHeader
+        title={`Editar Veículo`}
+        subtitle=""
+        breadcrumbs={[
+          { label: "Veículos", href: "/veiculos" },
+          { label: vehicle.plate }
+        ]} />
+
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="bg-brand-blue p-4">
+          <h3 className="font-bold  uppercase tracking-tighter text-white">
             {vehicle.plate} - {vehicle.model?.name || 'Modelo desconhecido'}
           </h3>
         </div>
@@ -181,7 +180,7 @@ export const VeiculoEditarPage: React.FC = () => {
               disabled={submitting}
               className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-bold uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save size={18} /> {submitting ? "Salvando..." : "Salvar Alterações"}
+              {submitting ? "Salvando..." : "Salvar Alterações"}
             </button>
           </div>
         </form>

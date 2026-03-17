@@ -15,6 +15,7 @@ import {
   CheckCircle,
   KeyRound,
   XCircle,
+  ChevronDown,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
@@ -27,6 +28,7 @@ export const VeiculoDetalhePage: React.FC = () => {
     useAppContext();
   const [endingRental, setEndingRental] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [actionsOpen, setActionsOpen] = useState(false);
 
   const hasFinanceAccess = useFinanceAccess();
   const vehicle = vehicles.find((v) => v.id === id);
@@ -92,57 +94,55 @@ export const VeiculoDetalhePage: React.FC = () => {
           { label: "Veículos", href: "/veiculos" },
           { label: vehicle.plate }
         ]}
-        extraHeader={<span
-          className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border"
-          style={{
-            backgroundColor: `${statusColor}20`,
-            color: statusColor,
-            borderColor: `${statusColor}40`,
-          }}
-        >
-          {statusName}
-        </span>} />
-
-      < div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4" >
-        <button
-          onClick={() => router.push("/veiculos")}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
-        >
-          <ArrowLeft size={20} /> Voltar para Frota
-        </button>
-        <div className="flex items-center gap-3">
-          {vehicle.status_id === VEHICLE_STATUS_IDS.AVAILABLE && (
-            <Link
-              href={`/aluguel/novo/${vehicle.id}`}
-              className="bg-green-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-green-700 transition-all flex items-center gap-2 text-sm"
-            >
-              <KeyRound size={16} /> Alugar Moto
-            </Link>
-          )}
-          {vehicle.status_id === VEHICLE_STATUS_IDS.RENTED && (
-            <button
-              onClick={() => setShowEndConfirm(true)}
-              className="bg-red-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-red-700 transition-all flex items-center gap-2 text-sm"
-            >
-              <XCircle size={16} /> Encerrar Contrato
-            </button>
-          )}
-          {vehicle.status_id !== VEHICLE_STATUS_IDS.MAINTENANCE && (
-            <Link
-              href={`/oficina/novo_entrada?plate=${vehicle.plate}`}
-              className="bg-amber-500 text-white px-6 py-3 rounded-xl font-bold hover:bg-amber-600 transition-all flex items-center gap-2 text-sm"
-            >
-              <Wrench size={16} /> Enviar para Oficina
-            </Link>
-          )}
-          <Link
-            href={`/veiculo/editar/${vehicle.id}`}
-            className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"
+        extraHeader={<div className="relative">
+          <button
+            onClick={() => setActionsOpen((v) => !v)}
+            className="bg-[#004AAD] text-white px-5 py-2.5 rounded-xl font-bold hover:bg-[#003a8c] transition-all flex items-center gap-2 text-sm"
           >
-            <Pencil size={16} /> Editar Veículo
-          </Link>
+            Ações <ChevronDown size={16} className={`transition-transform ${actionsOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {actionsOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setActionsOpen(false)} />
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 z-50 py-1 overflow-hidden">
+                {vehicle.status_id === VEHICLE_STATUS_IDS.AVAILABLE && (
+                  <Link
+                    href={`/aluguel/novo/${vehicle.id}`}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-green-700 hover:bg-green-50 transition-colors"
+                    onClick={() => setActionsOpen(false)}
+                  >
+                    <KeyRound size={16} /> Alugar Moto
+                  </Link>
+                )}
+                {vehicle.status_id === VEHICLE_STATUS_IDS.RENTED && (
+                  <button
+                    onClick={() => { setShowEndConfirm(true); setActionsOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <XCircle size={16} /> Encerrar Contrato
+                  </button>
+                )}
+                {vehicle.status_id !== VEHICLE_STATUS_IDS.MAINTENANCE && (
+                  <Link
+                    href={`/oficina/novo_entrada?plate=${vehicle.plate}`}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-amber-600 hover:bg-amber-50 transition-colors"
+                    onClick={() => setActionsOpen(false)}
+                  >
+                    <Wrench size={16} /> Enviar para Oficina
+                  </Link>
+                )}
+                <Link
+                  href={`/veiculo/editar/${vehicle.id}`}
+                  className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors"
+                  onClick={() => setActionsOpen(false)}
+                >
+                  <Pencil size={16} /> Editar Veículo
+                </Link>
+              </div>
+            </>
+          )}
         </div>
-      </div >
+        } />
 
       {showEndConfirm && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">

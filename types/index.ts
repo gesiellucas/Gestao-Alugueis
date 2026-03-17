@@ -1,9 +1,11 @@
 // Seed IDs for default vehicle statuses (match vehicle_statuses table)
+// IDs devem corresponder aos registros no seed (vehicle_statuses)
 export const VEHICLE_STATUS_IDS = {
-  AVAILABLE: 'Disponível',
-  RENTED: 'Alugada',
-  MAINTENANCE: 'Em Manutenção',
-  UNAVAILABLE: 'Indisponível',
+  AVAILABLE: '6ef5a0d2-6744-4db9-b857-84476d3058a0',
+  RENTED: 'ba4a4673-05ef-48ae-892e-4fae6619afb0',
+  MAINTENANCE: 'ac5aa49d-fbb2-4291-8933-a82dd37f0e13',
+  UNAVAILABLE: 'b3350b93-3765-4bca-becb-027072cc659b',
+  RESERVED: 'c3d59d46-1af5-4c59-8cd5-b00be8460ee3',
 } as const;
 
 export enum MaintenanceType {

@@ -79,6 +79,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         localUsersApi.login(storedEmail).then((u: AppUser | null) => {
           if (u) {
             setUser(u);
+            localStorage.setItem("electron_user_id", u.id);
           } else {
             localStorage.removeItem("electron_user_email");
             localStorage.removeItem("electron_user_id");
@@ -92,23 +93,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const loadData = async () => {
     const userId = typeof window !== 'undefined' ? localStorage.getItem('electron_user_id') : null;
 
-    if (!userId) {
-      setLoading(false);
-      return;
-    }
-
     try {
       setLoading(true);
       setError(null);
 
-      const [vehiclesData, modelsData, statusesData, customersData, contractsData, maintenanceData, workshopsData] =
+      // 1. Dados Globais (Sempre carregar)
+      const [vehiclesData, modelsData, statusesData, customersData, workshopsData] =
         await Promise.all([
           localVehiclesApi.getAll().catch(() => [] as Vehicle[]),
           localVehicleModelsApi.getAll().catch(() => [] as VehicleModel[]),
           localVehicleStatusesApi.getAll().catch(() => [] as VehicleStatusRecord[]),
           localCustomersApi.getAll().catch(() => [] as Customer[]),
-          localRentalsApi.getAll().catch(() => [] as RentalContract[]),
-          localMaintenanceApi.getAll().catch(() => [] as MaintenanceRecord[]),
           localWorkshopsApi.getAll().catch(() => [] as Workshop[]),
         ]);
 
@@ -116,9 +111,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setVehicleModels(modelsData);
       setVehicleStatuses(statusesData);
       setCustomers(customersData);
-      setRentalContracts(contractsData);
-      setMaintenanceRecords(maintenanceData);
       setWorkshops(workshopsData);
+
+      // 2. Dados Privados (Apenas se logado)
+      if (userId) {
+        const [contractsData, maintenanceData] = await Promise.all([
+          localRentalsApi.getAll().catch(() => [] as RentalContract[]),
+          localMaintenanceApi.getAll().catch(() => [] as MaintenanceRecord[]),
+        ]);
+        setRentalContracts(contractsData);
+        setMaintenanceRecords(maintenanceData);
+      } else {
+        setRentalContracts([]);
+        setMaintenanceRecords([]);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao carregar dados");
     } finally {
@@ -132,9 +138,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [user]);
 
   const handleAddMaintenanceRecord = async (record: MaintenanceRecord) => {
+    if (!user) throw new Error('Usuário não autenticado.');
     try {
       const newRecord = await localMaintenanceApi.create({
-        user_id: user!.id,
         vehicle_id: record.vehicle_id,
         workshop_id: record.workshop_id ?? null,
         vehicle_plate: record.vehicle_plate,
@@ -210,9 +216,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     monthlyRate: number,
     startDate: string,
   ): Promise<RentalContract> => {
+    if (!user) throw new Error('Usuário não autenticado.');
     try {
       const newContract = await localRentalsApi.create({
-        user_id: user!.id,
         vehicle_id: vehicleId,
         customer_id: customerId,
         monthly_rate: monthlyRate,

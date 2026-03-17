@@ -17,11 +17,11 @@ export const AluguelNovoPage: React.FC = () => {
   const params = useParams();
   const preselectedVehicleId = params.vehicleId ? (params.vehicleId as string) : undefined;
   const router = useRouter();
-  const { vehicles, customers, handleCreateRental } = useAppContext();
+  const { vehicles, customers, handleCreateRental, loading } = useAppContext();
 
   console.log(customers);
   const availableVehicles = vehicles.filter(
-    (v) => v.vehicleStatus?.name === VEHICLE_STATUS_IDS.AVAILABLE,
+    (v) => v.status_id === VEHICLE_STATUS_IDS.AVAILABLE,
   );
 
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(preselectedVehicleId ?? null);
@@ -46,15 +46,19 @@ export const AluguelNovoPage: React.FC = () => {
   }, [vehicle]);
 
   const availableCustomers = useMemo(() => {
-    console.log(customers);
+    if (loading) return [];
     return customers.filter((c) => {
+      const name = (c.name || "").toLowerCase();
+      const cpf = (c.cpf || "");
+      const search = customerSearch.toLowerCase();
+
       const matchesSearch =
         !customerSearch ||
-        c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-        c.cpf.includes(customerSearch);
+        name.includes(search) ||
+        cpf.includes(search);
       return matchesSearch;
     });
-  }, [customers, customerSearch]);
+  }, [customers, customerSearch, loading]);
 
   const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
 

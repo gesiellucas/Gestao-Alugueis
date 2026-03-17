@@ -98,8 +98,8 @@ export const AluguelDetalhePage: React.FC = () => {
       const created = await supabaseDocumentsApi.uploadAndCreate(contract.id, file);
       setDocuments((prev) => [created, ...prev]);
     } catch (err) {
-      setUploadError("Erro ao enviar arquivo. Tente novamente.");
       console.error(err);
+      setUploadError("Erro ao enviar arquivo. Tente novamente.");
     } finally {
       setUploading(false);
       e.target.value = "";

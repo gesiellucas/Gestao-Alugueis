@@ -78,7 +78,7 @@ export const appUsers = sqliteTable('app_users', {
 ]);
 
 // ---------------------------------------------------------------------------
-// customers — clientes (isolado por user_id)
+// customers — clientes (compartilhado entre usuários; user_id é apenas rastreamento)
 // ---------------------------------------------------------------------------
 export const customers = sqliteTable('customers', {
   id: text('id').primaryKey(),

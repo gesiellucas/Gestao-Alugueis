@@ -187,7 +187,7 @@ export function registerIpcHandlers(): void {
   });
 
   // ── Customers CRUD ──
-  ipcMain.handle('db:customers:getAll', async (_e, args: { user_id: string }) => {
+  ipcMain.handle('db:customers:getAll', async () => {
     console.log('getAll customers');
     return await getDb().select().from(customers)
       .where(eq(customers.is_deleted, 0))
@@ -195,13 +195,13 @@ export function registerIpcHandlers(): void {
       .all();
   });
 
-  ipcMain.handle('db:customers:getById', async (_e, args: { id: string; user_id: string }) => {
+  ipcMain.handle('db:customers:getById', async (_e, args: { id: string }) => {
     return (await getDb().select().from(customers)
       .where(and(eq(customers.id, args.id), eq(customers.is_deleted, 0)))
       .get()) ?? null;
   });
 
-  ipcMain.handle('db:customers:create', async (_e, args: InsertDto<'customers'> & { user_id: string }) => {
+  ipcMain.handle('db:customers:create', async (_e, args: InsertDto<'customers'>) => {
     const now = new Date().toISOString();
     return await getDb().insert(customers).values(cleanObject({
       ...args,
@@ -215,20 +215,20 @@ export function registerIpcHandlers(): void {
     })).returning().get();
   });
 
-  ipcMain.handle('db:customers:update', async (_e, args: UpdateDto<'customers'> & { id: string; user_id: string }) => {
-    const { id, user_id, ...updates } = args;
+  ipcMain.handle('db:customers:update', async (_e, args: UpdateDto<'customers'> & { id: string }) => {
+    const { id, ...updates } = args;
     const now = new Date().toISOString();
     return await getDb().update(customers)
       .set(cleanObject({ ...updates, updated_at: now, sync_status: 'pending' }))
-      .where(and(eq(customers.id, id), eq(customers.user_id, user_id)))
+      .where(eq(customers.id, id))
       .returning().get();
   });
 
-  ipcMain.handle('db:customers:delete', async (_e, args: { id: string; user_id: string }) => {
+  ipcMain.handle('db:customers:delete', async (_e, args: { id: string }) => {
     const now = new Date().toISOString();
     await getDb().update(customers)
       .set({ is_deleted: 1, sync_status: 'pending', updated_at: now })
-      .where(and(eq(customers.id, args.id), eq(customers.user_id, args.user_id)))
+      .where(eq(customers.id, args.id))
       .run();
   });
 

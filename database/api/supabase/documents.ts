@@ -75,9 +75,14 @@ export const supabaseDocumentsApi = {
     const { data, error: insertError } = await supabase
       .from('documents')
       .insert({
+        id: crypto.randomUUID(),
         parent_id: contractId,
         origin_type: 'CONTRACT',
         file_url: fileUrl,
+        device_id: 'web',
+        version: 1,
+        is_deleted: 0,
+        sync_status: 'synced',
       } as any)
       .select()
       .single();

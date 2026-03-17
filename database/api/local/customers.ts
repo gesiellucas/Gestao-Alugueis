@@ -7,12 +7,11 @@ import { Customer } from '../../../types';
 import type { InsertDto, UpdateDto } from '../../client/types';
 
 // user_id is read from the current session via Supabase auth in Electron
-function requireUserId(): string {
+function requireUserId(): string | null {
   console.log('requireUserId');
   const userId = typeof localStorage !== 'undefined'
     ? localStorage.getItem('electron_user_id')
     : null;
-  if (!userId) throw new Error('Usuário não autenticado no contexto local.');
   return userId;
 }
 
@@ -23,8 +22,6 @@ function toBool(row: Customer & { active_contract: number | boolean }): Customer
 export const localCustomersApi = {
   async getAll(): Promise<Customer[]> {
     console.log('getAll customers');
-    const user_id = requireUserId();
-    console.log(user_id);
     try {
       const rows = await ipcInvoke<(Customer & { active_contract: number })[]>(
         'db:customers:getAll'
@@ -38,15 +35,16 @@ export const localCustomersApi = {
   async getById(id: string): Promise<Customer | null> {
     const row = await ipcInvoke<(Customer & { active_contract: number }) | null>(
       'db:customers:getById',
-      { id, user_id: requireUserId() }
+      { id }
     );
     return row ? toBool(row) : null;
   },
 
   async create(customer: Omit<InsertDto<'customers'>, 'user_id' | 'id' | 'device_id' | 'version' | 'is_deleted' | 'sync_status' | 'created_at' | 'updated_at'> & { user_id?: string }): Promise<Customer> {
+    const user_id = requireUserId() || '00000000-0000-0000-0000-000000000000'; // Default if not logged in
     const row = await ipcInvoke<Customer & { active_contract: number }>(
       'db:customers:create',
-      { ...customer, user_id: requireUserId() }
+      { ...customer, user_id: customer.user_id || user_id }
     );
     return toBool(row);
   },
@@ -54,13 +52,13 @@ export const localCustomersApi = {
   async update(id: string, updates: Omit<UpdateDto<'customers'>, 'user_id' | 'id' | 'device_id' | 'version' | 'is_deleted' | 'sync_status' | 'created_at' | 'updated_at'> & { user_id?: string }): Promise<Customer> {
     const row = await ipcInvoke<Customer & { active_contract: number }>(
       'db:customers:update',
-      { ...updates, id, user_id: requireUserId() }
+      { ...updates, id }
     );
     return toBool(row);
   },
 
   async delete(id: string): Promise<void> {
-    await ipcInvoke('db:customers:delete', { id, user_id: requireUserId() });
+    await ipcInvoke('db:customers:delete', { id });
   },
 
   async getWithActiveContract(): Promise<Customer[]> {

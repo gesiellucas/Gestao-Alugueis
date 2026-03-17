@@ -15,6 +15,17 @@ export async function runSeed(db: DrizzleDb): Promise<void> {
   const device_id = 'seed-device';
   const meta = { device_id, version: 1, is_deleted: 0, sync_status: 'synced' as const };
 
+  // 0. Corrige status_id de veículos que foram salvos com nomes em vez de IDs (bug anterior)
+  const nameToId: Record<string, string> = {
+    'Disponível': '1',
+    'Alugada': '2',
+    'Em Manutenção': '3',
+    'Indisponível': '4',
+  };
+  for (const [name, id] of Object.entries(nameToId)) {
+    await db.update(vehicles).set({ status_id: id }).where(sql`${vehicles.status_id} = ${name}`);
+  }
+
   // 1. Status de veículos padrão
   const statusCount = await db.select({ n: sql<number>`count(*)` }).from(vehicleStatuses).get();
   if ((statusCount?.n ?? 0) === 0) {

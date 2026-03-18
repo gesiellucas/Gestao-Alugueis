@@ -177,7 +177,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       const record = maintenanceRecords.find((r) => r.id === recordId);
       if (!record) return;
 
-      await localMaintenanceApi.complete(recordId);
+      await localMaintenanceApi.complete(recordId, record.cost);
 
       await localVehiclesApi.updateStatus(
         record.vehicle_id,
@@ -193,6 +193,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
               ...r,
               status: "COMPLETED",
               completion_date: new Date().toISOString(),
+              cost: record.cost,
             }
             : r,
         ),

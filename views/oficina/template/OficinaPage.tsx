@@ -189,7 +189,7 @@ export const OficinaPage: React.FC = () => {
               </thead>
               <tbody>
                 {activePagination.paginatedItems.map((record) => (
-                  <tr key={record.id} onClick={() => router.push(`/oficina/${record.vehicle_id}`)} className="border-b border-slate-50 hover:bg-amber-50/40 transition-colors cursor-pointer">
+                  <tr key={record.id} onClick={() => router.push(`/oficina/manutencao/${record.id}`)} className="border-b border-slate-50 hover:bg-amber-50/40 transition-colors cursor-pointer">
                     <td className="px-6 py-4">
                       <span className="font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-lg text-sm uppercase tracking-tight">
                         {record.vehicle_plate}

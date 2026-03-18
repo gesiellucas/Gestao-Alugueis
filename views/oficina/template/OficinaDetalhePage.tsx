@@ -9,13 +9,9 @@ import {
   ArrowLeft,
   Wrench,
   CheckCircle,
-  Clock,
-  Hash,
-  Circle,
   Camera,
   Trash2,
   X,
-  ImageIcon,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
@@ -66,25 +62,6 @@ function MaintenancePhotos({ record }: { record: MaintenanceRecord }) {
 
   return (
     <div className="mt-3">
-      <div className="flex items-center gap-2 mb-2">
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-        >
-          <Camera size={14} />
-          {uploading ? "Enviando..." : "Adicionar fotos"}
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          className="hidden"
-          onChange={handleUpload}
-        />
-      </div>
-
       {loading ? (
         <p className="text-xs text-slate-400">Carregando fotos...</p>
       ) : photos.length > 0 ? (
@@ -140,8 +117,7 @@ export const OficinaDetalhePage: React.FC = () => {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
-  const { vehicles, maintenanceRecords, handleFinishMaintenance } =
-    useAppContext();
+  const { vehicles, maintenanceRecords } = useAppContext();
   const hasFinanceAccess = useFinanceAccess();
 
   const vehicle = vehicles.find((v) => v.id === id);
@@ -174,9 +150,7 @@ export const OficinaDetalhePage: React.FC = () => {
   const statusName = vehicle.vehicleStatus?.name || "Desconhecido";
 
   const activeRecords = vehicleRecords.filter((r) => r.status === "OPEN");
-  const completedRecords = vehicleRecords.filter(
-    (r) => r.status === "COMPLETED",
-  );
+  const completedRecords = vehicleRecords.filter((r) => r.status === "COMPLETED");
 
   return (
     <div className="space-y-8">
@@ -187,130 +161,80 @@ export const OficinaDetalhePage: React.FC = () => {
           { label: "Oficina", href: "/oficina" },
           { label: vehicle.plate }
         ]}
-        extraHeader={
-          <Link
-            href="/oficina/novo_entrada"
-            className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-sm transition-all"
-          >
-            <Wrench size={16} /> Nova Entrada
-          </Link>
-        }
       />
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="grid grid-cols-1 lg:grid-cols-3">
-          <div className="h-56 lg:h-auto bg-[#f8fafc] flex items-center justify-center p-8">
-            <img
-              src={vehicle.model?.image_url || undefined}
-              alt={vehicle.model?.name || 'Moto'}
-              className="max-w-full max-h-full object-contain drop-shadow-2xl"
-            />
-          </div>
-          <div className="lg:col-span-2 p-8 space-y-6">
-            <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-extrabold text-[#004AAD]">
-                {vehicle.model?.name || 'Modelo desconhecido'}
-              </h2>
-              <span
-                className="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border"
-                style={{
-                  backgroundColor: `${statusColor}20`,
-                  color: statusColor,
-                  borderColor: `${statusColor}40`,
-                }}
-              >
-                {statusName}
-              </span>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-slate-50 p-4 rounded-xl">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                  <Hash size={10} /> Placa
-                </p>
-                <p className="text-lg font-bold text-slate-700 font-mono">
-                  {vehicle.plate}
-                </p>
-              </div>
-              <div className="bg-slate-50 p-4 rounded-xl">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                  <Circle size={10} /> Km
-                </p>
-                <p className="text-lg font-bold text-slate-700">
-                  {vehicle.mileage.toLocaleString()}
-                </p>
-              </div>
-              <div
-                className={`p-4 rounded-xl ${activeRecords.length > 0 ? "bg-amber-50 border border-amber-200" : "bg-green-50 border border-green-200"}`}
-              >
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
-                  Status Oficina
-                </p>
-                <p
-                  className={`text-lg font-bold ${activeRecords.length > 0 ? "text-amber-700" : "text-green-700"}`}
-                >
-                  {activeRecords.length > 0
-                    ? `${activeRecords.length} aberto(s)`
-                    : "Liberado"}
-                </p>
-              </div>
-            </div>
-          </div>
+        <div className="px-6 py-4 bg-brand-blue">
+          <h3 className="font-bold text-white text-sm uppercase tracking-tight">
+            Informações do Veículo
+          </h3>
         </div>
+        <ul className="divide-y divide-slate-100">
+          <li className="flex items-center justify-between px-6 py-3">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Placa</span>
+            <span className="font-bold text-slate-700 font-mono">{vehicle.plate}</span>
+          </li>
+          <li className="flex items-center justify-between px-6 py-3">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Modelo</span>
+            <span className="font-bold text-slate-700">{vehicle.model?.name || '—'}</span>
+          </li>
+          <li className="flex items-center justify-between px-6 py-3">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Quilometragem</span>
+            <span className="font-bold text-slate-700">{vehicle.mileage.toLocaleString()} km</span>
+          </li>
+          <li className="flex items-center justify-between px-6 py-3">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Status</span>
+            <span
+              className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border"
+              style={{
+                backgroundColor: `${statusColor}20`,
+                color: statusColor,
+                borderColor: `${statusColor}40`,
+              }}
+            >
+              {statusName}
+            </span>
+          </li>
+        </ul>
       </div>
 
-      {/* Active Maintenance Table */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
-        <div className="flex items-center bg-brand-blue gap-3 px-6 py-4 border-b border-slate-100">
-          <Wrench size={16} className="text-white" />
-          <h3 className="font-bold text-white uppercase tracking-tight text-sm">
-            Em Manutenção
-          </h3>
-          <span className="ml-auto bg-amber-500 text-white text-xs font-bold px-2.5 py-0.5 rounded-full">
-            {activeRecords.length}
-          </span>
+      {/* Active Maintenance */}
+      {activeRecords.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm border border-amber-200 overflow-hidden">
+          <div className="flex items-center gap-3 px-6 py-4 bg-amber-500">
+            <Wrench size={16} className="text-white" />
+            <h3 className="flex-1 font-bold text-white text-sm uppercase tracking-tight">
+              Manutenção em Andamento
+            </h3>
+          </div>
+          <ul className="divide-y divide-slate-100">
+            <li className="flex items-center justify-between px-6 py-3">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</span>
+              <span className="font-bold text-slate-700">{activeRecords[0].mechanic_name || '—'}</span>
+            </li>
+            <li className="flex items-center justify-between px-6 py-3">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Entrada</span>
+              <span className="font-bold text-slate-700">
+                {new Date(activeRecords[0].entry_date).toLocaleDateString()}
+              </span>
+            </li>
+            {activeRecords[0].description && (
+              <li className="flex items-center justify-between px-6 py-3">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Observações</span>
+                <span className="text-sm text-slate-600 max-w-xs text-right truncate">{activeRecords[0].description}</span>
+              </li>
+            )}
+          </ul>
+          <div className="px-6 py-4">
+            <Link
+              href={`/oficina/manutencao/${activeRecords[0].id}`}
+              className="flex items-center justify-center gap-2 w-full py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-bold text-sm transition-colors"
+            >
+              <Wrench size={15} /> Ver detalhes da manutenção
+            </Link>
+          </div>
         </div>
-        {activeRecords.length === 0 ? (
-          <div className="py-10 text-center text-slate-400 font-medium text-sm">
-            Nenhum serviço em andamento.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Observação</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Entrada</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Fotos</th>
-                  <th className="px-6 py-3"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {activeRecords.map((record) => (
-                  <tr key={record.id} className="border-b border-slate-50 hover:bg-amber-50/40 transition-colors">
-                    <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name || '—'}</td>
-                    <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description || '—'}</td>
-                    <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      {new Date(record.entry_date).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <MaintenancePhotos record={record} />
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleFinishMaintenance(record.id)}
-                        className="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-xl transition-all uppercase text-xs tracking-widest flex items-center gap-1.5 ml-auto whitespace-nowrap"
-                      >
-                        <CheckCircle size={14} /> Finalizar
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Completed History Table */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
@@ -342,7 +266,7 @@ export const OficinaDetalhePage: React.FC = () => {
               </thead>
               <tbody>
                 {completedRecords.map((record) => (
-                  <tr key={record.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
+                  <tr key={record.id} onClick={() => router.push(`/oficina/manutencao/${record.id}`)} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors cursor-pointer">
                     <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name || '—'}</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description || '—'}</td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">

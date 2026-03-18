@@ -1,10 +1,11 @@
 'use client';
-import React, { useState } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { MaintenanceRecord, VEHICLE_STATUS_IDS } from "../../../types";
-import { ArrowLeft, Save } from "lucide-react";
+import { Camera, X } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { supabaseWorkshopDocumentsApi } from "../../../database/api/supabase/workshopDocuments";
 
 export const OficinaNovePage: React.FC = () => {
   const router = useRouter();
@@ -19,6 +20,28 @@ export const OficinaNovePage: React.FC = () => {
     mechanic_name: "",
   });
 
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
+  const [photoPreviews, setPhotoPreviews] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const recordIdRef = useRef<string>(crypto.randomUUID());
+
+  const handlePhotoSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
+    setPhotoFiles((prev) => [...prev, ...files]);
+    setPhotoPreviews((prev) => [...prev, ...files.map((f) => URL.createObjectURL(f))]);
+    e.target.value = '';
+  }, []);
+
+  const removePhoto = useCallback((index: number) => {
+    setPhotoPreviews((prev) => {
+      URL.revokeObjectURL(prev[index]);
+      return prev.filter((_, i) => i !== index);
+    });
+    setPhotoFiles((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
   const availableVehicles = vehicles.filter(
     (v) => v.status_id !== VEHICLE_STATUS_IDS.MAINTENANCE,
   );
@@ -30,7 +53,7 @@ export const OficinaNovePage: React.FC = () => {
 
     const now = new Date().toISOString();
     const record: MaintenanceRecord = {
-      id: crypto.randomUUID(),
+      id: recordIdRef.current,
       user_id: user!.id,
       vehicle_id: vehicle.id,
       workshop_id: selectedWorkshopId || null,
@@ -51,6 +74,22 @@ export const OficinaNovePage: React.FC = () => {
 
     try {
       await handleAddMaintenanceRecord(record);
+
+      if (photoFiles.length > 0) {
+        setUploading(true);
+        try {
+          await Promise.all(
+            photoFiles.map((file) =>
+              supabaseWorkshopDocumentsApi.uploadAndCreate(record.id, file)
+            )
+          );
+        } catch {
+          // Fotos falham silenciosamente — registro já foi salvo
+        } finally {
+          setUploading(false);
+        }
+      }
+
       router.push("/oficina");
     } catch (err) {
     }
@@ -142,6 +181,42 @@ export const OficinaNovePage: React.FC = () => {
             />
           </div>
 
+          <div>
+            <label className="block text-xs font-bold text-slate-400 mb-2">
+              Fotos <span className="text-slate-300 font-normal">(opcional)</span>
+            </label>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={handlePhotoSelect}
+            />
+            <div className="flex flex-wrap gap-3">
+              {photoPreviews.map((src, i) => (
+                <div key={i} className="relative w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                  <img src={src} alt={`Foto ${i + 1}`} className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(i)}
+                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full p-0.5 hover:bg-black/80 transition-colors"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-24 h-24 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-1 text-slate-400 hover:border-blue-400 hover:text-blue-500 transition-colors"
+              >
+                <Camera size={20} />
+                <span className="text-xs font-medium">Adicionar</span>
+              </button>
+            </div>
+          </div>
+
           <div className="pt-4 flex gap-4">
             <button
               type="button"
@@ -152,9 +227,10 @@ export const OficinaNovePage: React.FC = () => {
             </button>
             <button
               type="submit"
-              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-bold   shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2"
+              disabled={uploading}
+              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-bold shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              Registrar
+              {uploading ? "Enviando fotos..." : "Registrar"}
             </button>
           </div>
         </form>

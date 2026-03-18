@@ -2,12 +2,13 @@
 import React, { useState } from "react";
 import { useAppContext } from "../../../contexts/AppContext";
 import { useFullSync, useSyncStatus } from "../../../hooks/useSync";
-import { RefreshCw, Database, Server, CheckCircle, AlertCircle, ShieldCheck, Car, Palette, Building2 } from "lucide-react";
+import { RefreshCw, Database, Server, CheckCircle, AlertCircle, ShieldCheck, Car, Palette, Building2, Info } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { AccessControl } from "../components/AccessControl";
 import { VehicleModelsTab } from "../components/VehicleModelsTab";
 import { VehicleStatusesTab } from "../components/VehicleStatusesTab";
 import { WorkshopsTab } from "../components/WorkshopsTab";
+import { AboutTab } from "../components/AboutTab";
 
 export const ConfiguracoesPage: React.FC = () => {
   const { user } = useAppContext();
@@ -15,7 +16,7 @@ export const ConfiguracoesPage: React.FC = () => {
   const syncMutation = useFullSync();
   const [syncMessage, setSyncMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-  const [activeTab, setActiveTab] = useState<'access' | 'vehicleModels' | 'vehicleStatuses' | 'workshops' | 'sync'>('access');
+  const [activeTab, setActiveTab] = useState<'access' | 'vehicleModels' | 'vehicleStatuses' | 'workshops' | 'sync' | 'about'>('access');
 
   const handleManualSync = async () => {
     setSyncMessage(null);
@@ -76,6 +77,12 @@ export const ConfiguracoesPage: React.FC = () => {
           className={`pb-4 px-2 font-bold uppercase tracking-widest text-sm transition-colors border-b-2 ${activeTab === 'sync' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
         >
           <div className="flex items-center gap-2"><Database size={18} /> Banco de Dados</div>
+        </button>
+        <button
+          onClick={() => setActiveTab('about')}
+          className={`pb-4 px-2 font-bold uppercase tracking-widest text-sm transition-colors border-b-2 ${activeTab === 'about' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          <div className="flex items-center gap-2"><Info size={18} /> Sobre</div>
         </button>
       </div>
 
@@ -165,6 +172,8 @@ export const ConfiguracoesPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {activeTab === 'about' && <AboutTab />}
     </div>
   );
 };

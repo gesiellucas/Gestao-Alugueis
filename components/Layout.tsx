@@ -22,6 +22,7 @@ import {
   Car,
   Palette,
   Database,
+  Info,
 } from "lucide-react";
 import { SyncIndicator } from "./SyncIndicator";
 interface LayoutProps {
@@ -87,6 +88,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
     { to: "/configuracoes/status", label: "Status de Veículos", icon: Palette },
     { to: "/configuracoes/oficinas", label: "Gestão de Oficinas", icon: Wrench },
     { to: "/configuracoes/banco-de-dados", label: "Banco de Dados", icon: Database },
+    { to: "/configuracoes/sobre", label: "Sobre", icon: Info },
   ];
 
   const isSettingsOpen = pathname.startsWith('/configuracoes');

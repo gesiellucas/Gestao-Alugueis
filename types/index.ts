@@ -17,14 +17,6 @@ export const VEHICLE_STATUS_IDS = {
   RESERVED: 'c3d59d46-1af5-4c59-8cd5-b00be8460ee3',
 } as const;
 
-export enum MaintenanceType {
-  PREVENTIVE = 'Revisão Periódica',
-  CORRECTIVE = 'Corretiva/Quebra',
-  OIL_CHANGE = 'Troca de Óleo',
-  TIRE_CHANGE = 'Troca de Pneu',
-  CHECKUP = 'Vistoria de Entrada'
-}
-
 export interface SyncMetadata {
   created_at: string;
   updated_at: string;

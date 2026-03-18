@@ -108,6 +108,8 @@ export const VeiculosPage: React.FC = () => {
     </th>
   );
 
+  console.log(pagination.paginatedItems)
+
   return (
     <div className="space-y-8">
       <ModuleHeader

@@ -89,23 +89,23 @@ export const VehicleStatusesTab: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <ModuleHeader 
-        title="Gestão de Status de Veículos" 
-        subtitle="Gerencie os estados possíveis das motocicletas." 
+      <ModuleHeader
+        title="Gestão de Status de Veículos"
+        subtitle="Gerencie os estados possíveis das motocicletas."
         breadcrumbs={[
           { label: "Configurações", href: "/configuracoes" },
           { label: "Status" }
         ]}
         extraHeader={
-        !showForm && (
-          <button
-            onClick={openCreate}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
-          >
-            Novo Status
-          </button>
-        )
-      } />
+          !showForm && (
+            <button
+              onClick={openCreate}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
+            >
+              Novo Status
+            </button>
+          )
+        } />
 
       {showForm && (
         <div className="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-2xl grid gap-4 grid-cols-1 md:grid-cols-3">
@@ -160,68 +160,68 @@ export const VehicleStatusesTab: React.FC = () => {
         <p className="text-slate-400 text-sm font-medium py-6 text-center italic">Nenhum status cadastrado.</p>
       ) : (
         <>
-        <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-          <table className="w-full text-left">
-            <thead className="bg-slate-800 text-white">
-              <tr className="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-widest p-6">
-                <th className="py-4 px-6 font-bold">Cor</th>
-                <th className="py-4 px-6 font-bold">Nome</th>
-                <th className="py-4 px-6 font-bold">Tipo</th>
-                <th className="py-4 px-6 font-bold text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {pagination.paginatedItems.map(s => (
-                <tr key={s.id} className="border-b border-slate-50 hover:bg-slate-50 group">
-                  <td className="py-4">
-                    <div
-                      className="w-6 h-6 rounded-full border-2 border-white shadow-md"
-                      style={{ backgroundColor: s.color }}
-                    />
-                  </td>
-                  <td className="py-4 font-bold text-slate-700">{s.name}</td>
-                  <td className="py-4">
-                    {s.is_default ? (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-bold uppercase">
-                        <Lock size={10} /> Padrão
-                      </span>
-                    ) : (
-                      <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-bold uppercase">
-                        Personalizado
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-4 text-right">
-                    <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => openEdit(s)}
-                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      {!s.is_default && (
-                        <button
-                          onClick={() => handleDelete(s)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-                    </div>
-                  </td>
+          <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+            <table className="w-full text-left">
+              <thead className="bg-brand-blue text-white">
+                <tr className="[&>th]:px-6 [&>th]:py-4 [&>th]:text-left [&>th]:text-xs [&>th]:font-bold [&>th]:uppercase [&>th]:tracking-widest">
+                  <th>Cor</th>
+                  <th>Nome</th>
+                  <th>Tipo</th>
+                  <th>Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <TablePagination
-          page={pagination.page}
-          totalPages={pagination.totalPages}
-          total={pagination.total}
-          pageSize={pagination.pageSize}
-          onPageChange={pagination.setPage}
-          onPageSizeChange={pagination.setPageSize}
-        />
+              </thead>
+              <tbody>
+                {pagination.paginatedItems.map(s => (
+                  <tr key={s.id} className="border-b border-slate-50 hover:bg-slate-50 group">
+                    <td className="p-4">
+                      <div
+                        className="w-6 h-6 rounded-full border-2 border-white shadow-md"
+                        style={{ backgroundColor: s.color }}
+                      />
+                    </td>
+                    <td className="p-4 font-medium text-slate-700">{s.name}</td>
+                    <td className="p-4">
+                      {s.is_default ? (
+                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
+                          <Lock size={10} /> Padrão
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-500 text-xs font-medium">
+                          Personalizado
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => openEdit(s)}
+                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        {!s.is_default && (
+                          <button
+                            onClick={() => handleDelete(s)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <TablePagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            pageSize={pagination.pageSize}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+          />
         </>
       )}
     </div>

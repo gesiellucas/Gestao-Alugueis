@@ -15,6 +15,8 @@ export const AlugueisPage: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("TODOS");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const enrichedContracts = useMemo(() => {
     return rentalContracts.map((contract) => {
@@ -42,9 +44,13 @@ export const AlugueisPage: React.FC = () => {
       const matchesStatus =
         statusFilter === "TODOS" || contract.status === statusFilter;
 
-      return matchesSearch && matchesStatus;
+      const contractDate = new Date(contract.start_date).getTime();
+      const matchesStartDate = !startDate || contractDate >= new Date(startDate).getTime();
+      const matchesEndDate = !endDate || contractDate <= new Date(endDate).getTime();
+
+      return matchesSearch && matchesStatus && matchesStartDate && matchesEndDate;
     });
-  }, [enrichedContracts, searchTerm, statusFilter]);
+  }, [enrichedContracts, searchTerm, statusFilter, startDate, endDate]);
 
   const pagination = usePagination(filteredContracts, 10);
 
@@ -80,7 +86,7 @@ export const AlugueisPage: React.FC = () => {
         } />
 
       <div className="bg-white rounded-xl border border-slate-100 shadow-sm p-6 space-y-5">
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col lg:flex-row gap-4">
           <div className="relative flex-1">
             <Search
               size={16}
@@ -95,19 +101,55 @@ export const AlugueisPage: React.FC = () => {
             />
           </div>
 
-          <div className="flex gap-2 items-center justify-center">
-            {["TODOS", "ACTIVE", "ENDED"].map((status) => (
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">De</span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="bg-transparent text-sm font-medium text-slate-700 focus:outline-none"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Até</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="bg-transparent text-sm font-medium text-slate-700 focus:outline-none"
+              />
+            </div>
+
+            <div className="flex gap-1 items-center bg-slate-100/50 p-1 rounded-xl border border-slate-100">
+              {["TODOS", "ACTIVE", "ENDED"].map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setStatusFilter(status)}
+                  className={`px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all ${statusFilter === status
+                    ? "bg-white text-brand-blue shadow-sm border border-slate-200"
+                    : "text-slate-500 hover:text-brand-blue hover:bg-white/50"
+                    }`}
+                >
+                  {status === "TODOS" ? "Todos" : status === "ACTIVE" ? "Ativos" : "Encerrados"}
+                </button>
+              ))}
+            </div>
+
+            {(startDate || endDate || searchTerm || statusFilter !== "TODOS") && (
               <button
-                key={status}
-                onClick={() => setStatusFilter(status)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-medium tracking-wider transition-all ${statusFilter === status
-                  ? "bg-brand-blue text-white shadow-md shadow-blue-200"
-                  : "bg-brand-blue/10 text-brand-blue hover:bg-brand-blue/20"
-                  }`}
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("TODOS");
+                  setStartDate("");
+                  setEndDate("");
+                }}
+                className="text-xs font-bold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-widest px-2"
               >
-                {status === "TODOS" ? "Todos" : status === "ACTIVE" ? "Ativos" : "Encerrados"}
+                Limpar
               </button>
-            ))}
+            )}
           </div>
         </div>
       </div>

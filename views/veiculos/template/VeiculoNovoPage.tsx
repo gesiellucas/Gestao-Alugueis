@@ -89,7 +89,7 @@ export const VeiculoNovoPage: React.FC = () => {
   return (
     <div className="space-y-8">
       <ModuleHeader
-        title="Nova Motocicleta"
+        title="Novo Veículo"
         subtitle="Cadastro de Veículo"
         breadcrumbs={[{ label: "Veículos" }]} />
 
@@ -215,7 +215,7 @@ export const VeiculoNovoPage: React.FC = () => {
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-                Valor Mensal Padrão (R$)
+                Valor Contratual Padrão (R$)
               </label>
               <input
                 type="number"

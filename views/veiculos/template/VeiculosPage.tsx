@@ -121,7 +121,7 @@ export const VeiculosPage: React.FC = () => {
             href="/veiculo/novo_veiculo"
             className="bg-brand-blue text-white px-4 py-2 rounded-xl font-medium hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 flex items-center gap-2"
           >
-            Nova Motocicleta
+            Novo Veículo
           </Link>
         } />
 

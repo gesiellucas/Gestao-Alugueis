@@ -238,7 +238,7 @@ export const AluguelNovoPage: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-bold text-slate-400 mb-2">
-                Valor Mensal (R$)
+                Valor Contratual (R$)
               </label>
               <input
                 type="number"

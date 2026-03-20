@@ -19,7 +19,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
           </p>
         </div>
         <button className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95">
-          Nova Motocicleta
+          Novo Veículo
         </button>
       </div>
 

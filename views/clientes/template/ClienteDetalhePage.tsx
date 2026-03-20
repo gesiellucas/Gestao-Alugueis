@@ -201,11 +201,11 @@ export const ClienteDetalhePage: React.FC = () => {
                       )}
                       <td className="px-6 py-4">
                         {contract.status === "ACTIVE" ? (
-                          <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-200 inline-flex items-center gap-1">
+                          <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2.5 py-1 rounded-full border border-green-200 inline-flex items-center gap-1">
                             <CheckCircle size={10} /> Ativo
                           </span>
                         ) : (
-                          <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-slate-200">
+                          <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2.5 py-1 rounded-full border border-slate-200">
                             Encerrado
                           </span>
                         )}

@@ -307,7 +307,7 @@ export const AluguelDetalhePage: React.FC = () => {
               )}
             </div>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest border bg-slate-100 text-slate-600 border-slate-200">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-100 text-slate-600 border-slate-200">
               Encerrado
             </span>
           )
@@ -418,7 +418,7 @@ export const AluguelDetalhePage: React.FC = () => {
               {hasFinanceAccess && (
                 <div className="flex items-center justify-between py-3">
                   <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                    <DollarSign size={12} /> Valor mensal
+                    <DollarSign size={12} /> Valor Contratual
                   </span>
                   <span className="font-bold text-green-600 text-lg">
                     {(rental.monthly_rate ?? 0).toLocaleString("pt-BR", {
@@ -655,7 +655,7 @@ export const AluguelDetalhePage: React.FC = () => {
               {hasFinanceAccess && (
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">
-                    Valor Mensal (R$)
+                    Valor Contratual (R$)
                   </label>
                   <input
                     type="number"

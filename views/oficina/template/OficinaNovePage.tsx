@@ -162,7 +162,7 @@ export const OficinaNovePage: React.FC = () => {
               onChange={(e) =>
                 setForm({ ...form, mechanic_name: e.target.value })
               }
-              placeholder="Nome do técnico"
+              placeholder="Nome do Mecânico"
             />
           </div>
 

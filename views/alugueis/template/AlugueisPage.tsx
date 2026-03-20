@@ -7,6 +7,7 @@ import { ModuleHeader } from "@/components/ModuleHeader";
 import { TablePagination } from "@/components/TablePagination";
 import { usePagination } from "../../../hooks/usePagination";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
+import { formatCPF, formatDate } from "../../../lib/formatters";
 
 export const AlugueisPage: React.FC = () => {
   const { rentalContracts, customers, vehicles } = useAppContext();
@@ -53,10 +54,6 @@ export const AlugueisPage: React.FC = () => {
   }, [enrichedContracts, searchTerm, statusFilter, startDate, endDate]);
 
   const pagination = usePagination(filteredContracts, 10);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("pt-BR");
-  };
 
   const calculateDuration = (startDate: string) => {
     const start = new Date(startDate);
@@ -191,7 +188,7 @@ export const AlugueisPage: React.FC = () => {
                       </button>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-slate-600">{contract.customerCPF}</span>
+                      <span className="text-sm font-medium text-slate-600">{formatCPF(contract.customerCPF)}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-slate-700">{contract.vehicle_plate}</span>

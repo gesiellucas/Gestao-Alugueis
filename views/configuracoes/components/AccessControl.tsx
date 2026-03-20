@@ -5,11 +5,15 @@ import { localUsersApi } from "../../../database/api/local/users";
 import { localRolesApi } from "../../../database/api/local/roles";
 import { Users, Shield, Plus, Edit2, Trash2, X, Check } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { TablePagination } from "@/components/TablePagination";
+
+const USERS_PAGE_SIZE = 10;
 
 export const AccessControl: React.FC = () => {
   const [users, setUsers] = useState<AppUser[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
+  const [usersPage, setUsersPage] = useState(1);
 
   // Toggles for UI
   const [isEditingUser, setIsEditingUser] = useState<AppUser | null>(null);
@@ -93,7 +97,7 @@ export const AccessControl: React.FC = () => {
   };
 
   return (
-    <div className="space-y-10 py-4">
+    <div className="space-y-6">
 
       <ModuleHeader
         title="Acesso & Segurança"
@@ -108,11 +112,11 @@ export const AccessControl: React.FC = () => {
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="flex bg-brand-blue p-4 justify-between items-center">
           <div className="flex items-center gap-3">
-            <h3 className="text-lg font-bold text-white">Membros de Equipe</h3>
+            <h3 className="font-bold text-white uppercase text-sm">Membros de Equipe</h3>
           </div>
           <button
             onClick={() => { setIsCreatingUser(true); setFormDataUser({ name: '', email: '', password: '', role_id: roles[0]?.id || '' }); }}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition"
           >
             Novo Usuário
           </button>
@@ -146,49 +150,62 @@ export const AccessControl: React.FC = () => {
           </div>
         )}
 
-        {loading ? <p>Carregando...</p> : (
-          <div className="overflow-x-auto p-6">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-widest">
-                  <th className="py-4 font-bold">Usuário</th>
-                  <th className="py-4 font-bold">Cargo</th>
-                  <th className="py-4 font-bold text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(u => (
-                  <tr key={u.id} className="border-b border-slate-50 hover:bg-slate-50 group">
-                    <td className="py-4">
-                      <p className="font-bold text-slate-700">{u.name}</p>
-                      <p className="text-sm text-slate-500">{u.email}</p>
-                    </td>
-                    <td className="py-4">
-                      <span className="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-xs font-bold uppercase">
-                        {u.role?.name || "Sem cargo"}
-                      </span>
-                    </td>
-                    <td className="py-4 text-right flex gap-3 justify-end opacity-100 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => { setIsEditingUser(u); setFormDataUser({ name: u.name, email: u.email, password: '', role_id: u.role_id }); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><Edit2 size={18} /></button>
-                      <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {loading ? <p>Carregando...</p> : (() => {
+          const totalPages = Math.max(1, Math.ceil(users.length / USERS_PAGE_SIZE));
+          const pagedUsers = users.slice((usersPage - 1) * USERS_PAGE_SIZE, usersPage * USERS_PAGE_SIZE);
+          return (
+            <>
+              <div className="overflow-x-auto p-6">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-widest">
+                      <th className="py-4 font-bold">Usuário</th>
+                      <th className="py-4 font-bold">Cargo</th>
+                      <th className="py-4 font-bold text-right">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pagedUsers.map(u => (
+                      <tr key={u.id} className="border-b border-slate-50 hover:bg-slate-50 group">
+                        <td className="py-4">
+                          <p className="font-bold text-slate-700">{u.name}</p>
+                          <p className="text-sm text-slate-500">{u.email}</p>
+                        </td>
+                        <td className="py-4">
+                          <span className="bg-slate-200 text-slate-700 px-3 py-1 rounded-full text-xs font-bold uppercase">
+                            {u.role?.name || "Sem cargo"}
+                          </span>
+                        </td>
+                        <td className="py-4 text-right flex gap-3 justify-end opacity-100 group-hover:opacity-100 transition-opacity">
+                          <button onClick={() => { setIsEditingUser(u); setFormDataUser({ name: u.name, email: u.email, password: '', role_id: u.role_id }); }} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"><Edit2 size={18} /></button>
+                          <button onClick={() => handleDeleteUser(u.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg"><Trash2 size={18} /></button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <TablePagination
+                page={usersPage}
+                totalPages={totalPages}
+                total={users.length}
+                pageSize={USERS_PAGE_SIZE}
+                onPageChange={setUsersPage}
+              />
+            </>
+          );
+        })()}
       </div>
 
       {/* ---------- ROLES SECTION ---------- */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="flex bg-brand-blue/80 p-4 justify-between items-center">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="flex bg-brand-blue p-4 justify-between items-center">
           <div className="flex items-center gap-3">
-            <h3 className="text-lg font-bold text-white">Cargos e Permissões</h3>
+            <h3 className="font-bold text-white uppercase text-sm">Cargos e Permissões</h3>
           </div>
           <button
             onClick={() => { setIsCreatingRole(true); setFormDataRole({ name: '', permissions: [] }); }}
-            className="bg-brand-blue-deeper hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
+            className="bg-blue-600 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition"
           >
             Novo Cargo
           </button>

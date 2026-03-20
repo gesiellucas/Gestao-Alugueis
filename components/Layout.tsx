@@ -155,15 +155,12 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
                     <Link
                       key={item.to}
                       href={item.to}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === item.to
-                        ? "bg-white/15 text-white ring-1 ring-white/20"
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${isActive(item.to)
+                        ? "bg-white text-[#004AAD]"
                         : "text-blue-100 hover:text-white hover:bg-white/10"
                         }`}
                     >
-                      <item.icon
-                        size={16}
-                        className={pathname === item.to ? "text-[#0C4AA5]" : ""}
-                      />
+                      <item.icon size={16} />
                       {item.label}
                     </Link>
                   ))}
@@ -269,12 +266,12 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
                         key={item.to}
                         href={item.to}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold ${pathname === item.to
-                          ? "bg-white/15 text-white ring-1 ring-white/20"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold ${isActive(item.to)
+                          ? "bg-white text-[#004AAD]"
                           : "bg-white/5 text-blue-100"
                           }`}
                       >
-                        <item.icon size={20} className={pathname === item.to ? "text-[#0C4AA5]" : ""} />
+                        <item.icon size={20} />
                         {item.label}
                       </Link>
                     ))}

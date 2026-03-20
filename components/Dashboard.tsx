@@ -15,6 +15,7 @@ import {
   Cell,
 } from "recharts";
 import { Wrench, Bike, TrendingUp, AlertTriangle, Lock } from "lucide-react";
+import StatCard from "./StatCard";
 import { summarizeDailyWorkshop } from "../services/geminiService";
 import { useFinanceAccess } from "../hooks/useFinanceAccess";
 
@@ -74,68 +75,52 @@ export const Dashboard: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-7 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 -mr-8 -mt-8 rounded-full transition-transform group-hover:scale-110"></div>
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-            Frota GC
-          </p>
-          <h3 className="text-4xl font-extrabold text-[#004AAD] mt-3">
-            {totalVehicles}
-          </h3>
-          <div className="mt-6 flex items-center gap-2 text-[#004AAD] font-bold text-xs bg-blue-50 w-fit px-3 py-1.5 rounded-full">
-            <Bike size={14} /> Ativos
-          </div>
-        </div>
+        <StatCard
+          title="Frota GC"
+          value={totalVehicles}
+          label="Ativos"
+          Icon={Bike}
+          variant="blue"
+        />
 
-        <div className="bg-white p-7 rounded-[2rem] shadow-sm border border-slate-100 group">
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-            Alugadas
-          </p>
-          <h3 className="text-4xl font-extrabold text-green-600 mt-3">
-            {rentedVehicles}
-          </h3>
-          <div className="mt-6 flex items-center gap-2 text-green-700 font-bold text-xs bg-green-50 w-fit px-3 py-1.5 rounded-full">
-            <TrendingUp size={14} />{" "}
-            {((rentedVehicles / totalVehicles) * 100).toFixed(0)}% Ocupação
-          </div>
-        </div>
+        <StatCard
+          title="Alugadas"
+          value={rentedVehicles}
+          label={`${((rentedVehicles / (totalVehicles || 1)) * 100).toFixed(0)}% Ocupação`}
+          Icon={TrendingUp}
+          variant="green"
+        />
 
-        <div className="bg-white p-7 rounded-[2rem] shadow-sm border border-slate-100">
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-            Em Manutenção
-          </p>
-          <h3 className="text-4xl font-extrabold text-amber-500 mt-3">
-            {inMaintenance}
-          </h3>
-          <div className="mt-6 flex items-center gap-2 text-amber-700 font-bold text-xs bg-amber-50 w-fit px-3 py-1.5 rounded-full">
-            <Wrench size={14} /> Atenção
-          </div>
-        </div>
+        <StatCard
+          title="Indisponíveis"
+          value={rentedVehicles}
+          label={`${((rentedVehicles / (totalVehicles || 1)) * 100).toFixed(0)}% Ocupação`}
+          Icon={TrendingUp}
+          variant="green"
+        />
 
-        {hasFinanceAccess ? (
-          <div className="bg-[#004AAD] p-7 rounded-[2rem] shadow-xl text-white">
-            <p className="text-sm font-bold text-blue-200 uppercase tracking-widest">
-              Financeiro Diário
-            </p>
-            <h3 className="text-3xl font-extrabold text-[#0C4AA5] mt-3">
-              R$ 1.840
-            </h3>
-            <p className="text-xs text-blue-200 mt-6 font-medium">
-              Previsão de recebimento para hoje
-            </p>
-          </div>
-        ) : (
-          <div className="bg-slate-100 p-7 rounded-[2rem] shadow-sm border border-slate-200 relative overflow-hidden">
-            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-              Financeiro Diário
-            </p>
-            <div className="flex items-center gap-2 mt-3">
-              <Lock size={18} className="text-slate-400" />
-              <span className="text-slate-400 font-bold text-sm">Acesso restrito</span>
+        <StatCard
+          title="Em Manutenção"
+          value={inMaintenance}
+          label="Atenção"
+          Icon={Wrench}
+          variant="amber"
+        />
+
+        {hasFinanceAccess && (
+          <div className="bg-[#004AAD] p-6 rounded-2xl shadow-xl text-white relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 -mr-8 -mt-8 rounded-full transition-transform group-hover:scale-110"></div>
+            <div className="relative z-10">
+              <p className="text-sm font-bold text-blue-200 uppercase tracking-widest mb-3">
+                Financeiro Diário
+              </p>
+              <h3 className="text-3xl font-extrabold text-white">
+                R$ 1.840
+              </h3>
+              <p className="text-xs text-blue-200 mt-6 font-medium">
+                Previsão de recebimento para hoje
+              </p>
             </div>
-            <p className="text-xs text-slate-300 mt-6 font-medium">
-              Módulo financeiro necessário
-            </p>
           </div>
         )}
       </div>

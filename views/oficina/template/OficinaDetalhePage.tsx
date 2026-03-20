@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
+import { formatDate } from "../../../lib/formatters";
 
 function MaintenancePhotos({ record }: { record: MaintenanceRecord }) {
   const [photos, setPhotos] = useState<Document[]>([]);
@@ -78,13 +79,15 @@ function MaintenancePhotos({ record }: { record: MaintenanceRecord }) {
                   className="w-20 h-20 object-cover"
                 />
               </button>
-              <button
-                onClick={() => handleDelete(photo)}
-                disabled={deleting === photo.id}
-                className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
-              >
-                <Trash2 size={12} />
-              </button>
+              {record.status !== "COMPLETED" && (
+                <button
+                  onClick={() => handleDelete(photo)}
+                  disabled={deleting === photo.id}
+                  className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
+                >
+                  <Trash2 size={12} />
+                </button>
+              )}
             </div>
           ))}
         </div>
@@ -215,7 +218,7 @@ export const OficinaDetalhePage: React.FC = () => {
             <li className="flex items-center justify-between px-6 py-3">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Entrada</span>
               <span className="font-bold text-slate-700">
-                {new Date(activeRecords[0].entry_date).toLocaleDateString()}
+                {formatDate(activeRecords[0].entry_date)}
               </span>
             </li>
             {activeRecords[0].description && (
@@ -270,10 +273,10 @@ export const OficinaDetalhePage: React.FC = () => {
                     <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name || '—'}</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description || '—'}</td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      {new Date(record.entry_date).toLocaleDateString()}
+                      {formatDate(record.entry_date)}
                     </td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      {record.completion_date ? new Date(record.completion_date).toLocaleDateString() : '—'}
+                      {record.completion_date ? formatDate(record.completion_date) : '—'}
                     </td>
                     <td className="px-6 py-4">
                       <MaintenancePhotos record={record} />

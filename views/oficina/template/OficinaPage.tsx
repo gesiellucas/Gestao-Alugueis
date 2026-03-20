@@ -10,6 +10,7 @@ import { ModuleHeader } from "@/components/ModuleHeader";
 import { TablePagination } from "@/components/TablePagination";
 import { usePagination } from "../../../hooks/usePagination";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
+import { formatDate } from "../../../lib/formatters";
 
 function PhotoCell({ record }: { record: MaintenanceRecord }) {
   const [photos, setPhotos] = useState<Document[]>([]);
@@ -143,13 +144,12 @@ export const OficinaPage: React.FC = () => {
         } />
 
       {/* Workshop Filter */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center justify-end gap-3">
         <select
           className="bg-white border border-slate-200 rounded-xl px-4 py-2.5 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all appearance-none min-w-[220px]"
           value={selectedWorkshopId}
           onChange={(e) => setSelectedWorkshopId(e.target.value)}
         >
-          <option value="">Todas as oficinas</option>
           {workshops.map((w) => (
             <option key={w.id} value={w.id}>
               {w.name}
@@ -159,7 +159,7 @@ export const OficinaPage: React.FC = () => {
       </div>
 
       {/* Active Maintenance Table */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100">
         <div className="flex bg-brand-blue items-center gap-3 px-6 py-4 border-b border-slate-100">
           <h3 className="font-bold text-white uppercase tracking-tight text-sm">
             Em Manutenção Agora
@@ -174,67 +174,65 @@ export const OficinaPage: React.FC = () => {
           </div>
         ) : (
           <>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 bg-slate-50">
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Placa</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Tipo</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Observação</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Entrada</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Fotos</th>
-                  <th className="px-6 py-3"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {activePagination.paginatedItems.map((record) => (
-                  <tr key={record.id} onClick={() => router.push(`/oficina/manutencao/${record.id}`)} className="border-b border-slate-50 hover:bg-amber-50/40 transition-colors cursor-pointer">
-                    <td className="px-6 py-4">
-                      <span className="font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-lg text-sm uppercase tracking-tight">
-                        {record.vehicle_plate}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-bold text-[#004AAD]">{record.type}</td>
-                    <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name}</td>
-                    <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description}</td>
-                    <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <Clock size={14} />
-                        {new Date(record.entry_date).toLocaleDateString()}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
-                      <PhotoCell record={record} />
-                    </td>
-                    <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => handleFinishMaintenance(record.id)}
-                        className="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-sm shadow-green-100 uppercase text-xs tracking-widest flex items-center gap-1.5 ml-auto"
-                      >
-                        <CheckCircle size={14} />
-                        Finalizar
-                      </button>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 bg-slate-50">
+                    <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Placa</th>
+                    <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</th>
+                    <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Observação</th>
+                    <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Entrada</th>
+                    <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Fotos</th>
+                    <th className="px-6 py-3"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <TablePagination
-            page={activePagination.page}
-            totalPages={activePagination.totalPages}
-            total={activePagination.total}
-            pageSize={activePagination.pageSize}
-            onPageChange={activePagination.setPage}
-            onPageSizeChange={activePagination.setPageSize}
-          />
+                </thead>
+                <tbody>
+                  {activePagination.paginatedItems.map((record) => (
+                    <tr key={record.id} onClick={() => router.push(`/oficina/manutencao/${record.id}`)} className="border-b border-slate-50 hover:bg-amber-50/40 transition-colors cursor-pointer">
+                      <td className="px-6 py-4">
+                        <span className="font-bold text-amber-700 bg-amber-50 px-3 py-1 rounded-lg text-sm uppercase tracking-tight">
+                          {record.vehicle_plate}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name}</td>
+                      <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description}</td>
+                      <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <Clock size={14} />
+                          {formatDate(record.entry_date)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
+                        <PhotoCell record={record} />
+                      </td>
+                      <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => handleFinishMaintenance(record.id)}
+                          className="bg-green-500 hover:bg-green-600 text-white font-bold px-4 py-2 rounded-xl transition-all shadow-sm shadow-green-100 uppercase text-xs tracking-widest flex items-center gap-1.5 ml-auto"
+                        >
+                          <CheckCircle size={14} />
+                          Finalizar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <TablePagination
+              page={activePagination.page}
+              totalPages={activePagination.totalPages}
+              total={activePagination.total}
+              pageSize={activePagination.pageSize}
+              onPageChange={activePagination.setPage}
+              onPageSizeChange={activePagination.setPageSize}
+            />
           </>
         )}
       </div>
 
       {/* History Table */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100">
         <div className="flex bg-brand-blue items-center gap-3 px-6 py-4 border-b border-slate-100">
           <h3 className="font-bold text-white uppercase tracking-tight text-sm">
             Histórico de Manutenções
@@ -249,54 +247,50 @@ export const OficinaPage: React.FC = () => {
           </div>
         ) : (
           <>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Placa</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Tipo</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Observação</th>
-                  <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Concluído</th>
-                  {hasFinanceAccess && <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Custo</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {historyPagination.paginatedItems.map((record) => (
-                  <tr key={record.id} onClick={() => router.push(`/oficina/${record.vehicle_id}`)} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors cursor-pointer">
-                    <td className="px-6 py-4">
-                      <span className="font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-lg text-sm uppercase tracking-tight">
-                        {record.vehicle_plate}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-bold text-[#004AAD]">{record.type}</td>
-                    <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name}</td>
-                    <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description}</td>
-                    <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      {record.completion_date
-                        ? new Date(record.completion_date).toLocaleDateString()
-                        : "—"}
-                    </td>
-                    {hasFinanceAccess && (
-                      <td className="px-6 py-4 font-bold text-slate-700">
-                        {record.cost != null
-                          ? record.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
-                          : "—"}
-                      </td>
-                    )}
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100">
+                    <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Placa</th>
+                    <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</th>
+                    <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Observação</th>
+                    <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Concluído</th>
+                    {hasFinanceAccess && <th className="text-left px-6 py-3 text-xs font-bold text-slate-400 uppercase tracking-widest">Custo</th>}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <TablePagination
-            page={historyPagination.page}
-            totalPages={historyPagination.totalPages}
-            total={historyPagination.total}
-            pageSize={historyPagination.pageSize}
-            onPageChange={historyPagination.setPage}
-            onPageSizeChange={historyPagination.setPageSize}
-          />
+                </thead>
+                <tbody>
+                  {historyPagination.paginatedItems.map((record) => (
+                    <tr key={record.id} onClick={() => router.push(`/oficina/${record.vehicle_id}`)} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors cursor-pointer">
+                      <td className="px-6 py-4">
+                        <span className="font-bold text-slate-600 bg-slate-100 px-3 py-1 rounded-lg text-sm uppercase tracking-tight">
+                          {record.vehicle_plate}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name}</td>
+                      <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description}</td>
+                      <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
+                        {record.completion_date ? formatDate(record.completion_date) : "—"}
+                      </td>
+                      {hasFinanceAccess && (
+                        <td className="px-6 py-4 font-bold text-slate-700">
+                          {record.cost != null
+                            ? record.cost.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
+                            : "—"}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <TablePagination
+              page={historyPagination.page}
+              totalPages={historyPagination.totalPages}
+              total={historyPagination.total}
+              pageSize={historyPagination.pageSize}
+              onPageChange={historyPagination.setPage}
+              onPageSizeChange={historyPagination.setPageSize}
+            />
           </>
         )}
       </div>

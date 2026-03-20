@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
+import { formatDate } from "../../../lib/formatters";
 
 export const OficinaManutencaoDetalhe: React.FC = () => {
   const params = useParams();
@@ -39,6 +40,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
     record?.description ?? "",
   );
   const [editCost, setEditCost] = useState(String(record?.cost ?? 0));
+  const [editMechanicName, setEditMechanicName] = useState(record?.mechanic_name ?? "");
   const [photos, setPhotos] = useState<Document[]>([]);
   const [loadingPhotos, setLoadingPhotos] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -97,6 +99,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
       const updated = await localMaintenanceApi.update(record.id, {
         description: editDescription,
         cost: parseFloat(editCost) || 0,
+        mechanic_name: editMechanicName,
       });
       if (newFiles.length > 0) {
         const uploaded = await Promise.all(
@@ -123,6 +126,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
   const handleCancel = () => {
     setEditDescription(record?.description ?? "");
     setEditCost(String(record?.cost ?? 0));
+    setEditMechanicName(record?.mechanic_name ?? "");
     newPreviews.forEach((url) => URL.revokeObjectURL(url));
     setNewFiles([]);
     setNewPreviews([]);
@@ -166,7 +170,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
         breadcrumbs={[
           { label: "Oficina", href: "/oficina" },
           { label: vehicle.plate, href: `/oficina/${vehicle.id}` },
-          { label: `Manutenção · ${new Date(record.entry_date).toLocaleDateString("pt-BR")}` },
+          { label: `Manutenção · ${formatDate(record.entry_date)}` },
         ]}
       />
 
@@ -219,6 +223,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
                 onClick={() => {
                   setEditDescription(record.description);
                   setEditCost(String(record.cost ?? 0));
+                  setEditMechanicName(record.mechanic_name ?? "");
                   setEditing(true);
                 }}
                 className="flex items-center gap-1.5 text-xs font-bold text-white/90 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition-colors"
@@ -244,16 +249,26 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                 Mecânico
               </span>
-              <span className="font-bold text-slate-700">
-                {record.mechanic_name || "—"}
-              </span>
+              {editing ? (
+                <input
+                  type="text"
+                  className="w-48 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-sm font-bold text-slate-700 outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 text-right"
+                  value={editMechanicName}
+                  onChange={(e) => setEditMechanicName(e.target.value)}
+                  placeholder="Nome do mecânico"
+                />
+              ) : (
+                <span className="font-bold text-slate-700">
+                  {record.mechanic_name || "—"}
+                </span>
+              )}
             </li>
             <li className="flex items-center justify-between px-5 py-3">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                 Data de Entrada
               </span>
               <span className="font-bold text-slate-700">
-                {new Date(record.entry_date).toLocaleDateString("pt-BR")}
+                {formatDate(record.entry_date)}
               </span>
             </li>
             {record.status === "COMPLETED" && record.completion_date && (
@@ -262,7 +277,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
                   Conclusão
                 </span>
                 <span className="font-bold text-green-700">
-                  {new Date(record.completion_date).toLocaleDateString("pt-BR")}
+                  {formatDate(record.completion_date)}
                 </span>
               </li>
             )}
@@ -335,7 +350,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
                           className="w-20 h-20 object-cover"
                         />
                       </button>
-                      {editing && (
+                      {record.status === "OPEN" && (
                         <button
                           onClick={() => handleDeletePhoto(photo)}
                           disabled={deleting === photo.id}

@@ -12,6 +12,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { formatCPF, formatPhone } from "../../../lib/formatters";
 
 export const AluguelNovoPage: React.FC = () => {
   const params = useParams();
@@ -177,7 +178,7 @@ export const AluguelNovoPage: React.FC = () => {
                     {selectedCustomer.name}
                   </p>
                   <p className="text-sm text-blue-600 font-medium">
-                    CPF: {selectedCustomer.cpf} &bull; {selectedCustomer.phone}
+                    CPF: {formatCPF(selectedCustomer.cpf)} &bull; {formatPhone(selectedCustomer.phone)}
                   </p>
                 </div>
                 <button
@@ -224,7 +225,7 @@ export const AluguelNovoPage: React.FC = () => {
                           {customer.name}
                         </p>
                         <p className="text-xs text-slate-500 font-medium">
-                          CPF: {customer.cpf} &bull; {customer.phone}
+                          CPF: {formatCPF(customer.cpf)} &bull; {formatPhone(customer.phone)}
                         </p>
                       </button>
                     ))

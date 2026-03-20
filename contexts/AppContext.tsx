@@ -40,6 +40,7 @@ interface AppContextType {
   handleAddMaintenanceRecord: (record: MaintenanceRecord) => Promise<void>;
   handleFinishMaintenance: (recordId: string) => Promise<void>;
   handleCreateRental: (vehicleId: string, customerId: string, monthlyRate: number, startDate: string) => Promise<RentalContract>;
+  handleUpdateRental: (id: string, updates: { start_date?: string; monthly_rate?: number }) => Promise<void>;
   handleEndRental: (vehicleId: string) => Promise<void>;
   loading: boolean;
   error: string | null;
@@ -255,6 +256,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const handleUpdateRental = async (id: string, updates: { start_date?: string; monthly_rate?: number }) => {
+    const updated = await localRentalsApi.update(id, updates);
+    setRentalContracts((prev) =>
+      prev.map((c) => (c.id === id ? { ...c, ...updated } : c)),
+    );
+  };
+
   const handleEndRental = async (vehicleId: string) => {
     try {
       const activeContract = rentalContracts.find(
@@ -329,6 +337,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         handleAddMaintenanceRecord,
         handleFinishMaintenance,
         handleCreateRental,
+        handleUpdateRental,
         handleEndRental,
         loading,
         error,

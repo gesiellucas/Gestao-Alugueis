@@ -14,6 +14,7 @@ import {
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { TablePagination } from "@/components/TablePagination";
 import { usePagination } from "../../../hooks/usePagination";
+import { formatCPF, formatPhone, toWhatsApp } from "../../../lib/formatters";
 
 export const ClientesPage: React.FC = () => {
   const { customers, vehicles } = useAppContext();
@@ -72,99 +73,95 @@ export const ClientesPage: React.FC = () => {
           </div>
         ) : (
           <>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-brand-blue text-white">
-                <tr className="[&>th]:text-center [&>th]:px-6 [&>th]:py-4 [&>th]:text-left [&>th]:text-xs [&>th]:font-bold [&>th]:uppercase [&>th]:tracking-widest">
-                  <th>Cliente</th>
-                  <th>CPF</th>
-                  <th>Veículo</th>
-                  <th>Situação</th>
-                  <th>Débito</th>
-                  <th className="px-6 py-3"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {pagination.paginatedItems.map((customer) => {
-                  const vehicle = getCustomerVehicle(customer.id);
-                  const hasDebt = customer.balance_due > 0;
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-brand-blue text-white">
+                  <tr className="[&>th]:text-center [&>th]:px-6 [&>th]:py-4 [&>th]:text-left [&>th]:text-xs [&>th]:font-bold [&>th]:uppercase [&>th]:tracking-widest">
+                    <th>Cliente</th>
+                    <th>CPF</th>
+                    <th>Veículo</th>
+                    <th>Telefone</th>
+                    <th>Situação</th>
+                    <th className="px-6 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pagination.paginatedItems.map((customer) => {
+                    const vehicle = getCustomerVehicle(customer.id);
+                    const hasDebt = customer.balance_due > 0;
 
-                  return (
-                    <tr key={customer.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
-                      <td className="px-6 py-4">
-                        <Link href={`/cliente/${customer.id}`} className="flex items-center gap-3 group">
-                          <span className="font-bold text-brand-blue group-hover:text-blue-600 transition-colors">
-                            {customer.name}
-                          </span>
-                        </Link>
-                      </td>
-                      <td className="px-6 py-4 text-slate-500 font-medium">{customer.cpf}</td>
-                      <td className="px-6 py-4">
-                        {vehicle ? (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold bg-blue-600 text-white px-2 py-0.5 rounded">
-                              {vehicle.plate}
+                    return (
+                      <tr key={customer.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
+                        <td className="px-6 py-4">
+                          <Link href={`/cliente/${customer.id}`} className="flex items-center gap-3 group">
+                            <span className="font-bold text-brand-blue group-hover:text-blue-600 transition-colors">
+                              {customer.name}
                             </span>
+                          </Link>
+                        </td>
+                        <td className="px-6 py-4 text-slate-500 font-medium">{formatCPF(customer.cpf)}</td>
+                        <td className="px-6 py-4">
+                          {vehicle ? (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold bg-blue-600 text-white px-2 py-0.5 rounded">
+                                {vehicle.plate}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-slate-500 font-medium">{formatPhone(customer.phone)}</td>
+                        <td className="px-6 py-4">
+                          {customer.active_contract ? (
+                            <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-200 inline-flex items-center gap-1">
+                              Ativo
+                            </span>
+                          ) : (
+                            <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-slate-200">
+                              Inativo
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2 justify-end">
+                            <button
+                              onClick={() => window.open(`https://wa.me/${toWhatsApp(customer.phone)}`, "_blank")}
+                              className="p-2 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-lg transition-colors"
+                              title="WhatsApp"
+                            >
+                              <MessageSquare size={14} />
+                            </button>
+                            <Link
+                              href={`/cliente/editar/${customer.id}`}
+                              className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg transition-colors"
+                              title="Editar"
+                            >
+                              <Pencil size={14} />
+                            </Link>
+                            <Link
+                              href={`/cliente/${customer.id}`}
+                              className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg transition-colors"
+                              title="Ver perfil"
+                            >
+                              <User size={14} />
+                            </Link>
                           </div>
-                        ) : (
-                          <span className="text-slate-400">—</span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        {customer.active_contract ? (
-                          <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-green-200 inline-flex items-center gap-1">
-                            Ativo
-                          </span>
-                        ) : (
-                          <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-slate-200">
-                            Inativo
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className={`inline-flex items-center gap-1.5 font-bold text-sm ${hasDebt ? "text-red-600" : "text-green-600"}`}>
-                          {(customer.balance_due ?? 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2 justify-end">
-                          <button
-                            onClick={() => window.open(`https://wa.me/${customer.phone}`, "_blank")}
-                            className="p-2 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-lg transition-colors"
-                            title="WhatsApp"
-                          >
-                            <MessageSquare size={14} />
-                          </button>
-                          <Link
-                            href={`/cliente/editar/${customer.id}`}
-                            className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg transition-colors"
-                            title="Editar"
-                          >
-                            <Pencil size={14} />
-                          </Link>
-                          <Link
-                            href={`/cliente/${customer.id}`}
-                            className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg transition-colors"
-                            title="Ver perfil"
-                          >
-                            <User size={14} />
-                          </Link>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-          <TablePagination
-            page={pagination.page}
-            totalPages={pagination.totalPages}
-            total={pagination.total}
-            pageSize={pagination.pageSize}
-            onPageChange={pagination.setPage}
-            onPageSizeChange={pagination.setPageSize}
-          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <TablePagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              total={pagination.total}
+              pageSize={pagination.pageSize}
+              onPageChange={pagination.setPage}
+              onPageSizeChange={pagination.setPageSize}
+            />
           </>
         )}
       </div>

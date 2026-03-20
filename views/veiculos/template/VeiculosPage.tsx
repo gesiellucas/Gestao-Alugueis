@@ -167,7 +167,6 @@ export const VeiculosPage: React.FC = () => {
               <thead className="bg-brand-blue text-white">
                 <tr className="[&>th]:px-6 [&>th]:py-4 [&>th]:text-left [&>th]:text-xs [&>th]:font-bold [&>th]:uppercase [&>th]:tracking-widest">
                   <Th col="plate" label="Placa" />
-                  <Th col="model" label="Modelo" />
                   <Th col="year" label="Ano" />
                   <Th col="renter" label="Locatário / Situação" />
                 </tr>
@@ -180,7 +179,6 @@ export const VeiculosPage: React.FC = () => {
                     className="hover:bg-slate-50 cursor-pointer transition-colors"
                   >
                     <td className="px-4 py-3 font-mono font-bold text-slate-700">{row.plate}</td>
-                    <td className="px-4 py-3 font-semibold text-[#004AAD]">{row.model}</td>
                     <td className="px-4 py-3 text-slate-500">{row.year}</td>
                     <td className="px-4 py-3">
                       {row.status_id === VEHICLE_STATUS_IDS.RENTED && row.renterId ? (

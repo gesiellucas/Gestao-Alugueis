@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
+import { formatDate, formatPhone, toWhatsApp } from "../../../lib/formatters";
 
 function PhotoCellReadOnly({ recordId }: { recordId: string }) {
   const [photos, setPhotos] = useState<Document[]>([]);
@@ -226,7 +227,7 @@ export const VeiculoDetalhePage: React.FC = () => {
               <div className="bg-slate-50 rounded-xl p-4 text-sm space-y-1">
                 <p className="text-slate-500">
                   <span className="font-bold text-slate-700">Início:</span>{" "}
-                  {new Date(activeContract.start_date).toLocaleDateString()}
+                  {formatDate(activeContract.start_date)}
                 </p>
                 {hasFinanceAccess && (
                   <p className="text-slate-500">
@@ -325,7 +326,7 @@ export const VeiculoDetalhePage: React.FC = () => {
                   <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
                     <User size={12} /> Telefone
                   </span>
-                  <span className="font-bold text-slate-700">{renter.phone}</span>
+                  <span className="font-bold text-slate-700">{formatPhone(renter.phone)}</span>
                 </div>
               )}
             </div>
@@ -377,12 +378,10 @@ export const VeiculoDetalhePage: React.FC = () => {
                         )}
                       </td>
                       <td className="px-6 py-4 text-slate-500 font-medium">
-                        {new Date(contract.start_date).toLocaleDateString()}
+                        {formatDate(contract.start_date)}
                       </td>
                       <td className="px-6 py-4 text-slate-500 font-medium">
-                        {contract.end_date
-                          ? new Date(contract.end_date).toLocaleDateString()
-                          : "—"}
+                        {contract.end_date ? formatDate(contract.end_date) : "—"}
                       </td>
                       {hasFinanceAccess && (
                         <td className="px-6 py-4 font-bold text-slate-700">
@@ -442,10 +441,10 @@ export const VeiculoDetalhePage: React.FC = () => {
                     <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name || '—'}</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description || '—'}</td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      {new Date(record.entry_date).toLocaleDateString()}
+                      {formatDate(record.entry_date)}
                     </td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      {record.completion_date ? new Date(record.completion_date).toLocaleDateString() : '—'}
+                      {record.completion_date ? formatDate(record.completion_date) : '—'}
                     </td>
                     <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                       <PhotoCellReadOnly recordId={record.id} />

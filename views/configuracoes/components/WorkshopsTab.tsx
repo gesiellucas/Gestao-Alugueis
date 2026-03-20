@@ -110,7 +110,7 @@ export const WorkshopsTab: React.FC = () => {
             </button>
           )
         } />
-      <div className="flex justify-between items-center my-4">
+      <div className="flex justify-between items-center">
         {showForm && (
           <div className="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-2xl grid gap-4 grid-cols-1 md:grid-cols-3">
             <div>

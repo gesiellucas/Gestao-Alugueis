@@ -5,6 +5,7 @@ import { useAppContext } from "../../../contexts/AppContext";
 import { localCustomersApi } from "../../../database/api/local/customers";
 import { ArrowLeft, Save } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { maskCPF, maskPhone, rawCPF, rawPhone, formatCPF, formatPhone } from "../../../lib/formatters";
 
 export const ClienteEditarPage: React.FC = () => {
   const params = useParams();
@@ -16,8 +17,8 @@ export const ClienteEditarPage: React.FC = () => {
 
   const [form, setForm] = useState({
     name: customer?.name || "",
-    phone: customer?.phone || "",
-    cpf: customer?.cpf || "",
+    phone: formatPhone(customer?.phone) === '—' ? '' : formatPhone(customer?.phone),
+    cpf: formatCPF(customer?.cpf) === '—' ? '' : formatCPF(customer?.cpf),
     active_contract: customer?.active_contract || false,
     balance_due: customer?.balance_due || 0,
   });
@@ -49,8 +50,8 @@ export const ClienteEditarPage: React.FC = () => {
     try {
       await localCustomersApi.update(id, {
         name: form.name,
-        phone: form.phone,
-        cpf: form.cpf,
+        phone: rawPhone(form.phone),
+        cpf: rawCPF(form.cpf),
         active_contract: form.active_contract,
         balance_due: form.balance_due,
       });
@@ -61,8 +62,8 @@ export const ClienteEditarPage: React.FC = () => {
             ? {
               ...c,
               name: form.name,
-              phone: form.phone,
-              cpf: form.cpf,
+              phone: rawPhone(form.phone),
+              cpf: rawCPF(form.cpf),
               active_contract: form.active_contract,
               balance_due: form.balance_due,
             }
@@ -123,7 +124,8 @@ export const ClienteEditarPage: React.FC = () => {
                 type="text"
                 className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })}
+                placeholder="(11) 99999-9999"
                 required
               />
             </div>
@@ -135,7 +137,8 @@ export const ClienteEditarPage: React.FC = () => {
                 type="text"
                 className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
                 value={form.cpf}
-                onChange={(e) => setForm({ ...form, cpf: e.target.value })}
+                onChange={(e) => setForm({ ...form, cpf: maskCPF(e.target.value) })}
+                placeholder="000.000.000-00"
                 required
               />
             </div>

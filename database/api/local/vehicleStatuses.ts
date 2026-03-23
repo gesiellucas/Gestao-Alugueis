@@ -2,14 +2,14 @@
  * Local SQLite vehicle statuses API
  */
 import { ipcInvoke } from '../../../lib/ipc';
-import { VehicleStatusRecord } from '../../../types';
+import { VehicleStatusRecord, PaginatedResult } from '../../../types';
 
 export const localVehicleStatusesApi = {
     async getAll(): Promise<VehicleStatusRecord[]> {
         return ipcInvoke<VehicleStatusRecord[]>('db:vehicleStatuses:getAll');
     },
 
-    async getById(id: number): Promise<VehicleStatusRecord | null> {
+    async getById(id: string): Promise<VehicleStatusRecord | null> {
         return ipcInvoke<VehicleStatusRecord | null>('db:vehicleStatuses:getById', { id });
     },
 
@@ -17,11 +17,15 @@ export const localVehicleStatusesApi = {
         return ipcInvoke<VehicleStatusRecord>('db:vehicleStatuses:create', status);
     },
 
-    async update(id: number, updates: { name?: string; color?: string; is_default?: boolean }): Promise<VehicleStatusRecord> {
+    async update(id: string, updates: { name?: string; color?: string; is_default?: boolean }): Promise<VehicleStatusRecord> {
         return ipcInvoke<VehicleStatusRecord>('db:vehicleStatuses:update', { id, ...updates });
     },
 
-    async delete(id: number): Promise<void> {
+    async delete(id: string): Promise<void> {
         await ipcInvoke('db:vehicleStatuses:delete', { id });
+    },
+
+    async getPaginated(page: number, pageSize: number): Promise<PaginatedResult<VehicleStatusRecord>> {
+        return ipcInvoke<PaginatedResult<VehicleStatusRecord>>('db:vehicleStatuses:getPaginated', { page, pageSize });
     },
 };

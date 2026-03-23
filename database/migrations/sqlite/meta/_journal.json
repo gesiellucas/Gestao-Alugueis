@@ -15,6 +15,20 @@
       "when": 1773328268636,
       "tag": "0001_absurd_patriot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1773489315856,
+      "tag": "0002_nostalgic_satana",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1774093247297,
+      "tag": "0003_abnormal_the_anarchist",
+      "breakpoints": true
     }
   ]
 }

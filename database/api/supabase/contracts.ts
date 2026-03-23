@@ -8,23 +8,24 @@ import { ipcInvoke, isElectron } from '../../../lib/ipc';
 
 function mapRow(row: Record<string, unknown>): Contract {
   return {
-    id: row.id as unknown as number,
-    rental_id: row.rental_id as unknown as number,
-    created_at: row.created_at as string | undefined,
-    updated_at: row.updated_at as string | undefined,
-  };
+    ...row,
+    id: row.id as string,
+    rental_id: row.rental_id as string,
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string,
+  } as Contract;
 }
 
 export const supabaseContractsApi = {
   /**
    * Busca o contrato de um aluguel. Retorna null se não existir.
    */
-  async getByRental(rentalId: number): Promise<Contract | null> {
+  async getByRental(rentalId: string): Promise<Contract | null> {
     const { data, error } = await supabase
       .from('contracts')
       .select('*')
       .eq('rental_id', rentalId)
-      .is('deleted_at', null)
+      .eq('is_deleted', 0)
       .maybeSingle();
 
     if (error) throw error;
@@ -34,10 +35,17 @@ export const supabaseContractsApi = {
   /**
    * Cria um contrato vinculado a um aluguel.
    */
-  async create(rentalId: number): Promise<Contract> {
+  async create(rentalId: string): Promise<Contract> {
     const { data, error: insertError } = await supabase
       .from('contracts')
-      .insert({ rental_id: rentalId } as any)
+      .insert({
+        id: crypto.randomUUID(),
+        rental_id: rentalId,
+        device_id: 'api-server', // Or some other identifier
+        version: 1,
+        is_deleted: 0,
+        sync_status: 'synced'
+      } as any)
       .select()
       .single();
 

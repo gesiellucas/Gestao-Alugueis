@@ -4,6 +4,8 @@ import { Workshop } from "../../../types";
 import { localWorkshopsApi } from "../../../database/api/local/workshops";
 import { Building2, Plus, Edit2, Trash2, Check, X } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { TablePagination } from "@/components/TablePagination";
+import { usePagination } from "../../../hooks/usePagination";
 
 type FormData = { name: string; address: string; status: 'ACTIVE' | 'INACTIVE' };
 
@@ -13,7 +15,7 @@ export const WorkshopsTab: React.FC = () => {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
@@ -76,7 +78,7 @@ export const WorkshopsTab: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Deseja excluir esta oficina?')) return;
     try {
       await localWorkshopsApi.delete(id);
@@ -87,27 +89,28 @@ export const WorkshopsTab: React.FC = () => {
   };
 
   const showForm = isCreating || editingId !== null;
+  const pagination = usePagination(workshops, 10);
 
   return (
     <div className="space-y-6">
-      <ModuleHeader 
-        title="Gestão de Oficinas" 
-        subtitle="Gerencie as oficinas disponíveis no sistema." 
+      <ModuleHeader
+        title="Gestão de Oficinas"
+        subtitle="Gerencie as oficinas disponíveis no sistema."
         breadcrumbs={[
           { label: "Configurações", href: "/configuracoes" },
           { label: "Oficinas" }
         ]}
         extraHeader={
-        !showForm && (
-          <button
-            onClick={openCreate}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
-          >
-            Nova Oficina
-          </button>
-        )
-      } />
-      <div className="flex justify-between items-center my-4">
+          !showForm && (
+            <button
+              onClick={openCreate}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
+            >
+              Nova Oficina
+            </button>
+          )
+        } />
+      <div className="flex justify-between items-center">
         {showForm && (
           <div className="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-2xl grid gap-4 grid-cols-1 md:grid-cols-3">
             <div>
@@ -167,47 +170,57 @@ export const WorkshopsTab: React.FC = () => {
       ) : workshops.length === 0 ? (
         <p className="text-slate-400 text-sm font-medium py-6 text-center italic">Nenhuma oficina cadastrada.</p>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-          <table className="w-full text-left p-6">
-            <thead className="bg-slate-800 text-white">
-              <tr className="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-widest">
-                <th className="py-4 px-6 font-bold">Nome</th>
-                <th className="py-4 px-6 font-bold">Endereço</th>
-                <th className="py-4 px-6 font-bold">Status</th>
-                <th className="py-4 px-6 font-bold text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {workshops.map(w => (
-                <tr key={w.id} className="border-b border-slate-50 hover:bg-slate-50 group">
-                  <td className="py-4 font-bold text-slate-700">{w.name}</td>
-                  <td className="py-4 text-slate-500 text-sm">{w.address || '—'}</td>
-                  <td className="py-4">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${w.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                      {w.status === 'ACTIVE' ? 'Ativa' : 'Inativa'}
-                    </span>
-                  </td>
-                  <td className="py-4 text-right">
-                    <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => openEdit(w)}
-                        className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
-                      >
-                        <Edit2 size={16} />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(w.id)}
-                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </div>
-                  </td>
+        <>
+          <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+            <table className="w-full text-left p-6">
+              <thead className="bg-brand-blue text-white">
+                <tr className="[&>th]:px-6 [&>th]:py-4 [&>th]:text-left [&>th]:text-xs [&>th]:font-bold [&>th]:uppercase [&>th]:tracking-widest">
+                  <th>Nome</th>
+                  <th>Endereço</th>
+                  <th>Status</th>
+                  <th>Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {pagination.paginatedItems.map(w => (
+                  <tr key={w.id} className="border-b border-slate-50 hover:bg-slate-50 group">
+                    <td className="p-4 font-medium text-slate-700">{w.name}</td>
+                    <td className="p-4 text-slate-500 text-sm">{w.address || '—'}</td>
+                    <td className="p-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${w.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                        {w.status === 'ACTIVE' ? 'Ativa' : 'Inativa'}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right">
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => openEdit(w)}
+                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(w.id)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <TablePagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            total={pagination.total}
+            pageSize={pagination.pageSize}
+            onPageChange={pagination.setPage}
+            onPageSizeChange={pagination.setPageSize}
+          />
+        </>
       )}
     </div>
   );

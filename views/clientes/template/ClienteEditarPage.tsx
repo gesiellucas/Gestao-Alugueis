@@ -5,10 +5,11 @@ import { useAppContext } from "../../../contexts/AppContext";
 import { localCustomersApi } from "../../../database/api/local/customers";
 import { ArrowLeft, Save } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { maskCPF, maskPhone, rawCPF, rawPhone, formatCPF, formatPhone } from "../../../lib/formatters";
 
 export const ClienteEditarPage: React.FC = () => {
   const params = useParams();
-  const id = Number(params.id);
+  const id = params.id as string;
   const router = useRouter();
   const { customers, setCustomers } = useAppContext();
 
@@ -16,8 +17,8 @@ export const ClienteEditarPage: React.FC = () => {
 
   const [form, setForm] = useState({
     name: customer?.name || "",
-    phone: customer?.phone || "",
-    cpf: customer?.cpf || "",
+    phone: formatPhone(customer?.phone) === '—' ? '' : formatPhone(customer?.phone),
+    cpf: formatCPF(customer?.cpf) === '—' ? '' : formatCPF(customer?.cpf),
     active_contract: customer?.active_contract || false,
     balance_due: customer?.balance_due || 0,
   });
@@ -33,7 +34,7 @@ export const ClienteEditarPage: React.FC = () => {
         >
           <ArrowLeft size={20} /> Voltar
         </button>
-        <div className="bg-white rounded-[2.5rem] p-12 text-center shadow-sm">
+        <div className="bg-white rounded-xl p-12 text-center shadow-sm">
           <p className="text-slate-500 font-medium text-lg">
             Cliente não encontrado.
           </p>
@@ -49,8 +50,8 @@ export const ClienteEditarPage: React.FC = () => {
     try {
       await localCustomersApi.update(id, {
         name: form.name,
-        phone: form.phone,
-        cpf: form.cpf,
+        phone: rawPhone(form.phone),
+        cpf: rawCPF(form.cpf),
         active_contract: form.active_contract,
         balance_due: form.balance_due,
       });
@@ -59,13 +60,13 @@ export const ClienteEditarPage: React.FC = () => {
         prev.map((c) =>
           c.id === id
             ? {
-                ...c,
-                name: form.name,
-                phone: form.phone,
-                cpf: form.cpf,
-                active_contract: form.active_contract,
-                balance_due: form.balance_due,
-              }
+              ...c,
+              name: form.name,
+              phone: rawPhone(form.phone),
+              cpf: rawCPF(form.cpf),
+              active_contract: form.active_contract,
+              balance_due: form.balance_due,
+            }
             : c,
         ),
       );
@@ -79,8 +80,8 @@ export const ClienteEditarPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader 
-        title="Editar Cliente" 
+      <ModuleHeader
+        title="Editar Cliente"
         subtitle={`Atualizando dados de ${customer.name}.`}
         breadcrumbs={[
           { label: "Clientes", href: "/clientes" },
@@ -89,9 +90,9 @@ export const ClienteEditarPage: React.FC = () => {
         ]}
       />
 
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="bg-[#004AAD] p-8">
-          <h3 className="font-black text-xl uppercase tracking-tighter text-white">
+          <h3 className="font-bold text-xl uppercase tracking-tighter text-white">
             {customer.name}
           </h3>
         </div>
@@ -102,7 +103,7 @@ export const ClienteEditarPage: React.FC = () => {
             </div>
           )}
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
               Nome Completo
             </label>
             <input
@@ -116,26 +117,28 @@ export const ClienteEditarPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Telefone (WhatsApp)
               </label>
               <input
                 type="text"
                 className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
                 value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })}
+                placeholder="(11) 99999-9999"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 CPF
               </label>
               <input
                 type="text"
                 className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
                 value={form.cpf}
-                onChange={(e) => setForm({ ...form, cpf: e.target.value })}
+                onChange={(e) => setForm({ ...form, cpf: maskCPF(e.target.value) })}
+                placeholder="000.000.000-00"
                 required
               />
             </div>
@@ -143,7 +146,7 @@ export const ClienteEditarPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Débito Pendente (R$)
               </label>
               <input
@@ -161,7 +164,7 @@ export const ClienteEditarPage: React.FC = () => {
               />
             </div>
             <div className="flex items-center gap-4">
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">
                 Contrato Ativo
               </label>
               <button
@@ -194,7 +197,7 @@ export const ClienteEditarPage: React.FC = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-bold uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Save size={18} /> {submitting ? "Salvando..." : "Salvar Alterações"}
             </button>

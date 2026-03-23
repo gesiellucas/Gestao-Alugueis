@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AppUser } from "../types";
 import { Bike, LogIn, Lock, Mail, AlertCircle, ShieldCheck } from "lucide-react";
 import { localUsersApi } from "../database/api/local/users";
@@ -18,6 +18,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('[DEBUG] handleLogin triggered');
     setError("");
     setLoading(true);
 
@@ -27,7 +28,9 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         setSuccess("Instruções de recuperação enviadas para o seu e-mail.");
         setTimeout(() => setIsRecovering(false), 3000);
       } else {
+        console.log('[DEBUG] Calling localUsersApi.login with:', email);
         const user = await localUsersApi.login(email, password);
+        console.log('[DEBUG] login result:', user ? 'success' : 'failed');
         if (user) {
           if (typeof window !== 'undefined') {
             localStorage.setItem('electron_user_id', String(user.id));
@@ -38,12 +41,53 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           setError("E-mail ou senha inválidos.");
         }
       }
-    } catch (err) {
-      setError("Erro ao tentar conectar. Tente novamente.");
+    } catch (err: any) {
+      console.error('[DEBUG] Login error:', err);
+      setError(`Erro ao conectar: ${err.message || 'Erro desconhecido'}`);
+      // Alerta visível para capturar o erro antes do refresh
+      alert(`Erro de conexão: ${err.message || 'Verifique os logs do sistema'}`);
     } finally {
       setLoading(false);
     }
   };
+
+  // Check bridge status on mount
+  const [envInfo, setEnvInfo] = useState({ env: 'N/A', origin: 'N/A', path: 'N/A' });
+  const [bridgeStatus, setBridgeStatus] = useState<string>("Verificando...");
+  useEffect(() => {
+    setEnvInfo({
+      env: (window as any).electronAPI ? 'ELECTRON' : 'WEB',
+      origin: window.location.origin,
+      path: window.location.pathname,
+    });
+    console.log('[DEBUG] Checking bridge status...');
+
+    const checkBridge = () => {
+      if (typeof window !== 'undefined' && (window as any).electronAPI) {
+        console.log('[DEBUG] Bridge found!');
+        setBridgeStatus("Conectado ao Electron");
+        (window as any).electronAPI.invoke('app:isElectron').then(() => {
+          setBridgeStatus("Ponte IPC Ativa");
+        }).catch((err: any) => {
+          console.error('[DEBUG] IPC invoke failed:', err);
+          setBridgeStatus(`Erro IPC: ${err.message}`);
+        });
+        return true;
+      }
+      return false;
+    };
+
+    if (!checkBridge()) {
+      // Fallback: wait a bit or show error
+      const timeout = setTimeout(() => {
+        if (!checkBridge()) {
+          console.error('[DEBUG] Bridge timeout - not found after 5s');
+          setBridgeStatus("Erro: Ponte não encontrada (Timeout)");
+        }
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#004AAD] flex items-center justify-center p-6 relative overflow-hidden">
@@ -61,8 +105,8 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <Bike className="text-white w-10 h-10" />
           </div>
           <div>
-            <p className="text-orange-300 text-xs font-black uppercase tracking-[0.3em] mb-1">GC</p>
-            <h1 className="text-5xl font-black text-white tracking-[-0.03em] uppercase leading-none">
+            <p className="text-orange-300 text-xs font-bold uppercase tracking-[0.3em] mb-1">GC</p>
+            <h1 className="text-5xl font-bold text-white tracking-[-0.03em] uppercase leading-none">
               LOCAMOTO
             </h1>
             <p className="text-orange-300 text-[10px] font-bold uppercase tracking-[0.25em] mt-1.5">
@@ -130,7 +174,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#0C4AA5] hover:bg-[#1a5cbf] text-white font-black py-4 rounded-xl uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-xl shadow-orange-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-[#0C4AA5] hover:bg-[#1a5cbf] text-white font-bold py-4 rounded-xl uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-xl shadow-orange-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
@@ -158,7 +202,20 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         </form>
 
         <div className="mt-10 text-center">
-          <p className="text-blue-300/60 text-xs font-bold uppercase tracking-widest">
+          {/* Bridge Status Indicator (Diagnostic) */}
+          <div className="mt-8 pt-6 border-t border-slate-100 flex flex-col items-center gap-2">
+            <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${bridgeStatus.includes('Ponte IPC Ativa') ? 'bg-green-100 text-green-700' :
+                bridgeStatus.includes('Erro') ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-500'
+              }`}>
+              {bridgeStatus}
+            </div>
+            <div className="text-[10px] text-slate-400 font-medium space-y-1 text-center">
+              <p>Ambiente: {envInfo.env}</p>
+              <p>Origem: {envInfo.origin}</p>
+              <p>Path: {envInfo.path}</p>
+            </div>
+          </div>
+          <p className="text-blue-300/60 text-xs font-bold uppercase tracking-widest mt-4">
             GC Locamoto © {new Date().getFullYear()}
           </p>
         </div>

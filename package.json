@@ -1,7 +1,7 @@
 {
   "name": "gc-locamoto-pro",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Gestão de alugueis de motos",
   "author": "Gesiel Lucas",
   "homepage": "https://github.com/gesiellucas/gc-locamoto-pro",
@@ -20,7 +20,12 @@
     "db:generate": "cross-env DRIZZLE_TARGET=sqlite drizzle-kit generate --config=database/drizzle.config.ts && cross-env DRIZZLE_TARGET=pg drizzle-kit generate --config=database/drizzle.pg.config.ts",
     "db:studio": "drizzle-kit studio --config=database/drizzle.studio.config.ts",
     "db:push:supabase": "cross-env DRIZZLE_TARGET=pg drizzle-kit push --config=database/drizzle.pg.config.ts",
-    "db:push:sqlite": "cross-env DRIZZLE_TARGET=sqlite drizzle-kit push --config=database/drizzle.config.ts"
+    "db:push:sqlite": "cross-env DRIZZLE_TARGET=sqlite drizzle-kit push --config=database/drizzle.config.ts",
+    "db:supabase:drop": "node database/scripts/supabase-drop.mjs",
+    "db:supabase:fresh": "node database/scripts/supabase-fresh.mjs",
+    "db:seed": "node database/scripts/supabase-seed.mjs",
+    "db:seed:faker": "npx tsx database/seed-faker/run.ts",
+    "db:seed:clean": "npx tsx database/seed-faker/clean.ts"
   },
   "dependencies": {
     "@google/genai": "^1.40.0",
@@ -38,6 +43,7 @@
   },
   "devDependencies": {
     "@electron/rebuild": "^3.7.2",
+    "@faker-js/faker": "^10.3.0",
     "@libsql/client": "^0.17.0",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^22.14.0",

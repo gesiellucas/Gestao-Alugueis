@@ -1,121 +1,114 @@
-
-// Seed IDs for default vehicle statuses (match vehicle_statuses table)
-export const VEHICLE_STATUS_IDS = {
-  AVAILABLE: 1,
-  RENTED: 2,
-  MAINTENANCE: 3,
-  UNAVAILABLE: 4,
-} as const;
-
-export enum MaintenanceType {
-  PREVENTIVE = 'Revisão Periódica',
-  CORRECTIVE = 'Corretiva/Quebra',
-  OIL_CHANGE = 'Troca de Óleo',
-  TIRE_CHANGE = 'Troca de Pneu',
-  CHECKUP = 'Vistoria de Entrada'
+// Pagination types
+export interface PaginatedResult<T> {
+  data: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 
-export interface Workshop {
-  id: number;
+// Seed IDs for default vehicle statuses (match vehicle_statuses table)
+// IDs devem corresponder aos registros no seed (vehicle_statuses)
+export const VEHICLE_STATUS_IDS = {
+  AVAILABLE: '6ef5a0d2-6744-4db9-b857-84476d3058a0',
+  RENTED: 'ba4a4673-05ef-48ae-892e-4fae6619afb0',
+  MAINTENANCE: 'ac5aa49d-fbb2-4291-8933-a82dd37f0e13',
+  UNAVAILABLE: 'b3350b93-3765-4bca-becb-027072cc659b',
+  RESERVED: 'c3d59d46-1af5-4c59-8cd5-b00be8460ee3',
+} as const;
+
+export interface SyncMetadata {
+  created_at: string;
+  updated_at: string;
+  updated_by?: string | null;
+  device_id: string;
+  version: number;
+  is_deleted: number;
+  sync_status: 'pending' | 'synced' | 'error';
+}
+
+export interface Workshop extends SyncMetadata {
+  id: string;
   name: string;
   address?: string | null;
   status: 'ACTIVE' | 'INACTIVE';
-  created_at?: string;
-  updated_at?: string;
 }
 
-export interface VehicleStatusRecord {
-  id: number;
+export interface VehicleStatusRecord extends SyncMetadata {
+  id: string;
   name: string;
   color: string;
   is_default: boolean | number;
-  created_at?: string;
-  updated_at?: string;
 }
 
-export interface Role {
-  id: number;
-  workshop_id?: number | null;
+export interface Role extends SyncMetadata {
+  id: string;
   name: string;
   permissions: string[]; // e.g. ['dashboard', 'veiculos', 'oficina', 'clientes', 'alugueis', 'financeiro', 'configuracoes']
-  created_at?: string;
-  updated_at?: string;
 }
 
-export interface AppUser {
-  id: number;
+export interface AppUser extends SyncMetadata {
+  id: string;
   name: string;
   email: string;
-  role_id: number;
+  role_id: string;
   role?: Role; // Populated from join
   password?: string;
-  created_at?: string;
-  updated_at?: string;
 }
 
-export interface Customer {
-  id: number;
-  user_id: number;
+export interface Customer extends SyncMetadata {
+  id: string;
+  user_id: string;
   name: string;
   phone: string;
   cpf: string;
   active_contract: boolean;
   balance_due: number;
   last_payment_date?: string | null;
-  created_at?: string;
-  updated_at?: string;
 }
 
-export interface VehicleModel {
-  id: number;
+export interface VehicleModel extends SyncMetadata {
+  id: string;
   name: string;
   brand: string;
   status: 'ACTIVE' | 'INACTIVE';
   image_url?: string | null;
-  created_at?: string;
-  updated_at?: string;
 }
 
-export interface Vehicle {
-  id: number;
+export interface Vehicle extends SyncMetadata {
+  id: string;
   plate: string;
-  model_id: number;
+  model_id: string;
   model?: VehicleModel; // Populated from join
   year: number;
-  status_id: number;
+  status_id: string;
   vehicleStatus?: VehicleStatusRecord; // Populated from join
   mileage: number;
-  current_renter_id?: number | null;
+  current_renter_id?: string | null;
   default_monthly_rate: number;
-  created_at?: string;
-  updated_at?: string;
 }
 
-export interface RentalContract {
-  id: number;
-  user_id: number;
-  vehicle_id: number;
-  customer_id: number;
+export interface RentalContract extends SyncMetadata {
+  id: string;
+  user_id: string;
+  vehicle_id: string;
+  customer_id: string;
   start_date: string;
   end_date?: string | null;
   monthly_rate: number;
   status: 'ACTIVE' | 'ENDED';
-  created_at?: string;
-  updated_at?: string;
 }
 
-export interface Contract {
-  id: number;
-  rental_id: number;
-  created_at?: string;
-  updated_at?: string;
+export interface Contract extends SyncMetadata {
+  id: string;
+  rental_id: string;
 }
 
-export interface MaintenanceRecord {
-  id: number;
-  user_id: number;
-  vehicle_id: number;
-  workshop_id?: number | null;
+export interface MaintenanceRecord extends SyncMetadata {
+  id: string;
+  user_id: string;
+  vehicle_id: string;
+  workshop_id?: string | null;
   vehicle_plate: string;
   entry_date: string;
   completion_date?: string | null;
@@ -124,16 +117,21 @@ export interface MaintenanceRecord {
   type: `${MaintenanceType}`;
   cost: number;
   status: 'OPEN' | 'COMPLETED';
-  created_at?: string;
-  updated_at?: string;
 }
 
-export interface Document {
-  id: number;
-  parent_id: number;
-  origin_type: 'CONTRACT' | 'WORKSHOP';
+export type UnavailableStatusType = 'STOLEN' | 'TOTAL_LOSS';
+
+export interface UnavailableVehicle extends SyncMetadata {
+  id: string;
+  user_id: string;
+  vehicle_id: string;
+  status_type: UnavailableStatusType;
+  reason: string;
+}
+
+export interface Document extends SyncMetadata {
+  id: string;
+  parent_id: string;
+  origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE';
   file_url: string;
-  created_at?: string;
-  updated_at?: string;
-  deleted_at?: string | null;
 }

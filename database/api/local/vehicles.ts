@@ -3,7 +3,7 @@
  * Vehicles are shared across all users (no user_id filtering).
  */
 import { ipcInvoke } from '../../../lib/ipc';
-import { Vehicle, VEHICLE_STATUS_IDS } from '../../../types';
+import { Vehicle, VEHICLE_STATUS_IDS, PaginatedResult } from '../../../types';
 import type { InsertDto, UpdateDto } from '../../client/types';
 
 export const localVehiclesApi = {
@@ -16,7 +16,7 @@ export const localVehiclesApi = {
     }
   },
 
-  async getById(id: number): Promise<Vehicle | null> {
+  async getById(id: string): Promise<Vehicle | null> {
     try {
       const result = await ipcInvoke<Vehicle | null>('db:vehicles:getById', { id });
       return result;
@@ -25,19 +25,19 @@ export const localVehiclesApi = {
     }
   },
 
-  async create(vehicle: InsertDto<'vehicles'>): Promise<Vehicle> {
+  async create(vehicle: { plate: string; model_id?: string | null; year?: number; status_id?: string; mileage?: number; current_renter_id?: string | null; default_monthly_rate?: number }): Promise<Vehicle> {
     return ipcInvoke<Vehicle>('db:vehicles:create', { ...vehicle });
   },
 
-  async update(id: number, updates: UpdateDto<'vehicles'>): Promise<Vehicle> {
+  async update(id: string, updates: { plate?: string; model_id?: string | null; year?: number; status_id?: string; mileage?: number; current_renter_id?: string | null; default_monthly_rate?: number }): Promise<Vehicle> {
     return ipcInvoke<Vehicle>('db:vehicles:update', { ...updates, id });
   },
 
-  async delete(id: number): Promise<void> {
+  async delete(id: string): Promise<void> {
     await ipcInvoke('db:vehicles:delete', { id });
   },
 
-  async getByStatusId(statusId: number): Promise<Vehicle[]> {
+  async getByStatusId(statusId: string): Promise<Vehicle[]> {
     const all = await this.getAll();
     return all.filter((v) => v.status_id === statusId);
   },
@@ -54,11 +54,15 @@ export const localVehiclesApi = {
     return this.getByStatusId(VEHICLE_STATUS_IDS.MAINTENANCE);
   },
 
-  async updateStatus(id: number, statusId: number): Promise<Vehicle> {
+  async updateStatus(id: string, statusId: string): Promise<Vehicle> {
     return this.update(id, { status_id: statusId });
   },
 
-  async updateMileage(id: number, mileage: number): Promise<Vehicle> {
+  async updateMileage(id: string, mileage: number): Promise<Vehicle> {
     return this.update(id, { mileage });
+  },
+
+  async getPaginated(page: number, pageSize: number): Promise<PaginatedResult<Vehicle>> {
+    return ipcInvoke<PaginatedResult<Vehicle>>('db:vehicles:getPaginated', { page, pageSize });
   },
 };

@@ -5,7 +5,8 @@ import { useAppContext } from "../../../contexts/AppContext";
 import { localVehiclesApi } from "../../../database/api/local/vehicles";
 import { localVehicleModelsApi } from "../../../database/api/local/vehicleModels";
 import { VEHICLE_STATUS_IDS } from "../../../types";
-import { ArrowLeft, Save, PlusCircle } from "lucide-react";
+import { ArrowLeft, Save, PlusCircle, Link } from "lucide-react";
+import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const VeiculoNovoPage: React.FC = () => {
   const router = useRouter();
@@ -13,7 +14,7 @@ export const VeiculoNovoPage: React.FC = () => {
 
   const [form, setForm] = useState<{
     plate: string;
-    model_id: number | "";
+    model_id: string | "";
     year: number;
     mileage: number;
     default_monthly_rate: number;
@@ -69,7 +70,7 @@ export const VeiculoNovoPage: React.FC = () => {
 
       const newVehicle = await localVehiclesApi.create({
         plate: form.plate,
-        model_id: Number(finalModelId),
+        model_id: finalModelId as string,
         year: form.year,
         status_id: VEHICLE_STATUS_IDS.AVAILABLE,
         mileage: form.mileage,
@@ -87,21 +88,14 @@ export const VeiculoNovoPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => router.push("/veiculos")}
-          className="flex items-center gap-2 text-slate-500 hover:text-slate-700 font-bold transition-colors"
-        >
-          <ArrowLeft size={20} /> Voltar
-        </button>
-        <h2 className="text-3xl font-extrabold text-[#004AAD] uppercase tracking-tight">
-          Nova Motocicleta
-        </h2>
-      </div>
+      <ModuleHeader
+        title="Novo Veículo"
+        subtitle="Cadastro de Veículo"
+        breadcrumbs={[{ label: "Veículos" }]} />
 
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="bg-[#004AAD] p-8">
-          <h3 className="font-black text-xl uppercase tracking-tighter text-white">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="bg-brand-blue p-4">
+          <h3 className="font-bold  text-white">
             Cadastro de Veículo
           </h3>
         </div>
@@ -113,7 +107,7 @@ export const VeiculoNovoPage: React.FC = () => {
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Placa
               </label>
               <input
@@ -129,7 +123,7 @@ export const VeiculoNovoPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Modelo do Veículo
               </label>
               {!isCreatingModel ? (
@@ -137,7 +131,7 @@ export const VeiculoNovoPage: React.FC = () => {
                   <select
                     className="flex-1 bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border appearance-none"
                     value={form.model_id}
-                    onChange={(e) => setForm({ ...form, model_id: e.target.value === "" ? "" : Number(e.target.value) })}
+                    onChange={(e) => setForm({ ...form, model_id: e.target.value })}
                     required
                   >
                     <option value="">Selecione um modelo...</option>
@@ -190,7 +184,7 @@ export const VeiculoNovoPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Ano
               </label>
               <input
@@ -206,7 +200,7 @@ export const VeiculoNovoPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
                 Quilometragem
               </label>
               <input
@@ -220,8 +214,8 @@ export const VeiculoNovoPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                Valor Mensal Padrão (R$)
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                Valor Contratual Padrão (R$)
               </label>
               <input
                 type="number"
@@ -251,9 +245,9 @@ export const VeiculoNovoPage: React.FC = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-bold uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save size={18} /> {submitting ? "Salvando..." : "Salvar Veículo"}
+              {submitting ? "Salvando..." : "Salvar Veículo"}
             </button>
           </div>
         </form>

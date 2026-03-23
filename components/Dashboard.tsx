@@ -14,11 +14,14 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Wrench, Bike, TrendingUp, AlertTriangle } from "lucide-react";
+import { Wrench, Bike, TrendingUp, AlertTriangle, Lock } from "lucide-react";
+import StatCard from "./StatCard";
 import { summarizeDailyWorkshop } from "../services/geminiService";
+import { useFinanceAccess } from "../hooks/useFinanceAccess";
 
 export const Dashboard: React.FC = () => {
   const { vehicles, maintenanceRecords: records } = useAppContext();
+  const hasFinanceAccess = useFinanceAccess();
 
   const totalVehicles = vehicles.length;
   const rentedVehicles = vehicles.filter(
@@ -72,100 +75,109 @@ export const Dashboard: React.FC = () => {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white p-7 rounded-[2rem] shadow-sm border border-slate-100 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50 -mr-8 -mt-8 rounded-full transition-transform group-hover:scale-110"></div>
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-            Frota GC
-          </p>
-          <h3 className="text-4xl font-extrabold text-[#004AAD] mt-3">
-            {totalVehicles}
-          </h3>
-          <div className="mt-6 flex items-center gap-2 text-[#004AAD] font-bold text-xs bg-blue-50 w-fit px-3 py-1.5 rounded-full">
-            <Bike size={14} /> Ativos
-          </div>
-        </div>
+        <StatCard
+          title="Frota GC"
+          value={totalVehicles}
+          label="Ativos"
+          Icon={Bike}
+          variant="blue"
+        />
 
-        <div className="bg-white p-7 rounded-[2rem] shadow-sm border border-slate-100 group">
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-            Alugadas
-          </p>
-          <h3 className="text-4xl font-extrabold text-green-600 mt-3">
-            {rentedVehicles}
-          </h3>
-          <div className="mt-6 flex items-center gap-2 text-green-700 font-bold text-xs bg-green-50 w-fit px-3 py-1.5 rounded-full">
-            <TrendingUp size={14} />{" "}
-            {((rentedVehicles / totalVehicles) * 100).toFixed(0)}% Ocupação
-          </div>
-        </div>
+        <StatCard
+          title="Alugadas"
+          value={rentedVehicles}
+          label={`${((rentedVehicles / (totalVehicles || 1)) * 100).toFixed(0)}% Ocupação`}
+          Icon={TrendingUp}
+          variant="green"
+        />
 
-        <div className="bg-white p-7 rounded-[2rem] shadow-sm border border-slate-100">
-          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-            Em Manutenção
-          </p>
-          <h3 className="text-4xl font-extrabold text-amber-500 mt-3">
-            {inMaintenance}
-          </h3>
-          <div className="mt-6 flex items-center gap-2 text-amber-700 font-bold text-xs bg-amber-50 w-fit px-3 py-1.5 rounded-full">
-            <Wrench size={14} /> Atenção
-          </div>
-        </div>
+        <StatCard
+          title="Indisponíveis"
+          value={rentedVehicles}
+          label={`${((rentedVehicles / (totalVehicles || 1)) * 100).toFixed(0)}% Ocupação`}
+          Icon={TrendingUp}
+          variant="green"
+        />
 
-        <div className="bg-[#004AAD] p-7 rounded-[2rem] shadow-xl text-white">
-          <p className="text-sm font-bold text-blue-200 uppercase tracking-widest">
-            Financeiro Diário
-          </p>
-          <h3 className="text-3xl font-extrabold text-[#0C4AA5] mt-3">
-            R$ 1.840
-          </h3>
-          <p className="text-xs text-blue-200 mt-6 font-medium">
-            Previsão de recebimento para hoje
-          </p>
-        </div>
+        <StatCard
+          title="Em Manutenção"
+          value={inMaintenance}
+          label="Atenção"
+          Icon={Wrench}
+          variant="amber"
+        />
+
+        {hasFinanceAccess && (
+          <div className="bg-[#004AAD] p-6 rounded-2xl shadow-xl text-white relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 -mr-8 -mt-8 rounded-full transition-transform group-hover:scale-110"></div>
+            <div className="relative z-10">
+              <p className="text-sm font-bold text-blue-200 uppercase tracking-widest mb-3">
+                Financeiro Diário
+              </p>
+              <h3 className="text-3xl font-extrabold text-white">
+                R$ 1.840
+              </h3>
+              <p className="text-xs text-blue-200 mt-6 font-medium">
+                Previsão de recebimento para hoje
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
-          <h3 className="text-xl font-extrabold text-[#004AAD] mb-8">
-            Receita de Aluguéis (7 dias)
-          </h3>
-          <div className="h-72 w-full min-h-[250px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-              <BarChart data={revenueData}>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="#f1f5f9"
-                />
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 600 }}
-                  dy={10}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 600 }}
-                />
-                <Tooltip
-                  cursor={{ fill: "#f8fafc" }}
-                  contentStyle={{
-                    borderRadius: "16px",
-                    border: "none",
-                    boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
-                  }}
-                />
-                <Bar
-                  dataKey="income"
-                  fill="#0C4AA5"
-                  radius={[10, 10, 0, 0]}
-                  barSize={40}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+        {hasFinanceAccess ? (
+          <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100">
+            <h3 className="text-xl font-extrabold text-[#004AAD] mb-8">
+              Receita de Aluguéis (7 dias)
+            </h3>
+            <div className="h-72 w-full min-h-[250px]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                <BarChart data={revenueData}>
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    vertical={false}
+                    stroke="#f1f5f9"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 600 }}
+                    dy={10}
+                  />
+                  <YAxis
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: "#94a3b8", fontSize: 12, fontWeight: 600 }}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "#f8fafc" }}
+                    contentStyle={{
+                      borderRadius: "16px",
+                      border: "none",
+                      boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+                    }}
+                  />
+                  <Bar
+                    dataKey="income"
+                    fill="#0C4AA5"
+                    radius={[10, 10, 0, 0]}
+                    barSize={40}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center justify-center gap-4">
+            <Lock size={32} className="text-slate-300" />
+            <div className="text-center">
+              <p className="font-bold text-slate-400">Receita de Aluguéis</p>
+              <p className="text-sm text-slate-300 mt-1">Acesso ao módulo financeiro necessário</p>
+            </div>
+          </div>
+        )}
 
         <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center">
           <h3 className="text-xl font-extrabold text-[#004AAD] self-start mb-8">

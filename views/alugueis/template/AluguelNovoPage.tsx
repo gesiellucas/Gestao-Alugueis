@@ -12,21 +12,23 @@ import {
   Calendar,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { formatCPF, formatPhone } from "../../../lib/formatters";
 
 export const AluguelNovoPage: React.FC = () => {
   const params = useParams();
-  const preselectedVehicleId = params.vehicleId ? Number(params.vehicleId) : undefined;
+  const preselectedVehicleId = params.vehicleId ? (params.vehicleId as string) : undefined;
   const router = useRouter();
-  const { vehicles, customers, handleCreateRental } = useAppContext();
+  const { vehicles, customers, handleCreateRental, loading } = useAppContext();
 
+  console.log(customers);
   const availableVehicles = vehicles.filter(
     (v) => v.status_id === VEHICLE_STATUS_IDS.AVAILABLE,
   );
 
-  const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(preselectedVehicleId ?? null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(preselectedVehicleId ?? null);
   const vehicle = vehicles.find((v) => v.id === selectedVehicleId);
 
-  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
   const [monthlyRate, setMonthlyRate] = useState(
     vehicle?.default_monthly_rate?.toString() || "",
   );
@@ -45,14 +47,19 @@ export const AluguelNovoPage: React.FC = () => {
   }, [vehicle]);
 
   const availableCustomers = useMemo(() => {
+    if (loading) return [];
     return customers.filter((c) => {
+      const name = (c.name || "").toLowerCase();
+      const cpf = (c.cpf || "");
+      const search = customerSearch.toLowerCase();
+
       const matchesSearch =
         !customerSearch ||
-        c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-        c.cpf.includes(customerSearch);
+        name.includes(search) ||
+        cpf.includes(search);
       return matchesSearch;
     });
-  }, [customers, customerSearch]);
+  }, [customers, customerSearch, loading]);
 
   const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
 
@@ -81,8 +88,8 @@ export const AluguelNovoPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <ModuleHeader 
-        title="Novo Aluguel" 
+      <ModuleHeader
+        title="Novo Aluguel"
         subtitle={vehicle ? `Iniciando contrato para o veículo ${vehicle.plate}.` : "Preencha os dados para criar um novo contrato."}
         breadcrumbs={[
           { label: "Aluguéis", href: "/alugueis" },
@@ -90,13 +97,12 @@ export const AluguelNovoPage: React.FC = () => {
         ]}
       />
 
-      <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-        <div className="bg-[#004AAD] p-8">
+      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="bg-brand-blue p-4">
           <div className="flex items-center gap-4">
-            <Bike size={24} className="text-blue-400" />
             <div>
-              <h3 className="font-black text-xl uppercase tracking-tighter text-white">
-                {vehicle ? (vehicle.model?.name || 'Modelo desconhecido') : 'Selecione um veículo'}
+              <h3 className="font-bold tracking-tighter text-white">
+                {vehicle ? (vehicle.model?.name || 'Modelo desconhecido') : 'Selecione o veículo e o condutor'}
               </h3>
               {vehicle && (
                 <p className="text-blue-300 text-sm font-mono font-bold">
@@ -107,11 +113,10 @@ export const AluguelNovoPage: React.FC = () => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-10 space-y-8">
+        <form onSubmit={handleSubmit} className="p-6 space-y-8">
           {!preselectedVehicleId && (
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
-                <Bike size={12} className="inline mr-1" />
+              <label className="block text-sm font-bold text-slate-400 mb-3">
                 Selecionar Veículo
               </label>
               {vehicle ? (
@@ -125,7 +130,7 @@ export const AluguelNovoPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setSelectedVehicleId(null)}
-                    className="text-blue-500 hover:text-blue-700 font-black text-sm uppercase"
+                    className="text-blue-500 hover:text-blue-700 font-bold text-sm uppercase"
                   >
                     Trocar
                   </button>
@@ -142,12 +147,12 @@ export const AluguelNovoPage: React.FC = () => {
                         key={v.id}
                         type="button"
                         onClick={() => setSelectedVehicleId(v.id)}
-                        className="w-full text-left p-4 hover:bg-blue-50 transition-colors border-b border-slate-100 last:border-b-0"
+                        className="w-full flex flex-row gap-4 text-left p-4 hover:bg-blue-50 transition-colors border-b border-slate-100 last:border-b-0"
                       >
-                        <p className="font-bold text-[#004AAD]">
-                          {v.model?.brand} {v.model?.name}
+                        <p className="font-bold text-brand-blue">{v.plate}</p>
+                        <p className="text-slate-500 font-mono font-medium">
+                          {v.model?.brand} / {v.model?.name}
                         </p>
-                        <p className="text-xs text-slate-500 font-mono font-medium">{v.plate}</p>
                       </button>
                     ))
                   )}
@@ -162,8 +167,7 @@ export const AluguelNovoPage: React.FC = () => {
           )}
 
           <div>
-            <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
-              <User size={12} className="inline mr-1" />
+            <label className="block text-sm font-bold text-slate-400 mb-3">
               Selecionar Cliente
             </label>
 
@@ -174,13 +178,13 @@ export const AluguelNovoPage: React.FC = () => {
                     {selectedCustomer.name}
                   </p>
                   <p className="text-sm text-blue-600 font-medium">
-                    CPF: {selectedCustomer.cpf} &bull; {selectedCustomer.phone}
+                    CPF: {formatCPF(selectedCustomer.cpf)} &bull; {formatPhone(selectedCustomer.phone)}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedCustomerId(null)}
-                  className="text-blue-500 hover:text-blue-700 font-black text-sm uppercase"
+                  className="text-blue-500 hover:text-blue-700 font-bold text-sm uppercase"
                 >
                   Trocar
                 </button>
@@ -194,7 +198,7 @@ export const AluguelNovoPage: React.FC = () => {
                   />
                   <input
                     type="text"
-                    className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 pl-12 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
+                    className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 pl-12 font-medium text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
                     value={customerSearch}
                     onChange={(e) => setCustomerSearch(e.target.value)}
                     placeholder="Buscar por nome ou CPF..."
@@ -215,13 +219,13 @@ export const AluguelNovoPage: React.FC = () => {
                           setSelectedCustomerId(customer.id);
                           setCustomerSearch("");
                         }}
-                        className="w-full text-left p-4 hover:bg-blue-50 transition-colors border-b border-slate-100 last:border-b-0"
+                        className="w-full flex flex-row gap-4 items-center text-left p-4 hover:bg-blue-50 transition-colors border-b border-slate-100 last:border-b-0"
                       >
                         <p className="font-bold text-[#004AAD]">
                           {customer.name}
                         </p>
                         <p className="text-xs text-slate-500 font-medium">
-                          CPF: {customer.cpf} &bull; {customer.phone}
+                          CPF: {formatCPF(customer.cpf)} &bull; {formatPhone(customer.phone)}
                         </p>
                       </button>
                     ))
@@ -233,9 +237,8 @@ export const AluguelNovoPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                <DollarSign size={12} className="inline mr-1" />
-                Valor Mensal (R$)
+              <label className="block text-sm font-bold text-slate-400 mb-2">
+                Valor Contratual (R$)
               </label>
               <input
                 type="number"
@@ -249,8 +252,7 @@ export const AluguelNovoPage: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">
-                <Calendar size={12} className="inline mr-1" />
+              <label className="block text-sm font-bold text-slate-400 mb-2">
                 Data de Início
               </label>
               <input
@@ -274,9 +276,8 @@ export const AluguelNovoPage: React.FC = () => {
             <button
               type="submit"
               disabled={!vehicle || !selectedCustomerId || !monthlyRate || submitting}
-              className="flex-1 py-4 bg-[#004AAD] text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-4 bg-brand-blue text-white rounded-xl font-bold shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Save size={18} />
               {submitting ? "Registrando..." : "Registrar Aluguel"}
             </button>
           </div>

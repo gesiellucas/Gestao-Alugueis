@@ -3,13 +3,14 @@ directories:
   buildResources: resources
 appId: br.com.gclocamoto.app
 productName: GC Locamoto
-copyright: Copyright © 2025 GC Locamoto
+copyright: Copyright © 2026 GC Locamoto
+icon: resources/icon.ico
 files:
   - filter:
       - dist/electron/**/*
-      - dist/db/**/*
+      - dist/database/**/*
       - out/**/*
-      - db/migrations/sqlite/**/*
+      - database/migrations/sqlite/**/*
       - node_modules/**/*
       - package.json
 npmRebuild: true

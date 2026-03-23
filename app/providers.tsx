@@ -30,7 +30,11 @@ function AuthWrapper({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <Layout user={user} onLogout={() => setUser(null)}>
+    <Layout user={user} onLogout={() => {
+      localStorage.removeItem('electron_user_id');
+      localStorage.removeItem('electron_user_email');
+      setUser(null);
+    }}>
       {children}
     </Layout>
   );

@@ -1,5 +1,7 @@
+'use client';
 import React from "react";
 import { Customer, Vehicle } from "../../../types";
+import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
 import {
   User,
   Phone,
@@ -20,8 +22,10 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
   customers,
   vehicles,
 }) => {
+  const hasFinanceAccess = useFinanceAccess();
+
   // Helper to find which vehicle a customer is using
-  const getCustomerVehicle = (customerId: number) => {
+  const getCustomerVehicle = (customerId: string) => {
     return vehicles.find((v) => v.current_renter_id === customerId);
   };
 
@@ -62,20 +66,20 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
           return (
             <div
               key={customer.id}
-              className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300"
+              className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300"
             >
               <div className="p-8">
                 <div className="flex justify-between items-start mb-6">
-                  <div className="w-16 h-16 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-black text-2xl border border-blue-100">
+                  <div className="w-16 h-16 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600 font-bold text-2xl border border-blue-100">
                     {customer.name.charAt(0)}
                   </div>
                   <div className="text-right">
                     {customer.active_contract ? (
-                      <span className="bg-green-100 text-green-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-green-200 flex items-center gap-1">
+                      <span className="bg-green-100 text-green-700 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-green-200 flex items-center gap-1">
                         <CheckCircle size={10} /> Ativo
                       </span>
                     ) : (
-                      <span className="bg-slate-100 text-slate-500 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-slate-200">
+                      <span className="bg-slate-100 text-slate-500 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-slate-200">
                         Inativo
                       </span>
                     )}
@@ -95,7 +99,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
                 <div className="space-y-4 mb-8">
                   <div className="bg-slate-50 p-4 rounded-xl flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                         Veículo Atual
                       </p>
                       <p className="font-bold text-slate-700">
@@ -103,33 +107,35 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
                       </p>
                     </div>
                     {vehicle && (
-                      <p className="text-xs font-black bg-blue-600 text-white px-2 py-1 rounded">
+                      <p className="text-xs font-bold bg-blue-600 text-white px-2 py-1 rounded">
                         {vehicle.plate}
                       </p>
                     )}
                   </div>
 
-                  <div
-                    className={`p-4 rounded-xl flex items-center justify-between border ${hasDebt ? "bg-red-50 border-red-100" : "bg-green-50 border-green-100"}`}
-                  >
-                    <div>
-                      <p
-                        className={`text-[10px] font-black uppercase tracking-widest ${hasDebt ? "text-red-400" : "text-green-400"}`}
-                      >
-                        {hasDebt ? "Débito Pendente" : "Situação Financeira"}
-                      </p>
-                      <p
-                        className={`font-black text-lg ${hasDebt ? "text-red-600" : "text-green-600"}`}
-                      >
-                        R$ {customer.balance_due.toFixed(2)}
-                      </p>
+                  {hasFinanceAccess && (
+                    <div
+                      className={`p-4 rounded-xl flex items-center justify-between border ${hasDebt ? "bg-red-50 border-red-100" : "bg-green-50 border-green-100"}`}
+                    >
+                      <div>
+                        <p
+                          className={`text-[10px] font-bold uppercase tracking-widest ${hasDebt ? "text-red-400" : "text-green-400"}`}
+                        >
+                          {hasDebt ? "Débito Pendente" : "Situação Financeira"}
+                        </p>
+                        <p
+                          className={`font-bold text-lg ${hasDebt ? "text-red-600" : "text-green-600"}`}
+                        >
+                          R$ {customer.balance_due.toFixed(2)}
+                        </p>
+                      </div>
+                      {hasDebt ? (
+                        <AlertCircle className="text-red-400" size={24} />
+                      ) : (
+                        <CheckCircle className="text-green-400" size={24} />
+                      )}
                     </div>
-                    {hasDebt ? (
-                      <AlertCircle className="text-red-400" size={24} />
-                    ) : (
-                      <CheckCircle className="text-green-400" size={24} />
-                    )}
-                  </div>
+                  )}
                 </div>
 
                 <div className="flex gap-3">
@@ -137,7 +143,7 @@ export const CustomerManager: React.FC<CustomerManagerProps> = ({
                     onClick={() =>
                       window.open(`https://wa.me/${customer.phone}`, "_blank")
                     }
-                    className="flex-1 py-4 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-md shadow-green-100"
+                    className="flex-1 py-4 bg-[#25D366] hover:bg-[#128C7E] text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-md shadow-green-100"
                   >
                     <MessageSquare size={16} />
                     WhatsApp

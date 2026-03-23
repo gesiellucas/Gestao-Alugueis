@@ -19,7 +19,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
           </p>
         </div>
         <button className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95">
-          Nova Motocicleta
+          Novo Veículo
         </button>
       </div>
 
@@ -31,7 +31,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
           return (
             <div
               key={vehicle.id}
-              className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden group hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
             >
               <div className="h-48 bg-[#f8fafc] relative flex items-center justify-center p-6">
                 <img
@@ -41,7 +41,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
                 />
                 <div className="absolute top-4 right-4">
                   <span
-                    className="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border"
+                    className="px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest border"
                     style={{
                       backgroundColor: `${statusColor}20`,
                       color: statusColor,
@@ -55,7 +55,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
               <div className="p-8">
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-xs font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">
+                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">
                       {vehicle.model?.brand || "Marca"}
                     </span>
                     <span className="text-xs font-bold text-slate-400">
@@ -72,7 +72,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
                     <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 flex items-center gap-1">
                       <Hash size={10} /> Placa
                     </p>
-                    <p className="text-sm font-black text-slate-700 font-mono tracking-tighter">
+                    <p className="text-sm font-bold text-slate-700 font-mono tracking-tighter">
                       {vehicle.plate}
                     </p>
                   </div>
@@ -80,7 +80,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
                     <p className="text-[10px] font-bold text-slate-400 uppercase mb-1 flex items-center gap-1">
                       <Circle size={10} /> Km
                     </p>
-                    <p className="text-sm font-black text-slate-700">
+                    <p className="text-sm font-bold text-slate-700">
                       {vehicle.mileage.toLocaleString()}
                     </p>
                   </div>
@@ -95,7 +95,7 @@ export const FleetManager: React.FC<FleetProps> = ({ vehicles }) => {
                       <p className="text-[10px] font-bold text-blue-600 uppercase">
                         Locatário Atual
                       </p>
-                      <p className="text-xs font-black text-blue-900 truncate">
+                      <p className="text-xs font-bold text-blue-900 truncate">
                         Cliente Ativo
                       </p>
                     </div>

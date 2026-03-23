@@ -22,10 +22,9 @@ import {
   Car,
   Palette,
   Database,
+  Info,
 } from "lucide-react";
 import { SyncIndicator } from "./SyncIndicator";
-import { useAutoSync } from "../hooks/useSync";
-
 interface LayoutProps {
   user: AppUser;
   onLogout: () => void;
@@ -36,9 +35,6 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isElectron, setIsElectron] = useState(false);
   const pathname = usePathname();
-
-  // Trigger SQLite background sync with Supabase on mount/login
-  useAutoSync(user.id);
 
   useEffect(() => {
     setIsElectron(!!window.electronAPI?.isElectron);
@@ -92,6 +88,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
     { to: "/configuracoes/status", label: "Status de Veículos", icon: Palette },
     { to: "/configuracoes/oficinas", label: "Gestão de Oficinas", icon: Wrench },
     { to: "/configuracoes/banco-de-dados", label: "Banco de Dados", icon: Database },
+    { to: "/configuracoes/sobre", label: "Sobre", icon: Info },
   ];
 
   const isSettingsOpen = pathname.startsWith('/configuracoes');
@@ -158,15 +155,12 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
                     <Link
                       key={item.to}
                       href={item.to}
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${pathname === item.to
-                        ? "bg-white/15 text-white ring-1 ring-white/20"
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all ${isActive(item.to)
+                        ? "bg-white text-[#004AAD]"
                         : "text-blue-100 hover:text-white hover:bg-white/10"
                         }`}
                     >
-                      <item.icon
-                        size={16}
-                        className={pathname === item.to ? "text-[#0C4AA5]" : ""}
-                      />
+                      <item.icon size={16} />
                       {item.label}
                     </Link>
                   ))}
@@ -178,12 +172,12 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
 
         <div className="p-6 border-t border-white/10 bg-[#003d91]">
           <div className="mb-4 px-2 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#0C4AA5] flex items-center justify-center text-[10px] font-black text-white shadow-md shadow-orange-600/30">
+            <div className="w-8 h-8 rounded-full bg-[#0C4AA5] flex items-center justify-center text-[10px] font-bold text-white shadow-md shadow-orange-600/30">
               {user.name.charAt(0)}
             </div>
             <div className="overflow-hidden">
               <p className="text-xs font-bold truncate">{user.name}</p>
-              <p className="text-[10px] text-orange-300 font-black uppercase tracking-tighter">
+              <p className="text-[10px] text-orange-300 font-bold uppercase tracking-tighter">
                 {user.role?.name || "USUÁRIO"}
               </p>
             </div>
@@ -262,7 +256,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
               ))}
               {hasPerm('configuracoes') && (
                 <div className="space-y-2">
-                  <div className={`flex items-center gap-4 px-5 py-3 text-sm font-black uppercase tracking-widest ${isSettingsOpen ? "text-[#0C4AA5]" : "text-blue-300"}`}>
+                  <div className={`flex items-center gap-4 px-5 py-3 text-sm font-bold uppercase tracking-widest ${isSettingsOpen ? "text-[#0C4AA5]" : "text-blue-300"}`}>
                     <Settings size={18} />
                     Configurações
                   </div>
@@ -272,12 +266,12 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
                         key={item.to}
                         href={item.to}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold ${pathname === item.to
-                          ? "bg-white/15 text-white ring-1 ring-white/20"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold ${isActive(item.to)
+                          ? "bg-white text-[#004AAD]"
                           : "bg-white/5 text-blue-100"
                           }`}
                       >
-                        <item.icon size={20} className={pathname === item.to ? "text-[#0C4AA5]" : ""} />
+                        <item.icon size={20} />
                         {item.label}
                       </Link>
                     ))}

@@ -3,7 +3,6 @@ import { createClient } from '@supabase/supabase-js';
 import { getRawDb } from '../client/sqlite';
 
 let supabase: ReturnType<typeof createClient> | null = null;
-let syncInterval: NodeJS.Timeout | null = null;
 let isSyncing = false;
 
 // Tabelas sincronizadas (app_users NÃO sincroniza — contém senha local)
@@ -26,18 +25,37 @@ const SHARED_TABLES = new Set([
 
 export function initSyncEngine() {
   initSupabaseClient();
-  startPolling(5 * 60 * 1000);
 
+  // Sync manual via IPC — não há polling automático
   ipcMain.handle('sync:force', async () => {
+    return await runSync();
+  });
+
+  // Reinicializa o cliente Supabase (chamado após configurar credenciais no setup)
+  ipcMain.handle('sync:reinit', async () => {
+    supabase = null;
+    await initSupabaseClient();
+    if (!supabase) return { success: false, reason: 'No Supabase credentials after reinit' };
     return await runSync();
   });
 }
 
-function initSupabaseClient() {
+async function initSupabaseClient() {
   try {
     const db = getRawDb();
-    const urlRow = db.prepare("SELECT value FROM config WHERE key = 'NEXT_PUBLIC_SUPABASE_URL'").get() as { value: string } | undefined;
-    const anonKeyRow = db.prepare("SELECT value FROM config WHERE key = 'NEXT_PUBLIC_SUPABASE_ANON_KEY'").get() as { value: string } | undefined;
+
+    // Check both key naming conventions (legacy NEXT_PUBLIC_* and new supabase_*)
+    let urlResult = await db.execute("SELECT value FROM config WHERE key = 'NEXT_PUBLIC_SUPABASE_URL'");
+    if (urlResult.rows.length === 0) {
+      urlResult = await db.execute("SELECT value FROM config WHERE key = 'supabase_url'");
+    }
+    const urlRow = urlResult.rows[0] as unknown as { value: string } | undefined;
+
+    let anonResult = await db.execute("SELECT value FROM config WHERE key = 'NEXT_PUBLIC_SUPABASE_ANON_KEY'");
+    if (anonResult.rows.length === 0) {
+      anonResult = await db.execute("SELECT value FROM config WHERE key = 'supabase_anon_key'");
+    }
+    const anonKeyRow = anonResult.rows[0] as unknown as { value: string } | undefined;
 
     if (urlRow?.value && anonKeyRow?.value) {
       supabase = createClient(urlRow.value, anonKeyRow.value);
@@ -48,18 +66,11 @@ function initSupabaseClient() {
   }
 }
 
-function startPolling(intervalMs: number) {
-  if (syncInterval) clearInterval(syncInterval);
-  syncInterval = setInterval(() => {
-    if (!isSyncing) runSync().catch(() => {});
-  }, intervalMs);
-}
-
 // ─── Core Sync ────────────────────────────────────────────────────────────────
 
 async function runSync() {
   if (!supabase) {
-    initSupabaseClient();
+    await initSupabaseClient();
     if (!supabase) return { success: false, reason: 'No Supabase credentials' };
   }
 
@@ -85,39 +96,38 @@ async function runSync() {
 async function pushChanges() {
   const db = getRawDb();
 
-  // Se nunca sincronizou globalmente, vamos marcar tudo como dirty para garantir que o Supabase tenha os dados iniciais
-  const globalLastSync = db.prepare("SELECT value FROM config WHERE key = 'last_sync_at'").get() as { value: string } | undefined;
+  // Se nunca sincronizou globalmente, marca tudo como pending para garantir que o Supabase tenha os dados iniciais
+  const globalLastSyncResult = await db.execute("SELECT value FROM config WHERE key = 'last_sync_at'");
+  const globalLastSync = globalLastSyncResult.rows[0] as unknown as { value: string } | undefined;
+
   if (!globalLastSync?.value) {
-    console.log(`[Sync] First time sync detected. Marking all records as dirty...`);
+    console.log(`[Sync] First time sync detected. Marking all records as pending...`);
     for (const table of SYNC_TABLES) {
       try {
-        db.prepare(`UPDATE ${table} SET dirty = 1 WHERE dirty = 0`).run();
-      } catch (e) {
+        await db.execute(`UPDATE ${table} SET sync_status = 'pending' WHERE sync_status = 'synced'`);
+      } catch {
         // Silently fail if table doesn't exist yet
       }
     }
     // Set a placeholder to avoid repeating this every time sync fails
-    db.prepare("INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)").run('last_sync_at', 'PENDING');
+    await db.execute({ sql: "INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)", args: ['last_sync_at', 'PENDING'] });
   }
 
   for (const table of SYNC_TABLES) {
-    const dirtyRecords = db.prepare(`SELECT * FROM ${table} WHERE dirty = 1`).all() as Record<string, unknown>[];
-    
-    console.log(`[Sync] Table "${table}": found ${dirtyRecords.length} dirty records.`);
-    
+    const result = await db.execute(`SELECT * FROM ${table} WHERE sync_status = 'pending'`);
+    const dirtyRecords = result.rows as unknown as Record<string, unknown>[];
+
+    console.log(`[Sync] Table "${table}": found ${dirtyRecords.length} pending records.`);
+
     if (dirtyRecords.length === 0) {
       continue;
     }
 
     const recordsToPush = dirtyRecords.map(record => {
-      const { dirty, ...rest } = record as any;
-
+      const rest = { ...record } as any;
       if (SHARED_TABLES.has(table)) {
         delete rest.user_id;
-      } else if (rest.user_id === 1 || rest.user_id === '1') {
-        rest.user_id = 1;
       }
-
       return rest;
     });
 
@@ -130,7 +140,10 @@ async function pushChanges() {
 
     const ids = dirtyRecords.map(r => (r as any).id);
     const placeholders = ids.map(() => '?').join(',');
-    db.prepare(`UPDATE ${table} SET dirty = 0 WHERE id IN (${placeholders})`).run(...ids);
+    await db.execute({
+      sql: `UPDATE ${table} SET sync_status = 'synced' WHERE id IN (${placeholders})`,
+      args: ids,
+    });
   }
 }
 
@@ -138,7 +151,7 @@ async function pushChanges() {
 
 async function pullChanges() {
   for (const table of SYNC_TABLES) {
-    const lastSyncAt = getSyncMetadata(table) || new Date(0).toISOString();
+    const lastSyncAt = await getSyncMetadata(table) || new Date(0).toISOString();
     console.log(`[Sync] Pulling changes for table "${table}" since ${lastSyncAt}...`);
 
     const { data, error } = await (supabase as any)
@@ -153,64 +166,49 @@ async function pullChanges() {
     }
 
     if (!data || data.length === 0) {
-      // console.log(`[Sync] No new records for table "${table}".`);
       continue;
     }
 
     console.log(`[Sync] Pulled ${data.length} records for table "${table}".`);
 
-    upsertLocally(table, data);
+    await upsertLocally(table, data);
 
     const latestRecord = data[data.length - 1] as any;
-    setSyncMetadata(table, latestRecord.updated_at);
+    await setSyncMetadata(table, latestRecord.updated_at);
   }
 }
 
-function upsertLocally(table: string, records: any[]) {
+async function upsertLocally(table: string, records: any[]) {
   const db = getRawDb();
   if (records.length === 0) return;
 
-  const tableInfo = db.prepare(`PRAGMA table_info(${table})`).all() as { name: string }[];
-  const validColumns = tableInfo.map(info => info.name).filter(col => col !== 'dirty');
+  const tableInfoResult = await db.execute(`PRAGMA table_info(${table})`);
+  const validColumns = (tableInfoResult.rows as unknown as { name: string }[]).map(info => info.name);
 
-  for (const record of records) {
-    if (!SHARED_TABLES.has(table)) {
-      if (!record.user_id || record.user_id === 0) {
-        record.user_id = 1;
-      }
-    } else {
-      delete record.user_id;
-    }
-
-    if (record.deleted_at === undefined) record.deleted_at = null;
-  }
-
-  const placeholders = validColumns.map(() => '?').join(', ');
   const assignments = validColumns.map(c => `${c} = excluded.${c}`).join(', ');
+  const placeholders = validColumns.map(() => '?').join(', ');
 
-  const stmt = db.prepare(`
-    INSERT INTO ${table} (${validColumns.join(', ')}, dirty)
-    VALUES (${placeholders}, 0)
+  const sql = `
+    INSERT INTO ${table} (${validColumns.join(', ')})
+    VALUES (${placeholders})
     ON CONFLICT(id) DO UPDATE SET
-      ${assignments},
-      dirty = 0
+      ${assignments}
     WHERE excluded.updated_at >= ${table}.updated_at
-  `);
+  `;
 
-  const insertMany = db.transaction((items: any[]) => {
-    for (const item of items) {
-      const values = validColumns.map(c => {
-        const val = item[c];
-        if (val === undefined) return null;
-        if (typeof val === 'boolean') return val ? 1 : 0;
-        if (val !== null && typeof val === 'object') return JSON.stringify(val);
-        return val;
-      });
-      stmt.run(...values);
-    }
+  const batch = records.map(item => {
+    if (item.sync_status === undefined) item.sync_status = 'synced';
+    const args = validColumns.map(c => {
+      const val = item[c];
+      if (val === undefined) return null;
+      if (typeof val === 'boolean') return val ? 1 : 0;
+      if (val !== null && typeof val === 'object') return JSON.stringify(val);
+      return val;
+    });
+    return { sql, args };
   });
 
-  insertMany(records);
+  await db.batch(batch, 'write');
 }
 
 // ─── Realtime ─────────────────────────────────────────────────────────────────
@@ -220,14 +218,17 @@ function setupRealtimeSubscriptions() {
 
   supabase
     .channel('db-changes')
-    .on('postgres_changes', { event: '*', schema: 'public' }, (payload) => {
+    .on('postgres_changes', { event: '*', schema: 'public' }, async (payload) => {
       if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-        upsertLocally(payload.table, [payload.new]);
-        setSyncMetadata(payload.table, (payload.new as any).updated_at);
+        await upsertLocally(payload.table, [payload.new]);
+        await setSyncMetadata(payload.table, (payload.new as any).updated_at);
       } else if (payload.eventType === 'DELETE') {
         try {
-          getRawDb().prepare(`DELETE FROM ${payload.table} WHERE id = ?`).run((payload.old as any).id);
-        } catch {}
+          await getRawDb().execute({
+            sql: `DELETE FROM ${payload.table} WHERE id = ?`,
+            args: [(payload.old as any).id],
+          });
+        } catch { }
       }
     })
     .subscribe();
@@ -235,12 +236,19 @@ function setupRealtimeSubscriptions() {
 
 // ─── Metadata Helpers ─────────────────────────────────────────────────────────
 
-function getSyncMetadata(tableName: string): string | null {
-  const row = getRawDb().prepare('SELECT last_sync_at FROM sync_metadata WHERE table_name = ?').get(tableName) as { last_sync_at: string } | undefined;
+async function getSyncMetadata(tableName: string): Promise<string | null> {
+  const result = await getRawDb().execute({
+    sql: 'SELECT last_sync_at FROM sync_metadata WHERE table_name = ?',
+    args: [tableName],
+  });
+  const row = result.rows[0] as unknown as { last_sync_at: string } | undefined;
   return row?.last_sync_at ?? null;
 }
 
-function setSyncMetadata(tableName: string, timestamp: string | undefined | null): void {
+async function setSyncMetadata(tableName: string, timestamp: string | undefined | null): Promise<void> {
   if (!timestamp) return;
-  getRawDb().prepare('INSERT OR REPLACE INTO sync_metadata (table_name, last_sync_at) VALUES (?, ?)').run(tableName, timestamp);
+  await getRawDb().execute({
+    sql: 'INSERT OR REPLACE INTO sync_metadata (table_name, last_sync_at) VALUES (?, ?)',
+    args: [tableName, timestamp],
+  });
 }

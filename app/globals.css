@@ -6,8 +6,6 @@
   --brand-blue: #004AAD;
   --brand-blue-dark: #003d91;
   --brand-blue-deeper: #003380;
-  --brand-orange: #0C4AA5;
-  --brand-orange-light: #1a5cbf;
 }
 
 html,
@@ -27,6 +25,7 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

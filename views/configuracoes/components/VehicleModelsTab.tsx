@@ -4,6 +4,8 @@ import { VehicleModel } from "../../../types";
 import { localVehicleModelsApi } from "../../../database/api/local/vehicleModels";
 import { Car, Plus, Edit2, Trash2, Check, X } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
+import { TablePagination } from "@/components/TablePagination";
+import { usePagination } from "../../../hooks/usePagination";
 
 type FormData = { name: string; brand: string; status: 'ACTIVE' | 'INACTIVE' };
 
@@ -13,7 +15,7 @@ export const VehicleModelsTab: React.FC = () => {
   const [models, setModels] = useState<VehicleModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
@@ -70,7 +72,7 @@ export const VehicleModelsTab: React.FC = () => {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Deseja excluir este modelo de veículo?')) return;
     try {
       await api.delete(id);
@@ -81,6 +83,7 @@ export const VehicleModelsTab: React.FC = () => {
   };
 
   const showForm = isCreating || editingId !== null;
+  const pagination = usePagination(models, 10);
 
   return (
     <div className="space-y-8">
@@ -95,7 +98,7 @@ export const VehicleModelsTab: React.FC = () => {
           !showForm && (
             <button
               onClick={openCreate}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
+              className="bg-brand-blue hover:bg-brand-blue-dark text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
             >
               Novo Modelo
             </button>
@@ -160,47 +163,57 @@ export const VehicleModelsTab: React.FC = () => {
         ) : models.length === 0 ? (
           <p className="text-slate-400 text-sm font-medium py-6 text-center italic">Nenhum modelo cadastrado.</p>
         ) : (
-          <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidde">
-            <table className="w-full text-left">
-              <thead className="bg-slate-800 text-white">
-                <tr className="border-b border-slate-100 text-slate-400 text-xs uppercase tracking-widest">
-                  <th className="py-4 px-6 font-bold">Modelo</th>
-                  <th className="py-4 px-6 font-bold">Marca</th>
-                  <th className="py-4 px-6 font-bold">Status</th>
-                  <th className="py-4 px-6 font-bold text-right">Ações</th>
-                </tr>
-              </thead>
-              <tbody>
-                {models.map(m => (
-                  <tr key={m.id} className="border-b border-slate-50 hover:bg-slate-50 group">
-                    <td className="py-4 font-bold text-slate-700">{m.name}</td>
-                    <td className="py-4 text-slate-500 text-sm">{m.brand}</td>
-                    <td className="py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${m.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
-                        {m.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}
-                      </span>
-                    </td>
-                    <td className="py-4 text-right">
-                      <div className="flex gap-2 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => openEdit(m)}
-                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(m.id)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
+          <>
+            <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidde">
+              <table className="w-full text-left">
+                <thead className="bg-brand-blue text-white">
+                  <tr className="[&>th]:px-6 [&>th]:py-4 [&>th]:text-left [&>th]:text-xs [&>th]:font-bold [&>th]:uppercase [&>th]:tracking-widest">
+                    <th>Modelo</th>
+                    <th>Marca</th>
+                    <th>Status</th>
+                    <th>Ações</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {pagination.paginatedItems.map(m => (
+                    <tr key={m.id} className="border-b border-slate-50 hover:bg-slate-50 group">
+                      <td className="p-4 font-bold text-slate-700">{m.name}</td>
+                      <td className="p-4 text-slate-500 text-sm">{m.brand}</td>
+                      <td className="p-4">
+                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${m.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500'}`}>
+                          {m.status === 'ACTIVE' ? 'Ativo' : 'Inativo'}
+                        </span>
+                      </td>
+                      <td className="p-4 text-right">
+                        <div className="flex gap-2 justify">
+                          <button
+                            onClick={() => openEdit(m)}
+                            className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(m.id)}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <TablePagination
+              page={pagination.page}
+              totalPages={pagination.totalPages}
+              total={pagination.total}
+              pageSize={pagination.pageSize}
+              onPageChange={pagination.setPage}
+              onPageSizeChange={pagination.setPageSize}
+            />
+          </>
         )}
       </div>
     </div>

@@ -1,5 +1,5 @@
 'use client';
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { VEHICLE_STATUS_IDS } from "../types";
 import { useAppContext } from "../contexts/AppContext";
 import {
@@ -10,13 +10,11 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
-import { Wrench, Bike, TrendingUp, AlertTriangle, Lock } from "lucide-react";
+import { Wrench, Bike, TrendingUp, Lock, ShieldOff } from "lucide-react";
 import StatCard from "./StatCard";
-import { summarizeDailyWorkshop } from "../services/geminiService";
+import GaugeChart from "./GaugeChart";
+
 import { useFinanceAccess } from "../hooks/useFinanceAccess";
 
 export const Dashboard: React.FC = () => {
@@ -30,6 +28,10 @@ export const Dashboard: React.FC = () => {
   const inMaintenance = vehicles.filter(
     (v) => v.status_id === VEHICLE_STATUS_IDS.MAINTENANCE,
   ).length;
+  const unavailableVehicles = vehicles.filter(
+    (v) => v.vehicleStatus?.name === 'Roubada' || v.vehicleStatus?.name === 'PT',
+  ).length;
+  const availableVehicles = totalVehicles - rentedVehicles - inMaintenance - unavailableVehicles;
 
   const today = new Date().toISOString().split("T")[0];
   const arrivedToday = records.filter((r) => r.entry_date?.startsWith(today));
@@ -46,13 +48,13 @@ export const Dashboard: React.FC = () => {
 
   const statusData = [
     { name: "Em Rota", value: rentedVehicles, color: "#004AAD" },
-    {
-      name: "Pátio",
-      value: totalVehicles - rentedVehicles - inMaintenance,
-      color: "#10b981",
-    },
+    { name: "Pátio", value: availableVehicles, color: "#10b981" },
     { name: "Oficina", value: inMaintenance, color: "#f59e0b" },
-  ];
+    { name: "Roubada", value: vehicles.filter(v => v.vehicleStatus?.name === 'Roubada').length, color: "#7c3aed" },
+    { name: "PT", value: vehicles.filter(v => v.vehicleStatus?.name === 'PT').length, color: "#1e293b" },
+  ].filter(s => s.value > 0);
+
+  const gaugeSegments = statusData.map(s => ({ label: s.name, value: s.value, color: s.color }));
 
   return (
     <div className="space-y-8">
@@ -93,10 +95,10 @@ export const Dashboard: React.FC = () => {
 
         <StatCard
           title="Indisponíveis"
-          value={rentedVehicles}
-          label={`${((rentedVehicles / (totalVehicles || 1)) * 100).toFixed(0)}% Ocupação`}
-          Icon={TrendingUp}
-          variant="green"
+          value={unavailableVehicles}
+          label={unavailableVehicles > 0 ? 'Roubada / PT' : 'Nenhum'}
+          Icon={ShieldOff}
+          variant="amber"
         />
 
         <StatCard
@@ -179,41 +181,11 @@ export const Dashboard: React.FC = () => {
           </div>
         )}
 
-        <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center">
+        <div className="bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100 flex flex-col items-center justify-center">
           <h3 className="text-xl font-extrabold text-[#004AAD] self-start mb-8">
             Status Geral da Frota
           </h3>
-          <div className="h-64 w-full min-h-[200px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  innerRadius={80}
-                  outerRadius={100}
-                  paddingAngle={8}
-                  dataKey="value"
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-          <div className="flex flex-wrap justify-center gap-6 mt-6">
-            {statusData.map((item, index) => (
-              <div key={index} className="flex items-center gap-2">
-                <div
-                  className="w-4 h-4 rounded-full"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-sm font-bold text-slate-600">
-                  {item.name} ({item.value})
-                </span>
-              </div>
-            ))}
-          </div>
+          <GaugeChart segments={gaugeSegments} total={totalVehicles} />
         </div>
       </div>
     </div>

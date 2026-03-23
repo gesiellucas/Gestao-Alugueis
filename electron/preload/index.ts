@@ -64,6 +64,13 @@ const VALID_CHANNELS = [
   'db:documents:create',
   'db:documents:delete',
   'db:documents:upsertBatch',
+  // Unavailable Vehicles
+  'db:unavailableVehicles:getAll',
+  'db:unavailableVehicles:getById',
+  'db:unavailableVehicles:getByVehicle',
+  'db:unavailableVehicles:create',
+  'db:unavailableVehicles:delete',
+  'db:unavailableVehicles:upsertBatch',
   // Vehicle Statuses
   'db:vehicleStatuses:getAll',
   'db:vehicleStatuses:getById',

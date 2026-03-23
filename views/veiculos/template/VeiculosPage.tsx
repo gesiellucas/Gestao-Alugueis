@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { VEHICLE_STATUS_IDS } from "../../../types";
-import { PlusCircle, Search, ChevronDown, ChevronUp, ChevronsUpDown, Wrench, User } from "lucide-react";
+import { PlusCircle, Search, ChevronDown, ChevronUp, ChevronsUpDown, Wrench, User, ShieldOff } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { TablePagination } from "@/components/TablePagination";
 import { usePagination } from "../../../hooks/usePagination";
@@ -195,6 +195,17 @@ export const VeiculosPage: React.FC = () => {
                         >
                           Ver ticket
                         </button>
+                      ) : ['Roubada', 'PT'].includes(row.status) ? (
+                        <span
+                          className="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border"
+                          style={{
+                            backgroundColor: `${row.statusColor}20`,
+                            color: row.statusColor,
+                            borderColor: `${row.statusColor}40`,
+                          }}
+                        >
+                          <ShieldOff size={10} /> {row.status}
+                        </span>
                       ) : (
                         <span className="text-green-600 font-semibold text-xs">Disponível</span>
                       )}

@@ -23,7 +23,7 @@ export function formatPhone(phone: string | null | undefined): string {
 /** Formata data ISO para "DD/MM/AAAA" no locale pt-BR */
 export function formatDate(dateString: string | null | undefined): string {
   if (!dateString) return '—';
-  const date = new Date(dateString + 'T12:00:00');
+  const date = new Date(dateString);
   if (isNaN(date.getTime())) return dateString;
   return date.toLocaleDateString('pt-BR');
 }

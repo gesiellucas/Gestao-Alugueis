@@ -14,6 +14,7 @@ import {
   rentals,
   roles,
   syncMetadata,
+  unavailableVehicles,
   vehicleModels,
   vehicles,
   vehicleStatuses,
@@ -669,6 +670,48 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('db:documents:delete', async (_e, args: { id: string }) => {
     const now = new Date().toISOString();
     await getDb().update(documents).set({ is_deleted: 1, sync_status: 'pending', updated_at: now }).where(eq(documents.id, args.id)).run();
+  });
+
+  // ── Unavailable Vehicles CRUD ──
+  ipcMain.handle('db:unavailableVehicles:getAll', async (_e, args: { user_id: string }) => {
+    return await getDb().select().from(unavailableVehicles)
+      .where(and(eq(unavailableVehicles.user_id, args.user_id), eq(unavailableVehicles.is_deleted, 0)))
+      .orderBy(desc(unavailableVehicles.created_at))
+      .all();
+  });
+
+  ipcMain.handle('db:unavailableVehicles:getById', async (_e, args: { id: string; user_id: string }) => {
+    return (await getDb().select().from(unavailableVehicles)
+      .where(and(eq(unavailableVehicles.id, args.id), eq(unavailableVehicles.user_id, args.user_id), eq(unavailableVehicles.is_deleted, 0)))
+      .get()) ?? null;
+  });
+
+  ipcMain.handle('db:unavailableVehicles:getByVehicle', async (_e, args: { vehicle_id: string; user_id: string }) => {
+    return (await getDb().select().from(unavailableVehicles)
+      .where(and(eq(unavailableVehicles.vehicle_id, args.vehicle_id), eq(unavailableVehicles.user_id, args.user_id), eq(unavailableVehicles.is_deleted, 0)))
+      .orderBy(desc(unavailableVehicles.created_at))
+      .get()) ?? null;
+  });
+
+  ipcMain.handle('db:unavailableVehicles:create', async (_e, args: InsertDto<'unavailableVehicles'> & { user_id: string }) => {
+    const now = new Date().toISOString();
+    return await getDb().insert(unavailableVehicles).values(cleanObject({
+      ...args,
+      id: randomUUID(),
+      device_id: DEVICE_ID,
+      version: 1,
+      is_deleted: 0,
+      sync_status: 'pending',
+      created_at: now,
+      updated_at: now,
+    })).returning().get();
+  });
+
+  ipcMain.handle('db:unavailableVehicles:delete', async (_e, args: { id: string; user_id: string }) => {
+    const now = new Date().toISOString();
+    await getDb().update(unavailableVehicles).set({ is_deleted: 1, sync_status: 'pending', updated_at: now })
+      .where(and(eq(unavailableVehicles.id, args.id), eq(unavailableVehicles.user_id, args.user_id)))
+      .run();
   });
 
   // ── Roles CRUD ──

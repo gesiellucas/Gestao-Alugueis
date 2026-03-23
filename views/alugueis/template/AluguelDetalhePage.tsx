@@ -87,6 +87,7 @@ export const AluguelDetalhePage: React.FC = () => {
   const [editMonthlyRate, setEditMonthlyRate] = useState('');
   const [saving, setSaving] = useState(false);
 
+
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -307,7 +308,7 @@ export const AluguelDetalhePage: React.FC = () => {
               )}
             </div>
           ) : (
-            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border bg-slate-100 text-slate-600 border-slate-200">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-widest border bg-slate-100 text-slate-600 border-slate-200">
               Encerrado
             </span>
           )
@@ -771,6 +772,7 @@ export const AluguelDetalhePage: React.FC = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

@@ -187,12 +187,28 @@ export const maintenanceRecords = sqliteTable('maintenance_records', {
 ]);
 
 // ---------------------------------------------------------------------------
-// documents — arquivos anexados a contratos ou oficinas (polimórfico)
+// unavailable_vehicles — registro de veículos indisponível (roubo / perda total)
+// ---------------------------------------------------------------------------
+export const unavailableVehicles = sqliteTable('unavailable_vehicles', {
+  id: text('id').primaryKey(),
+  user_id: text('user_id').notNull(),
+  vehicle_id: text('vehicle_id').notNull(),
+  status_type: text('status_type').notNull(), // 'STOLEN' | 'TOTAL_LOSS'
+  reason: text().notNull(),
+  ...syncMetadataColumns,
+}, (table) => [
+  index('idx_unavailable_vehicles_user_id').on(table.user_id),
+  index('idx_unavailable_vehicles_vehicle_id').on(table.vehicle_id),
+  foreignKey({ columns: [table.vehicle_id], foreignColumns: [vehicles.id] }),
+]);
+
+// ---------------------------------------------------------------------------
+// documents — arquivos anexados (polimórfico)
 // ---------------------------------------------------------------------------
 export const documents = sqliteTable('documents', {
   id: text('id').primaryKey(),
   parent_id: text('parent_id').notNull(),
-  origin_type: text('origin_type').notNull(), // 'CONTRACT' | 'WORKSHOP'
+  origin_type: text('origin_type').notNull(), // 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE'
   file_url: text('file_url').notNull(),
   ...syncMetadataColumns,
 }, (table) => [

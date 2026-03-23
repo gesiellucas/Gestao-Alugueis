@@ -26,16 +26,15 @@ export async function runSeed(db: DrizzleDb): Promise<void> {
     await db.update(vehicles).set({ status_id: id }).where(sql`${vehicles.status_id} = ${name}`);
   }
 
-  // 1. Status de veículos padrão
-  const statusCount = await db.select({ n: sql<number>`count(*)` }).from(vehicleStatuses).get();
-  if ((statusCount?.n ?? 0) === 0) {
-    await db.insert(vehicleStatuses).values([
-      { id: '1', name: 'Disponível',      color: '#22c55e', is_default: 1, created_at: now, updated_at: now, ...meta },
-      { id: '2', name: 'Alugada',          color: '#3b82f6', is_default: 1, created_at: now, updated_at: now, ...meta },
-      { id: '3', name: 'Em Manutenção',    color: '#f59e0b', is_default: 1, created_at: now, updated_at: now, ...meta },
-      { id: '4', name: 'Indisponível',     color: '#ef4444', is_default: 1, created_at: now, updated_at: now, ...meta },
-    ]).onConflictDoNothing();
-  }
+  // 1. Status de veículos padrão (sempre upsert para garantir novos status em instâncias existentes)
+  await db.insert(vehicleStatuses).values([
+    { id: '1', name: 'Disponível',    color: '#22c55e', is_default: 1, created_at: now, updated_at: now, ...meta },
+    { id: '2', name: 'Alugada',       color: '#3b82f6', is_default: 1, created_at: now, updated_at: now, ...meta },
+    { id: '3', name: 'Em Manutenção', color: '#f59e0b', is_default: 1, created_at: now, updated_at: now, ...meta },
+    { id: '4', name: 'Indisponível',  color: '#ef4444', is_default: 1, created_at: now, updated_at: now, ...meta },
+    { id: '5', name: 'Roubada',       color: '#7c3aed', is_default: 1, created_at: now, updated_at: now, ...meta },
+    { id: '6', name: 'PT',            color: '#1e293b', is_default: 1, created_at: now, updated_at: now, ...meta },
+  ]).onConflictDoNothing();
 
   // 2. Roles e usuários padrão
   const rolesCount = await db.select({ n: sql<number>`count(*)` }).from(roles).get();

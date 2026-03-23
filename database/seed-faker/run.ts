@@ -112,6 +112,8 @@ const STATUS_LIST = [
   { name: 'Em Manutenção', color: '#f59e0b', is_default: 0 },
   { name: 'Reservada',     color: '#8b5cf6', is_default: 0 },
   { name: 'Indisponível',  color: '#ef4444', is_default: 0 },
+  { name: 'Roubada',       color: '#7c3aed', is_default: 0 },
+  { name: 'PT',            color: '#1e293b', is_default: 0 },
 ];
 
 const MAINTENANCE_TYPES = [
@@ -173,7 +175,7 @@ async function main() {
       ...syncMeta(),
     }))
   );
-  console.log(`✓  vehicle_statuses     5`);
+  console.log(`✓  vehicle_statuses     7`);
 
   // ── 3. Vehicle Models (18) ──────────────────────────────────────────────────
   const vehicleModelIds: string[] = [];

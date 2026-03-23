@@ -9,11 +9,11 @@ export const localDocumentsApi = {
         return ipcInvoke<Document[]>('db:documents:getAll');
     },
 
-    async getByParent(parent_id: string, origin_type: 'CONTRACT' | 'WORKSHOP'): Promise<Document[]> {
+    async getByParent(parent_id: string, origin_type: Document['origin_type']): Promise<Document[]> {
         return ipcInvoke<Document[]>('db:documents:getByParent', { parent_id, origin_type });
     },
 
-    async create(doc: { parent_id: string; origin_type: 'CONTRACT' | 'WORKSHOP'; file_url: string }): Promise<Document> {
+    async create(doc: { parent_id: string; origin_type: Document['origin_type']; file_url: string }): Promise<Document> {
         return ipcInvoke<Document>('db:documents:create', doc);
     },
 

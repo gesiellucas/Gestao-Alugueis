@@ -194,12 +194,28 @@ export const maintenanceRecords = pgTable('maintenance_records', {
 ]);
 
 // ---------------------------------------------------------------------------
+// unavailable_vehicles
+// ---------------------------------------------------------------------------
+export const unavailableVehicles = pgTable('unavailable_vehicles', {
+  id: text('id').primaryKey(),
+  user_id: text('user_id').notNull(),
+  vehicle_id: text('vehicle_id').notNull(),
+  status_type: text('status_type').notNull(), // 'STOLEN' | 'TOTAL_LOSS'
+  reason: text('reason').notNull(),
+  ...syncMetadataColumns,
+}, (table) => [
+  index('idx_unavailable_vehicles_user_id').on(table.user_id),
+  index('idx_unavailable_vehicles_vehicle_id').on(table.vehicle_id),
+  foreignKey({ columns: [table.vehicle_id], foreignColumns: [vehicles.id] }),
+]);
+
+// ---------------------------------------------------------------------------
 // documents
 // ---------------------------------------------------------------------------
 export const documents = pgTable('documents', {
   id: text('id').primaryKey(),
   parent_id: text('parent_id').notNull(),
-  origin_type: text('origin_type').notNull(), // 'CONTRACT' | 'WORKSHOP'
+  origin_type: text('origin_type').notNull(), // 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE'
   file_url: text('file_url').notNull(),
   ...syncMetadataColumns,
 }, (table) => [

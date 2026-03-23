@@ -119,9 +119,19 @@ export interface MaintenanceRecord extends SyncMetadata {
   status: 'OPEN' | 'COMPLETED';
 }
 
+export type UnavailableStatusType = 'STOLEN' | 'TOTAL_LOSS';
+
+export interface UnavailableVehicle extends SyncMetadata {
+  id: string;
+  user_id: string;
+  vehicle_id: string;
+  status_type: UnavailableStatusType;
+  reason: string;
+}
+
 export interface Document extends SyncMetadata {
   id: string;
   parent_id: string;
-  origin_type: 'CONTRACT' | 'WORKSHOP';
+  origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE';
   file_url: string;
 }

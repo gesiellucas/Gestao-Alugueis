@@ -3,7 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
-import { VEHICLE_STATUS_IDS, Document } from "../../../types";
+import { VEHICLE_STATUS_IDS, Document, UnavailableStatusType } from "../../../types";
+import { supabaseDocumentsApi } from "../../../database/api/supabase/documents";
 import { supabaseWorkshopDocumentsApi } from "../../../database/api/supabase/workshopDocuments";
 import {
   ArrowLeft,
@@ -19,6 +20,9 @@ import {
   ChevronDown,
   ImageIcon,
   X,
+  ShieldOff,
+  ImagePlus,
+  FileText,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
@@ -88,14 +92,39 @@ export const VeiculoDetalhePage: React.FC = () => {
   const params = useParams();
   const id = params.id as string;
   const router = useRouter();
-  const { vehicles, customers, maintenanceRecords, rentalContracts, handleEndRental } =
+  const { vehicles, customers, maintenanceRecords, rentalContracts, unavailableVehicles, handleEndRental, handleMakeVehicleUnavailable } =
     useAppContext();
   const [endingRental, setEndingRental] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
 
+  // Unavailable modal state
+  const [unavailableOpen, setUnavailableOpen] = useState(false);
+  const [unavailableType, setUnavailableType] = useState<UnavailableStatusType>('STOLEN');
+  const [unavailableReason, setUnavailableReason] = useState('');
+  const [unavailableFiles, setUnavailableFiles] = useState<File[]>([]);
+  const [unavailablePreviews, setUnavailablePreviews] = useState<string[]>([]);
+  const [submittingUnavailable, setSubmittingUnavailable] = useState(false);
+  const unavailableInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Unavailable vehicle docs/photos
+  const [unavailableDocs, setUnavailableDocs] = useState<Document[]>([]);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
   const hasFinanceAccess = useFinanceAccess();
   const vehicle = vehicles.find((v) => v.id === id);
+  const unavailableRecord = unavailableVehicles.find((uv) => uv.vehicle_id === id);
+  const isUnavailable = vehicle?.vehicleStatus?.name === 'Roubada' || vehicle?.vehicleStatus?.name === 'PT';
+
+  // Load unavailable vehicle documents (must be before early return)
+  useEffect(() => {
+    if (unavailableRecord) {
+      supabaseDocumentsApi
+        .getByParent(unavailableRecord.id, 'UNAVAILABLE_VEHICLE')
+        .then(setUnavailableDocs)
+        .catch(() => setUnavailableDocs([]));
+    }
+  }, [unavailableRecord?.id]);
 
   if (!vehicle) {
     return (
@@ -148,7 +177,55 @@ export const VeiculoDetalhePage: React.FC = () => {
     }
   };
 
-  console.log(vehicle)
+  // Unavailable handlers
+  const handleUnavailableFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newFiles = Array.from(e.target.files ?? []);
+    if (!newFiles.length) return;
+    setUnavailableFiles((prev) => {
+      const combined = [...prev, ...newFiles];
+      setUnavailablePreviews(combined.map((f) => URL.createObjectURL(f)));
+      return combined;
+    });
+    e.target.value = "";
+  };
+
+  const removeUnavailableFile = (index: number) => {
+    setUnavailableFiles((prev) => {
+      const next = prev.filter((_, i) => i !== index);
+      setUnavailablePreviews(next.map((f) => URL.createObjectURL(f)));
+      return next;
+    });
+  };
+
+  const resetUnavailableModal = () => {
+    setUnavailableOpen(false);
+    setUnavailableType('STOLEN');
+    setUnavailableReason('');
+    setUnavailableFiles([]);
+    setUnavailablePreviews([]);
+  };
+
+  const handleConfirmUnavailable = async () => {
+    if (!unavailableReason.trim()) return;
+    setSubmittingUnavailable(true);
+    try {
+      const record = await handleMakeVehicleUnavailable(vehicle.id, unavailableType, unavailableReason.trim());
+
+      if (unavailableFiles.length > 0) {
+        await Promise.all(
+          unavailableFiles.map((file) =>
+            supabaseDocumentsApi.uploadAndCreate(record.id, file, 'UNAVAILABLE_VEHICLE')
+          )
+        );
+      }
+
+      router.push('/veiculos');
+    } finally {
+      setSubmittingUnavailable(false);
+      resetUnavailableModal();
+    }
+  };
+
   return (
     <div className="space-y-8">
 
@@ -170,7 +247,7 @@ export const VeiculoDetalhePage: React.FC = () => {
             <>
               <div className="fixed inset-0 z-40" onClick={() => setActionsOpen(false)} />
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 z-50 py-1 overflow-hidden">
-                {vehicle.status_id === VEHICLE_STATUS_IDS.AVAILABLE && (
+                {vehicle.status_id === VEHICLE_STATUS_IDS.AVAILABLE && !isUnavailable && (
                   <Link
                     href={`/aluguel/novo/${vehicle.id}`}
                     className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-green-700 hover:bg-green-50 transition-colors"
@@ -187,7 +264,7 @@ export const VeiculoDetalhePage: React.FC = () => {
                     <XCircle size={16} /> Encerrar Contrato
                   </button>
                 )}
-                {vehicle.status_id !== VEHICLE_STATUS_IDS.MAINTENANCE && (
+                {vehicle.status_id !== VEHICLE_STATUS_IDS.MAINTENANCE && !isUnavailable && (
                   <Link
                     href={`/oficina/novo_entrada?plate=${vehicle.plate}`}
                     className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-amber-600 hover:bg-amber-50 transition-colors"
@@ -203,6 +280,14 @@ export const VeiculoDetalhePage: React.FC = () => {
                 >
                   <Pencil size={16} /> Editar Veículo
                 </Link>
+                {!isUnavailable && (
+                  <button
+                    onClick={() => { setActionsOpen(false); setUnavailableOpen(true); }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-purple-600 hover:bg-purple-50 transition-colors"
+                  >
+                    <ShieldOff size={16} /> Indisponível
+                  </button>
+                )}
               </div>
             </>
           )}
@@ -333,6 +418,109 @@ export const VeiculoDetalhePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Seção Veículo Indisponível */}
+      {isUnavailable && unavailableRecord && (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
+          <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-100" style={{ backgroundColor: statusColor }}>
+            <ShieldOff size={16} className="text-white" />
+            <h3 className="font-bold text-white text-sm">
+              Veículo Indisponível
+            </h3>
+            <span className="ml-auto bg-white/20 text-white text-xs font-bold px-2.5 py-0.5 rounded-full uppercase tracking-widest">
+              {unavailableRecord.status_type === 'STOLEN' ? 'Roubada' : 'Perda Total'}
+            </span>
+          </div>
+
+          <div className="p-6 space-y-6">
+            {/* Info */}
+            <div className="divide-y divide-slate-100">
+              <div className="flex items-center justify-between py-3">
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  <ShieldOff size={12} /> Tipo
+                </span>
+                <span
+                  className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border"
+                  style={{
+                    backgroundColor: `${statusColor}20`,
+                    color: statusColor,
+                    borderColor: `${statusColor}40`,
+                  }}
+                >
+                  {unavailableRecord.status_type === 'STOLEN' ? 'Roubada' : 'Perda Total (PT)'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between py-3">
+                <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  <Calendar size={12} /> Data do registro
+                </span>
+                <span className="font-bold text-slate-700">
+                  {formatDate(unavailableRecord.created_at)}
+                </span>
+              </div>
+            </div>
+
+            {/* Motivo */}
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Descrição do ocorrido</p>
+              <div className="bg-slate-50 rounded-xl p-4 text-sm text-slate-600 font-medium leading-relaxed">
+                {unavailableRecord.reason}
+              </div>
+            </div>
+
+            {/* Fotos e documentos */}
+            {unavailableDocs.length > 0 && (
+              <div className="space-y-3">
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                  Fotos e documentos ({unavailableDocs.length})
+                </p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                  {unavailableDocs.map((doc) => {
+                    const isImage = /\.(jpe?g|png|gif|webp|bmp|svg)$/i.test(doc.file_url);
+                    return (
+                      <button
+                        key={doc.id}
+                        onClick={() => isImage ? setLightboxUrl(doc.file_url) : window.open(doc.file_url, '_blank')}
+                        className="group aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50 hover:border-blue-400 transition-colors relative"
+                      >
+                        {isImage ? (
+                          <img src={doc.file_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex flex-col items-center justify-center gap-1.5">
+                            <FileText size={24} className="text-slate-400 group-hover:text-blue-500 transition-colors" />
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">Documento</span>
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Lightbox para fotos do episódio */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            onClick={() => setLightboxUrl(null)}
+            className="absolute top-4 right-4 text-white/80 hover:text-white"
+          >
+            <X size={28} />
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Foto ampliada"
+            className="max-w-full max-h-full object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
 
       {/* Rental History Table */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
@@ -467,6 +655,131 @@ export const VeiculoDetalhePage: React.FC = () => {
           </div>
         )}
       </div>
-    </div >
+      {/* Modal indisponível (Roubada / PT) */}
+      {unavailableOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4 space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="bg-purple-100 p-3 rounded-full">
+                <ShieldOff size={22} className="text-purple-600" />
+              </div>
+              <div>
+                <p className="font-bold text-slate-800">Marcar como Indisponível</p>
+                <p className="text-sm text-slate-500">O veículo será removido da frota ativa.</p>
+              </div>
+            </div>
+
+            {/* Tipo */}
+            <div className="space-y-1.5">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Motivo da indisponibilidade</p>
+              <div className="flex gap-2">
+                {([
+                  { value: 'STOLEN' as UnavailableStatusType, label: 'Roubada', color: 'purple' },
+                  { value: 'TOTAL_LOSS' as UnavailableStatusType, label: 'Perda Total (PT)', color: 'slate' },
+                ]).map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setUnavailableType(opt.value)}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-colors ${
+                      unavailableType === opt.value
+                        ? opt.color === 'purple'
+                          ? 'border-purple-500 bg-purple-50 text-purple-700'
+                          : 'border-slate-700 bg-slate-50 text-slate-800'
+                        : 'border-slate-200 text-slate-400 hover:border-slate-300'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Motivo */}
+            <div className="space-y-1.5">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Descrição do ocorrido</p>
+              <textarea
+                value={unavailableReason}
+                onChange={(e) => setUnavailableReason(e.target.value)}
+                rows={3}
+                placeholder="Descreva o motivo da indisponibilidade..."
+                className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
+              />
+            </div>
+
+            {/* Fotos / documentos */}
+            <div className="space-y-2">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Fotos e documentos (opcional)</p>
+              <button
+                type="button"
+                onClick={() => unavailableInputRef.current?.click()}
+                disabled={submittingUnavailable}
+                className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-slate-200 rounded-xl py-3 text-sm font-semibold text-slate-500 hover:border-purple-400 hover:text-purple-600 hover:bg-purple-50/40 transition-colors disabled:opacity-50"
+              >
+                <ImagePlus size={16} />
+                Adicionar arquivos
+              </button>
+              <input
+                ref={unavailableInputRef}
+                type="file"
+                accept="image/*,.pdf,.doc,.docx"
+                multiple
+                className="hidden"
+                onChange={handleUnavailableFileChange}
+              />
+              {unavailablePreviews.length > 0 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {unavailablePreviews.map((src, i) => {
+                    const file = unavailableFiles[i];
+                    const isImg = file?.type.startsWith('image/');
+                    return (
+                      <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-slate-200 bg-slate-50">
+                        {isImg ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={src} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <FileText size={20} className="text-slate-400" />
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeUnavailableFile(i)}
+                          disabled={submittingUnavailable}
+                          className="absolute top-1 right-1 bg-black/60 hover:bg-black/80 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-0"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="flex gap-3 pt-1">
+              <button
+                onClick={resetUnavailableModal}
+                disabled={submittingUnavailable}
+                className="flex-1 py-2.5 px-4 rounded-lg border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={handleConfirmUnavailable}
+                disabled={submittingUnavailable || !unavailableReason.trim()}
+                className="flex-1 py-2.5 px-4 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm transition-colors disabled:opacity-60"
+              >
+                {submittingUnavailable
+                  ? unavailableFiles.length > 0
+                    ? 'Enviando arquivos...'
+                    : 'Processando...'
+                  : 'Confirmar'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };

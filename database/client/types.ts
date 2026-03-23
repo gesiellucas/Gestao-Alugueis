@@ -507,11 +507,64 @@ export interface Database {
           },
         ];
       };
+      unavailable_vehicles: {
+        Row: {
+          id: string;
+          user_id: string;
+          vehicle_id: string;
+          status_type: 'STOLEN' | 'TOTAL_LOSS';
+          reason: string;
+          created_at: string;
+          updated_at: string;
+          updated_by: string | null;
+          device_id: string;
+          version: number;
+          is_deleted: number;
+          sync_status: string;
+        };
+        Insert: {
+          id: string;
+          user_id: string;
+          vehicle_id: string;
+          status_type: 'STOLEN' | 'TOTAL_LOSS';
+          reason: string;
+          created_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          device_id: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          vehicle_id?: string;
+          status_type?: 'STOLEN' | 'TOTAL_LOSS';
+          reason?: string;
+          created_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          device_id?: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'unavailable_vehicles_vehicle_id_fkey';
+            columns: ['vehicle_id'];
+            isOneToOne: false;
+            referencedRelation: 'vehicles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       documents: {
         Row: {
           id: string;
           parent_id: string;
-          origin_type: 'CONTRACT' | 'WORKSHOP';
+          origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE';
           file_url: string;
           created_at: string;
           updated_at: string;
@@ -524,7 +577,7 @@ export interface Database {
         Insert: {
           id: string;
           parent_id: string;
-          origin_type: 'CONTRACT' | 'WORKSHOP';
+          origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE';
           file_url: string;
           created_at?: string;
           updated_at?: string;
@@ -537,7 +590,7 @@ export interface Database {
         Update: {
           id?: string;
           parent_id?: string;
-          origin_type?: 'CONTRACT' | 'WORKSHOP';
+          origin_type?: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE';
           file_url?: string;
           created_at?: string;
           updated_at?: string;
@@ -580,4 +633,5 @@ export type DbRentalContract = Tables<'rentals'>;
 export type DbMaintenanceRecord = Tables<'maintenance_records'>;
 export type DbWorkshop = Tables<'workshops'>;
 export type DbContract = Tables<'contracts'>;
+export type DbUnavailableVehicle = Tables<'unavailable_vehicles'>;
 export type DbDocument = Tables<'documents'>;

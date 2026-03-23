@@ -14,6 +14,7 @@ type SortOrder = "asc" | "desc";
 
 export const AlugueisPage: React.FC = () => {
   const { rentalContracts, customers, vehicles } = useAppContext();
+  console.log(rentalContracts)
   const router = useRouter();
   const hasFinanceAccess = useFinanceAccess();
 
@@ -82,16 +83,6 @@ export const AlugueisPage: React.FC = () => {
   }, [enrichedContracts, searchTerm, statusFilter, startDate, endDate, sortField, sortOrder]);
 
   const pagination = usePagination(filteredContracts, 10);
-
-  const calculateDuration = (startDate: string) => {
-    const start = new Date(startDate);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    const months = Math.floor(diffDays / 30);
-    const days = diffDays % 30;
-    return `${months}m ${days}d`;
-  };
 
   return (
     <div className="space-y-8">

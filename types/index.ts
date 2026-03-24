@@ -104,6 +104,8 @@ export interface Contract extends SyncMetadata {
   rental_id: string;
 }
 
+export type MaintenanceType = 'Revisão Periódica' | 'Corretiva/Quebra' | 'Troca de Óleo' | 'Troca de Pneu' | 'Vistoria de Entrada';
+
 export interface MaintenanceRecord extends SyncMetadata {
   id: string;
   user_id: string;
@@ -114,7 +116,7 @@ export interface MaintenanceRecord extends SyncMetadata {
   completion_date?: string | null;
   mechanic_name: string;
   description: string;
-  type: `${MaintenanceType}`;
+  type: MaintenanceType;
   cost: number;
   status: 'OPEN' | 'COMPLETED';
 }

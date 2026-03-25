@@ -54,7 +54,8 @@
       "Bash(grep -r \"type MaintenanceType\\\\|MaintenanceType =\" \"d:\\\\Workspace\\\\GitHub\\\\Gestao Alugueis\" --include=\"*.ts\" --include=\"*.tsx\" ! -path \"*/node_modules/*\" ! -path \"*/dist/*\")",
       "Bash(find 'd:\\\\Workspace\\\\GitHub\\\\Gestao Alugueis/database' -type f -name *.ts ! -path */node_modules/* ! -path */dist/*)",
       "Bash(grep -r 'type MaintenanceType' 'd:/Workspace/GitHub/Gestao Alugueis' --include=*.ts --include=*.tsx)",
-      "Bash(npx drizzle-kit:*)"
+      "Bash(npx drizzle-kit:*)",
+      "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")"
     ]
   }
 }

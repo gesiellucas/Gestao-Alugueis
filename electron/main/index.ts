@@ -2,7 +2,12 @@ import { app, BrowserWindow, shell, protocol, ipcMain, net } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { pathToFileURL } from 'url';
-import 'dotenv/config';
+import dotenv from 'dotenv';
+
+// Configure dotenv to read from app bundle (asar root)
+dotenv.config({ path: path.join(app.getAppPath(), '.env') });
+dotenv.config({ path: path.join(app.getAppPath(), '.env.local'), override: true });
+
 import { initDatabase, registerIpcHandlers } from '../../database/ipc/handlers';
 import { getRawDb } from '../../database/client/sqlite';
 import { initSyncEngine } from '../../database/ipc/sync';
@@ -63,8 +68,23 @@ app.whenReady().then(async () => {
         } else if (fs.existsSync(targetPath + '.html')) {
           targetPath = targetPath + '.html';
         } else if (!fs.existsSync(targetPath)) {
-          // Fallback to root index.html for unknown routes (SPA behavior)
-          targetPath = path.join(app.getAppPath(), 'out', 'index.html');
+          // Detect Next.js Dynamic Routes with [id] generated as "placeholder"
+          const pathParts = pathname.split('/').filter(Boolean);
+          if (
+            pathParts.length >= 2 &&
+            ['alugueis', 'cliente', 'veiculo', 'aluguel', 'oficina'].includes(pathParts[0]) &&
+            !['novo', 'editar', 'novo_veiculo', 'novo_entrada'].includes(pathParts[1])
+          ) {
+            const dynamicHtml = path.join(app.getAppPath(), 'out', pathParts[0], 'placeholder', 'index.html');
+            if (fs.existsSync(dynamicHtml)) {
+              targetPath = dynamicHtml;
+            } else {
+              targetPath = path.join(app.getAppPath(), 'out', 'index.html');
+            }
+          } else {
+            // Fallback to root index.html for unknown routes (SPA behavior)
+            targetPath = path.join(app.getAppPath(), 'out', 'index.html');
+          }
         }
       }
       // 3. Nested Assets Fix (_next folder)

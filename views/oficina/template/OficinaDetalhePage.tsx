@@ -118,7 +118,7 @@ function MaintenancePhotos({ record }: { record: MaintenanceRecord }) {
 
 export const OficinaDetalhePage: React.FC = () => {
   const params = useParams();
-  const id = params.id as string;
+  const id = (typeof window !== 'undefined' && (!params.id || params.id === 'placeholder') ? window.location.pathname.split('/').filter(Boolean).pop() : params.id) as string;
   const router = useRouter();
   const { vehicles, maintenanceRecords } = useAppContext();
   const hasFinanceAccess = useFinanceAccess();

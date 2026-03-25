@@ -16,7 +16,10 @@ import { formatCPF, formatPhone } from "../../../lib/formatters";
 
 export const AluguelNovoPage: React.FC = () => {
   const params = useParams();
-  const preselectedVehicleId = params.vehicleId ? (params.vehicleId as string) : undefined;
+  const rawId = params.vehicleId as string;
+  const preselectedVehicleId = (typeof window !== 'undefined' && (!rawId || rawId === 'placeholder')) 
+    ? window.location.pathname.split('/').filter(Boolean).pop() 
+    : rawId;
   const router = useRouter();
   const { vehicles, customers, handleCreateRental, loading } = useAppContext();
 

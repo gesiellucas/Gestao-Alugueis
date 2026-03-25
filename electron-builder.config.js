@@ -22,6 +22,7 @@ const config = {
     'database/migrations/sqlite/**/*',        // Drizzle SQLite migrations (aplicadas em runtime)
     'node_modules/**/*',
     'package.json',
+    '.env*'
   ],
 
   // Rebuild native modules for Electron ABI during packaging

@@ -24,7 +24,12 @@ const SHARED_TABLES = new Set([
 ]);
 
 export function initSyncEngine() {
-  initSupabaseClient();
+  initSupabaseClient().then(() => {
+    if (supabase) {
+      console.log('[Sync] Auto-running sync on startup...');
+      runSync().catch(console.error);
+    }
+  });
 
   // Sync manual via IPC — não há polling automático
   ipcMain.handle('sync:force', async () => {
@@ -131,12 +136,13 @@ async function pushChanges() {
       return rest;
     });
 
-    console.log(`[Sync] Pushing ${recordsToPush.length} records to table "${table}"...`);
-    const { error } = await (supabase as any).from(table).upsert(recordsToPush);
+    console.log(`[Sync] [Supabase] Executing upsert on table "${table}" with ${recordsToPush.length} records...`);
+    const { error, data } = await (supabase as any).from(table).upsert(recordsToPush).select('id');
     if (error) {
-      console.error(`[Sync] Error pushing to table "${table}":`, error);
+      console.error(`[Sync] [Supabase] Error pushing to table "${table}":`, error);
       continue;
     }
+    console.log(`[Sync] [Supabase] Success Upsert for table "${table}". Upserted ${data?.length || 0} rows.`);
 
     const ids = dirtyRecords.map(r => (r as any).id);
     const placeholders = ids.map(() => '?').join(',');
@@ -154,6 +160,7 @@ async function pullChanges() {
     const lastSyncAt = await getSyncMetadata(table) || new Date(0).toISOString();
     console.log(`[Sync] Pulling changes for table "${table}" since ${lastSyncAt}...`);
 
+    console.log(`[Sync] [Supabase] Executing pull for table "${table}" where updated_at > ${lastSyncAt}...`);
     const { data, error } = await (supabase as any)
       .from(table)
       .select('*')
@@ -161,9 +168,10 @@ async function pullChanges() {
       .order('updated_at', { ascending: true });
 
     if (error) {
-      console.error(`[Sync] Error pulling from table "${table}":`, error);
+      console.error(`[Sync] [Supabase] Error pulling from table "${table}":`, error);
       continue;
     }
+    console.log(`[Sync] [Supabase] Success Pull for table "${table}". Returned ${data?.length || 0} rows.`);
 
     if (!data || data.length === 0) {
       continue;

@@ -18,7 +18,7 @@ import { formatCPF, formatPhone, formatDate, toWhatsApp } from "../../../lib/for
 
 export const ClienteDetalhePage: React.FC = () => {
   const params = useParams();
-  const id = params.id as string;
+  const id = (typeof window !== 'undefined' && (!params.id || params.id === 'placeholder') ? window.location.pathname.split('/').filter(Boolean).pop() : params.id) as string;
   const router = useRouter();
   const { customers, vehicles, rentalContracts } = useAppContext();
 

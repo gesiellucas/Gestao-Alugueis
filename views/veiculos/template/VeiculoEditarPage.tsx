@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { localVehiclesApi } from "../../../database/api/local/vehicles";
@@ -10,7 +10,7 @@ export const VeiculoEditarPage: React.FC = () => {
   const params = useParams();
   const id = (typeof window !== 'undefined' && (!params.id || params.id === 'placeholder') ? window.location.pathname.split('/').filter(Boolean).pop() : params.id) as string;
   const router = useRouter();
-  const { vehicles, setVehicles, vehicleModels } = useAppContext();
+  const { vehicles, setVehicles, vehicleModels, loading } = useAppContext();
 
   const vehicle = vehicles.find((v) => v.id === id);
 
@@ -28,7 +28,19 @@ export const VeiculoEditarPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!vehicle) {
+  // Re-fill form when vehicle data becomes available (production: data loads after mount)
+  useEffect(() => {
+    if (vehicle) {
+      setForm({
+        plate: vehicle.plate || "",
+        model_id: vehicle.model_id || "",
+        year: vehicle.year || new Date().getFullYear(),
+        mileage: vehicle.mileage || 0,
+      });
+    }
+  }, [vehicle?.id]);
+
+  if (loading || !vehicle) {
     return (
       <div className="space-y-6">
         <button
@@ -39,7 +51,7 @@ export const VeiculoEditarPage: React.FC = () => {
         </button>
         <div className="bg-white rounded-xl p-12 text-center shadow-sm">
           <p className="text-slate-500 font-medium text-lg">
-            Veículo não encontrado.
+            {loading ? "Carregando..." : "Veículo não encontrado."}
           </p>
         </div>
       </div>

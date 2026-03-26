@@ -20,7 +20,7 @@ export const ClienteDetalhePage: React.FC = () => {
   const params = useParams();
   const id = (typeof window !== 'undefined' && (!params.id || params.id === 'placeholder') ? window.location.pathname.split('/').filter(Boolean).pop() : params.id) as string;
   const router = useRouter();
-  const { customers, vehicles, rentalContracts } = useAppContext();
+  const { customers, vehicles, rentalContracts, loading } = useAppContext();
 
   const hasFinanceAccess = useFinanceAccess();
   const customer = customers.find((c) => c.id === id);
@@ -29,7 +29,7 @@ export const ClienteDetalhePage: React.FC = () => {
     .filter((c) => c.customer_id === id)
     .sort((a, b) => b.start_date.localeCompare(a.start_date));
 
-  if (!customer) {
+  if (loading || !customer) {
     return (
       <div className="space-y-6">
         <button
@@ -40,7 +40,7 @@ export const ClienteDetalhePage: React.FC = () => {
         </button>
         <div className="bg-white rounded-xl p-12 text-center shadow-sm">
           <p className="text-slate-500 font-medium text-lg">
-            Cliente não encontrado.
+            {loading ? "Carregando..." : "Cliente não encontrado."}
           </p>
         </div>
       </div>

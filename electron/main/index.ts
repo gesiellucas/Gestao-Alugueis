@@ -68,22 +68,27 @@ app.whenReady().then(async () => {
         } else if (fs.existsSync(targetPath + '.html')) {
           targetPath = targetPath + '.html';
         } else if (!fs.existsSync(targetPath)) {
-          // Detect Next.js Dynamic Routes with [id] generated as "placeholder"
+          // Dynamic route resolution: try replacing the last segment with "placeholder"
+          // This handles all Next.js dynamic routes ([id], [vehicleId], etc.)
+          // e.g. cliente/editar/{uuid} -> cliente/editar/placeholder/index.html
+          //      alugueis/{uuid}       -> alugueis/placeholder/index.html
+          //      oficina/manutencao/{uuid} -> oficina/manutencao/placeholder/index.html
           const pathParts = pathname.split('/').filter(Boolean);
-          if (
-            pathParts.length >= 2 &&
-            ['alugueis', 'cliente', 'veiculo', 'aluguel', 'oficina'].includes(pathParts[0]) &&
-            !['novo', 'editar', 'novo_veiculo', 'novo_entrada'].includes(pathParts[1])
-          ) {
-            const dynamicHtml = path.join(app.getAppPath(), 'out', pathParts[0], 'placeholder', 'index.html');
+          let resolved = false;
+
+          if (pathParts.length >= 2) {
+            // Replace last segment with "placeholder" and check
+            const parentParts = pathParts.slice(0, -1);
+            const dynamicHtml = path.join(outDir, ...parentParts, 'placeholder', 'index.html');
             if (fs.existsSync(dynamicHtml)) {
               targetPath = dynamicHtml;
-            } else {
-              targetPath = path.join(app.getAppPath(), 'out', 'index.html');
+              resolved = true;
             }
-          } else {
+          }
+
+          if (!resolved) {
             // Fallback to root index.html for unknown routes (SPA behavior)
-            targetPath = path.join(app.getAppPath(), 'out', 'index.html');
+            targetPath = path.join(outDir, 'index.html');
           }
         }
       }

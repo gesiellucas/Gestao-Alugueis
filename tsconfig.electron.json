@@ -13,10 +13,7 @@
     "sourceMap": true
   },
   "include": [
-    "electron/**/*.ts",
-    "database/schema/sqlite.ts",
-    "database/client/sqlite.ts",
-    "database/ipc/**/*.ts"
+    "electron/**/*.ts"
   ],
   "exclude": ["node_modules"]
 }

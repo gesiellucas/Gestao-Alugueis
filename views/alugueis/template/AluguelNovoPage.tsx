@@ -16,16 +16,18 @@ import { formatCPF, formatPhone } from "../../../lib/formatters";
 
 export const AluguelNovoPage: React.FC = () => {
   const params = useParams();
-  const preselectedVehicleId = params.vehicleId ? (params.vehicleId as string) : undefined;
+  const rawId = params.vehicleId as string;
   const router = useRouter();
   const { vehicles, customers, handleCreateRental, loading } = useAppContext();
 
-  console.log(customers);
+  // Resolve preselected vehicle ID: only use rawId when it's a valid vehicleId param
+  const preselectedVehicleId = (rawId && rawId !== 'placeholder') ? rawId : null;
+
   const availableVehicles = vehicles.filter(
     (v) => v.status_id === VEHICLE_STATUS_IDS.AVAILABLE,
   );
 
-  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(preselectedVehicleId ?? null);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(preselectedVehicleId);
   const vehicle = vehicles.find((v) => v.id === selectedVehicleId);
 
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);

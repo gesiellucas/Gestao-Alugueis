@@ -1,64 +1,96 @@
 /**
- * Local SQLite customer API — mirrors services/api/customers.ts
- * All operations go through the IPC bridge to the main process.
+ * Supabase customer API
  */
-import { ipcInvoke } from '../../../lib/ipc';
+import { supabase } from '../../client/supabase';
 import { Customer, PaginatedResult } from '../../../types';
-import type { InsertDto, UpdateDto } from '../../client/types';
 
-// user_id is read from the current session via Supabase auth in Electron
-function requireUserId(): string | null {
-  console.log('requireUserId');
+function requireUserId(): string {
   const userId = typeof localStorage !== 'undefined'
     ? localStorage.getItem('electron_user_id')
     : null;
+  if (!userId) throw new Error('Usuário não autenticado no contexto local.');
   return userId;
-}
-
-function toBool(row: Customer & { active_contract: number | boolean }): Customer {
-  return { ...row, active_contract: Boolean(row.active_contract) };
 }
 
 export const localCustomersApi = {
   async getAll(): Promise<Customer[]> {
-    console.log('getAll customers');
-    try {
-      const rows = await ipcInvoke<(Customer & { active_contract: number })[]>(
-        'db:customers:getAll'
-      );
-      return rows.map(toBool);
-    } catch (err) {
-      throw err;
-    }
+    const user_id = requireUserId();
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('user_id', user_id)
+      .eq('is_deleted', 0)
+      .order('name');
+
+    if (error) throw error;
+    return (data || []) as Customer[];
   },
 
   async getById(id: string): Promise<Customer | null> {
-    const row = await ipcInvoke<(Customer & { active_contract: number }) | null>(
-      'db:customers:getById',
-      { id }
-    );
-    return row ? toBool(row) : null;
+    const user_id = requireUserId();
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user_id)
+      .eq('is_deleted', 0)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data as Customer | null;
   },
 
-  async create(customer: Omit<InsertDto<'customers'>, 'user_id' | 'id' | 'device_id' | 'version' | 'is_deleted' | 'sync_status' | 'created_at' | 'updated_at'> & { user_id?: string }): Promise<Customer> {
-    const user_id = requireUserId() || '00000000-0000-0000-0000-000000000000'; // Default if not logged in
-    const row = await ipcInvoke<Customer & { active_contract: number }>(
-      'db:customers:create',
-      { ...customer, user_id: customer.user_id || user_id }
-    );
-    return toBool(row);
+  async create(customer: any): Promise<Customer> {
+    const user_id = requireUserId();
+    const { data, error } = await supabase
+      .from('customers')
+      .insert({
+        ...customer,
+        id: crypto.randomUUID(),
+        user_id: customer.user_id || user_id,
+        device_id: 'browser',
+        version: 1,
+        is_deleted: 0,
+        sync_status: 'synced',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Customer;
   },
 
-  async update(id: string, updates: Omit<UpdateDto<'customers'>, 'user_id' | 'id' | 'device_id' | 'version' | 'is_deleted' | 'sync_status' | 'created_at' | 'updated_at'> & { user_id?: string }): Promise<Customer> {
-    const row = await ipcInvoke<Customer & { active_contract: number }>(
-      'db:customers:update',
-      { ...updates, id }
-    );
-    return toBool(row);
+  async update(id: string, updates: any): Promise<Customer> {
+    const user_id = requireUserId();
+    const { data, error } = await supabase
+      .from('customers')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .eq('user_id', user_id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as Customer;
   },
 
   async delete(id: string): Promise<void> {
-    await ipcInvoke('db:customers:delete', { id });
+    const user_id = requireUserId();
+    const { error } = await supabase
+      .from('customers')
+      .update({
+        is_deleted: 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .eq('user_id', user_id);
+
+    if (error) throw error;
   },
 
   async getWithActiveContract(): Promise<Customer[]> {
@@ -84,10 +116,26 @@ export const localCustomersApi = {
   },
 
   async getPaginated(page: number, pageSize: number): Promise<PaginatedResult<Customer>> {
-    const result = await ipcInvoke<PaginatedResult<Customer & { active_contract: number }>>(
-      'db:customers:getPaginated',
-      { page, pageSize }
-    );
-    return { ...result, data: result.data.map(toBool) };
+    const user_id = requireUserId();
+    const offset = (page - 1) * pageSize;
+
+    const { data, error, count } = await supabase
+      .from('customers')
+      .select('*', { count: 'exact' })
+      .eq('user_id', user_id)
+      .eq('is_deleted', 0)
+      .order('name')
+      .range(offset, offset + pageSize - 1);
+
+    if (error) throw error;
+
+    const total = count || 0;
+    return {
+      data: (data || []) as Customer[],
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize)
+    };
   },
 };

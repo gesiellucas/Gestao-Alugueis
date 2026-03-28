@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 /**
  * Seed do banco Supabase remoto.
- * Dados extraídos de database/migrations/sqlite/seed.sql
  * Uso: npm run db:seed
  * Requer: SUPABASE_DB_URL no .env
  */

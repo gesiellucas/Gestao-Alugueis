@@ -91,7 +91,65 @@ export interface Database {
           is_deleted?: number;
           sync_status?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'app_users_role_id_fkey';
+            columns: ['role_id'];
+            isOneToOne: false;
+            referencedRelation: 'roles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      roles: {
+        Row: {
+          id: string;
+          name: string;
+          workshop_id: string | null;
+          permissions: string; // JSON string
+          created_at: string;
+          updated_at: string;
+          updated_by: string | null;
+          device_id: string;
+          version: number;
+          is_deleted: number;
+          sync_status: string;
+        };
+        Insert: {
+          id: string;
+          name: string;
+          workshop_id?: string | null;
+          permissions: string;
+          created_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          device_id: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          workshop_id?: string | null;
+          permissions?: string;
+          created_at?: string;
+          updated_at?: string;
+          updated_by?: string | null;
+          device_id?: string;
+          version?: number;
+          is_deleted?: number;
+          sync_status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'roles_workshop_id_fkey';
+            columns: ['workshop_id'];
+            isOneToOne: false;
+            referencedRelation: 'workshops';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       customers: {
         Row: {
@@ -635,3 +693,4 @@ export type DbWorkshop = Tables<'workshops'>;
 export type DbContract = Tables<'contracts'>;
 export type DbUnavailableVehicle = Tables<'unavailable_vehicles'>;
 export type DbDocument = Tables<'documents'>;
+export type DbRole = Tables<'roles'>;

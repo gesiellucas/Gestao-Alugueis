@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { localCustomersApi } from "../../../database/api/local/customers";
@@ -9,9 +9,9 @@ import { maskCPF, maskPhone, rawCPF, rawPhone, formatCPF, formatPhone } from "..
 
 export const ClienteEditarPage: React.FC = () => {
   const params = useParams();
-  const id = params.id as string;
+  const id = (typeof window !== 'undefined' && (!params.id || params.id === 'placeholder') ? window.location.pathname.split('/').filter(Boolean).pop() : params.id) as string;
   const router = useRouter();
-  const { customers, setCustomers } = useAppContext();
+  const { customers, setCustomers, loading } = useAppContext();
 
   const customer = customers.find((c) => c.id === id);
 
@@ -25,7 +25,20 @@ export const ClienteEditarPage: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!customer) {
+  // Re-fill form when customer data becomes available (production: data loads after mount)
+  useEffect(() => {
+    if (customer) {
+      setForm({
+        name: customer.name || "",
+        phone: formatPhone(customer.phone) === '—' ? '' : formatPhone(customer.phone),
+        cpf: formatCPF(customer.cpf) === '—' ? '' : formatCPF(customer.cpf),
+        active_contract: customer.active_contract || false,
+        balance_due: customer.balance_due || 0,
+      });
+    }
+  }, [customer?.id]);
+
+  if (loading || !customer) {
     return (
       <div className="space-y-6">
         <button
@@ -36,7 +49,7 @@ export const ClienteEditarPage: React.FC = () => {
         </button>
         <div className="bg-white rounded-xl p-12 text-center shadow-sm">
           <p className="text-slate-500 font-medium text-lg">
-            Cliente não encontrado.
+            {loading ? "Carregando..." : "Cliente não encontrado."}
           </p>
         </div>
       </div>

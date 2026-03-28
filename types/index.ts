@@ -10,11 +10,12 @@ export interface PaginatedResult<T> {
 // Seed IDs for default vehicle statuses (match vehicle_statuses table)
 // IDs devem corresponder aos registros no seed (vehicle_statuses)
 export const VEHICLE_STATUS_IDS = {
-  AVAILABLE: '6ef5a0d2-6744-4db9-b857-84476d3058a0',
-  RENTED: 'ba4a4673-05ef-48ae-892e-4fae6619afb0',
-  MAINTENANCE: 'ac5aa49d-fbb2-4291-8933-a82dd37f0e13',
-  UNAVAILABLE: 'b3350b93-3765-4bca-becb-027072cc659b',
-  RESERVED: 'c3d59d46-1af5-4c59-8cd5-b00be8460ee3',
+  AVAILABLE: '1',
+  RENTED: '2',
+  MAINTENANCE: '3',
+  UNAVAILABLE: '4',
+  STOLEN: '5',
+  TOTALED: '6',
 } as const;
 
 export interface SyncMetadata {
@@ -104,6 +105,8 @@ export interface Contract extends SyncMetadata {
   rental_id: string;
 }
 
+export type MaintenanceType = 'Revisão Periódica' | 'Corretiva/Quebra' | 'Troca de Óleo' | 'Troca de Pneu' | 'Vistoria de Entrada';
+
 export interface MaintenanceRecord extends SyncMetadata {
   id: string;
   user_id: string;
@@ -114,7 +117,7 @@ export interface MaintenanceRecord extends SyncMetadata {
   completion_date?: string | null;
   mechanic_name: string;
   description: string;
-  type: `${MaintenanceType}`;
+  type: MaintenanceType;
   cost: number;
   status: 'OPEN' | 'COMPLETED';
 }

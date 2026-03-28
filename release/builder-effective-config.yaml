@@ -13,6 +13,7 @@ files:
       - database/migrations/sqlite/**/*
       - node_modules/**/*
       - package.json
+      - .env*
 npmRebuild: true
 asarUnpack:
   - node_modules/better-sqlite3/**/*

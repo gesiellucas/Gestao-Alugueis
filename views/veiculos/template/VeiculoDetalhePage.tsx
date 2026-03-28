@@ -90,9 +90,9 @@ function PhotoCellReadOnly({ recordId }: { recordId: string }) {
 
 export const VeiculoDetalhePage: React.FC = () => {
   const params = useParams();
-  const id = params.id as string;
+  const id = (typeof window !== 'undefined' && (!params.id || params.id === 'placeholder') ? window.location.pathname.split('/').filter(Boolean).pop() : params.id) as string;
   const router = useRouter();
-  const { vehicles, customers, maintenanceRecords, rentalContracts, unavailableVehicles, handleEndRental, handleMakeVehicleUnavailable } =
+  const { vehicles, customers, maintenanceRecords, rentalContracts, unavailableVehicles, handleEndRental, handleMakeVehicleUnavailable, loading } =
     useAppContext();
   const [endingRental, setEndingRental] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
@@ -126,7 +126,7 @@ export const VeiculoDetalhePage: React.FC = () => {
     }
   }, [unavailableRecord?.id]);
 
-  if (!vehicle) {
+  if (loading || !vehicle) {
     return (
       <div className="space-y-6">
         <button
@@ -137,7 +137,7 @@ export const VeiculoDetalhePage: React.FC = () => {
         </button>
         <div className="bg-white rounded-xl p-12 text-center shadow-sm">
           <p className="text-slate-500 font-medium text-lg">
-            Veículo não encontrado.
+            {loading ? "Carregando..." : "Veículo não encontrado."}
           </p>
         </div>
       </div>

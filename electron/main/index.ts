@@ -2,10 +2,13 @@ import { app, BrowserWindow, shell, protocol, ipcMain, net } from 'electron';
 import path from 'path';
 import fs from 'fs';
 import { pathToFileURL } from 'url';
-import 'dotenv/config';
-import { initDatabase, registerIpcHandlers } from '../../database/ipc/handlers';
-import { getRawDb } from '../../database/client/sqlite';
-import { initSyncEngine } from '../../database/ipc/sync';
+import dotenv from 'dotenv';
+
+// Configure dotenv to read from app bundle (asar root)
+dotenv.config({ path: path.join(app.getAppPath(), '.env') });
+dotenv.config({ path: path.join(app.getAppPath(), '.env.local'), override: true });
+
+
 
 // Register custom protocol schemes as privileged.
 // This must be done before the app is ready and before any windows are created.
@@ -63,8 +66,28 @@ app.whenReady().then(async () => {
         } else if (fs.existsSync(targetPath + '.html')) {
           targetPath = targetPath + '.html';
         } else if (!fs.existsSync(targetPath)) {
-          // Fallback to root index.html for unknown routes (SPA behavior)
-          targetPath = path.join(app.getAppPath(), 'out', 'index.html');
+          // Dynamic route resolution: try replacing the last segment with "placeholder"
+          // This handles all Next.js dynamic routes ([id], [vehicleId], etc.)
+          // e.g. cliente/editar/{uuid} -> cliente/editar/placeholder/index.html
+          //      alugueis/{uuid}       -> alugueis/placeholder/index.html
+          //      oficina/manutencao/{uuid} -> oficina/manutencao/placeholder/index.html
+          const pathParts = pathname.split('/').filter(Boolean);
+          let resolved = false;
+
+          if (pathParts.length >= 2) {
+            // Replace last segment with "placeholder" and check
+            const parentParts = pathParts.slice(0, -1);
+            const dynamicHtml = path.join(outDir, ...parentParts, 'placeholder', 'index.html');
+            if (fs.existsSync(dynamicHtml)) {
+              targetPath = dynamicHtml;
+              resolved = true;
+            }
+          }
+
+          if (!resolved) {
+            // Fallback to root index.html for unknown routes (SPA behavior)
+            targetPath = path.join(outDir, 'index.html');
+          }
         }
       }
       // 3. Nested Assets Fix (_next folder)
@@ -83,34 +106,7 @@ app.whenReady().then(async () => {
     });
   }
 
-  // 1. Initialize database
-  try {
-    await initDatabase();
-  } catch (err) {
-    console.error('[Main] Failed to initialize database. App will not start.', err);
-    return; // Stop execution
-  }
 
-  // 2. Inject Supabase credentials into local SQLite config (from .env)
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    try {
-      const db = getRawDb();
-      // Using execute for batching or direct execution with libsql client
-      await db.execute({
-        sql: 'INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)',
-        args: ['NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL]
-      });
-      await db.execute({
-        sql: 'INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)',
-        args: ['NEXT_PUBLIC_SUPABASE_ANON_KEY', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY]
-      });
-    } catch (err) {
-      console.error('[Main] Failed to inject Supabase credentials:', err);
-    }
-  }
-
-  registerIpcHandlers();
-  initSyncEngine();
   createWindow();
 
   app.on('activate', () => {
@@ -151,6 +147,9 @@ function createWindow(): void {
   });
   ipcMain.handle('window:close', () => mainWindow?.close());
   ipcMain.handle('window:isMaximized', () => mainWindow?.isMaximized() ?? false);
+
+  ipcMain.handle('app:isElectron', () => true);
+  ipcMain.handle('app:getVersion', () => app.getVersion());
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:3000');

@@ -61,9 +61,9 @@ function FileIcon({ ext }: { ext: string }) {
 
 export const AluguelDetalhePage: React.FC = () => {
   const params = useParams();
-  const id = params.id as string;
+  const id = (typeof window !== 'undefined' && (!params.id || params.id === 'placeholder') ? window.location.pathname.split('/').filter(Boolean).pop() : params.id) as string;
   const router = useRouter();
-  const { rentalContracts, customers, vehicles, handleEndRental, handleUpdateRental } = useAppContext();
+  const { rentalContracts, customers, vehicles, handleEndRental, handleUpdateRental, loading } = useAppContext();
   const hasFinanceAccess = useFinanceAccess();
   const [activeTab, setActiveTab] = useState<Tab>("aluguel");
 
@@ -239,7 +239,7 @@ export const AluguelDetalhePage: React.FC = () => {
     }
   };
 
-  if (!rental) {
+  if (loading || !rental) {
     return (
       <div className="space-y-6">
         <button
@@ -249,7 +249,9 @@ export const AluguelDetalhePage: React.FC = () => {
           <ArrowLeft size={20} /> Voltar para Aluguéis
         </button>
         <div className="bg-white rounded-2xl p-12 text-center shadow-sm border border-slate-100">
-          <p className="text-slate-500 font-medium text-lg">Contrato não encontrado.</p>
+          <p className="text-slate-500 font-medium text-lg">
+            {loading ? "Carregando..." : "Contrato não encontrado."}
+          </p>
         </div>
       </div>
     );

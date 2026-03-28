@@ -23,6 +23,7 @@ import {
   Palette,
   Database,
   Info,
+  BarChart3,
 } from "lucide-react";
 import { SyncIndicator } from "./SyncIndicator";
 interface LayoutProps {
@@ -73,6 +74,12 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
       label: "Oficina",
       icon: Wrench,
       show: hasPerm('oficina_view'),
+    },
+    {
+      to: "/relatorios",
+      label: "Relatórios",
+      icon: BarChart3,
+      show: hasPerm('financeiro_view') || hasPerm('veiculos_view') || hasPerm('clientes_view') || hasPerm('oficina_view'),
     },
     {
       to: "/automacao/whatsapp",

@@ -1,16 +1,9 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { Cloud, CloudOff, RefreshCw, CheckCircle2 } from 'lucide-react';
-
-interface SyncStatus {
-  lastSync: string | null;
-  pendingCount: number;
-}
+import { CloudOff, CheckCircle2 } from 'lucide-react';
 
 export const SyncIndicator: React.FC = () => {
-  const [status, setStatus] = useState<SyncStatus>({ lastSync: null, pendingCount: 0 });
-  const [isSyncing, setIsSyncing] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
 
   // Check network status
@@ -30,73 +23,20 @@ export const SyncIndicator: React.FC = () => {
     };
   }, []);
 
-  const fetchStatus = useCallback(async () => {
-    try {
-      if (typeof window.electronAPI !== 'undefined') {
-        const result = await window.electronAPI.invoke<SyncStatus>('sync:status');
-        setStatus(result);
-      }
-    } catch (e) {
-    }
-  }, []);
-
-  // Poll status every 10 seconds
-  useEffect(() => {
-    fetchStatus();
-    const interval = setInterval(fetchStatus, 10000);
-    return () => clearInterval(interval);
-  }, [fetchStatus]);
-
-  const handleManualSync = async () => {
-    if (!isOnline || isSyncing) return;
-    
-    setIsSyncing(true);
-    try {
-      if (typeof window.electronAPI !== 'undefined') {
-        await window.electronAPI.invoke('sync:force');
-        await fetchStatus();
-      }
-    } catch (error) {
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
   if (!isOnline) {
     return (
       <div className="flex items-center gap-2 text-xs font-semibold px-3 py-2 bg-red-500/10 text-red-500 rounded-lg">
         <CloudOff size={16} />
-        <span>Offline</span>
+        <span>Modo Offline</span>
       </div>
-    );
-  }
-
-  if (isSyncing) {
-    return (
-      <div className="flex items-center gap-2 text-xs font-semibold px-3 py-2 bg-[#004AAD]/10 text-[#004AAD] rounded-lg">
-        <RefreshCw size={16} className="animate-spin" />
-        <span>Sincronizando...</span>
-      </div>
-    );
-  }
-
-  if (status.pendingCount > 0) {
-    return (
-      <button 
-        onClick={handleManualSync}
-        className="flex items-center gap-2 text-xs font-semibold px-3 py-2 bg-[#0C4AA5]/10 text-[#0C4AA5] rounded-lg hover:bg-[#0C4AA5]/20 transition-colors"
-        title="Clique para forçar sincronização"
-      >
-        <Cloud size={16} />
-        <span>{status.pendingCount} pendente(s)</span>
-      </button>
     );
   }
 
   return (
     <div className="flex items-center gap-2 text-xs font-semibold px-3 py-2 bg-emerald-500/10 text-emerald-500 rounded-lg">
       <CheckCircle2 size={16} />
-      <span>Sincronizado</span>
+      <span>Conectado à Nuvem</span>
     </div>
   );
 };
+

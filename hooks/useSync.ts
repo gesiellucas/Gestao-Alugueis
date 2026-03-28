@@ -1,40 +1,39 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ipcInvoke, isElectron } from '../lib/ipc';
 
 interface SyncStatus {
   lastSync: string | null;
   pendingCount: number;
 }
 
-/** Returns the current sync status (last sync time + number of unsynced local changes). */
+/** Returns the current sync status (always synced in current cloud-first mode). */
 export function useSyncStatus() {
   return useQuery<SyncStatus>({
     queryKey: ['sync', 'status'],
-    queryFn: () => ipcInvoke<SyncStatus>('sync:status'),
-    enabled: isElectron(),
+    queryFn: async () => ({
+      lastSync: new Date().toISOString(),
+      pendingCount: 0,
+    }),
     refetchInterval: 10_000,
   });
 }
 
-/** Mutation que dispara sync manual via botão na UI. Invalida queries ao sucesso. */
+/** Manual sync trigger (now just invalidates queries as data is always in cloud). */
 export function useFullSync() {
   const client = useQueryClient();
 
   return useMutation({
-    mutationFn: async () => {
-      const result = await ipcInvoke<{ success: boolean; error?: string }>('sync:force');
-      return result;
-    },
-    onSuccess: (result) => {
-      if (result && result.success) {
-        client.invalidateQueries({ queryKey: ['customers'] });
-        client.invalidateQueries({ queryKey: ['vehicles'] });
-        client.invalidateQueries({ queryKey: ['rentals'] });
-        client.invalidateQueries({ queryKey: ['maintenance'] });
-        client.invalidateQueries({ queryKey: ['sync', 'status'] });
-      }
+    mutationFn: async () => ({ 
+      success: true 
+    }),
+    onSuccess: () => {
+      client.invalidateQueries({ queryKey: ['customers'] });
+      client.invalidateQueries({ queryKey: ['vehicles'] });
+      client.invalidateQueries({ queryKey: ['rentals'] });
+      client.invalidateQueries({ queryKey: ['maintenance'] });
+      client.invalidateQueries({ queryKey: ['sync', 'status'] });
     },
   });
 }
+

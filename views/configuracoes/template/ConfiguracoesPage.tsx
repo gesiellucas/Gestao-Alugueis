@@ -21,13 +21,9 @@ export const ConfiguracoesPage: React.FC = () => {
   const handleManualSync = async () => {
     setSyncMessage(null);
     try {
-      const result = await syncMutation.mutateAsync();
-      if (result.success) {
-        setSyncMessage({ type: 'success', text: 'Sincronização concluída com sucesso!' });
-        refetchStatus();
-      } else {
-        setSyncMessage({ type: 'error', text: result.error || 'Erro desconhecido ao sincronizar.' });
-      }
+      await syncMutation.mutateAsync();
+      setSyncMessage({ type: 'success', text: 'Sincronização concluída com sucesso!' });
+      refetchStatus();
     } catch (err) {
       setSyncMessage({ type: 'error', text: 'Falha na conexão com o servidor Supabase.' });
     }

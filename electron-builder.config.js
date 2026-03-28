@@ -37,6 +37,37 @@ const config = {
     createDesktopShortcut: true,
     createStartMenuShortcut: true,
   },
+
+  // ── macOS ──
+  mac: {
+    category: 'public.app-category.business',
+    target: [
+      {
+        target: 'dmg',
+        arch: ['universal']
+      }
+    ],
+    // electron-builder will try to use the .ico and convert it, 
+    // or you can provide a resources/icon.icns later.
+    icon: 'resources/icon.ico',
+    hardenedRuntime: true,
+    gatekeeperAssess: false,
+  },
+  dmg: {
+    contents: [
+      {
+        x: 410,
+        y: 150,
+        type: 'link',
+        path: '/Applications'
+      },
+      {
+        x: 130,
+        y: 150,
+        type: 'file'
+      }
+    ]
+  },
 };
 
 module.exports = config;

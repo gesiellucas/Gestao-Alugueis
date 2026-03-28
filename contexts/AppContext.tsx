@@ -26,6 +26,7 @@ import { localUnavailableVehiclesApi } from "../database/api/local/unavailableVe
 interface AppContextType {
   user: AppUser | null;
   setUser: (user: AppUser | null) => void;
+  isAuthLoading: boolean;
   vehicles: Vehicle[];
   setVehicles: React.Dispatch<React.SetStateAction<Vehicle[]>>;
   vehicleModels: VehicleModel[];
@@ -65,6 +66,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [user, setUser] = useState<AppUser | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [vehicleModels, setVehicleModels] = useState<VehicleModel[]>([]);
   const [vehicleStatuses, setVehicleStatuses] = useState<VehicleStatusRecord[]>([]);
@@ -91,7 +93,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
             localStorage.removeItem("electron_user_email");
             localStorage.removeItem("electron_user_id");
           }
-        }).catch(() => { });
+        }).catch(() => { }).finally(() => {
+          setIsAuthLoading(false);
+        });
+      } else {
+        setIsAuthLoading(false);
       }
     }
   }, []);
@@ -388,6 +394,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         user,
         setUser,
+        isAuthLoading,
         vehicles,
         setVehicles,
         vehicleModels,

@@ -8,16 +8,11 @@ icon: resources/icon.ico
 files:
   - filter:
       - dist/electron/**/*
-      - dist/database/**/*
       - out/**/*
-      - database/migrations/sqlite/**/*
       - node_modules/**/*
       - package.json
       - .env*
 npmRebuild: true
-asarUnpack:
-  - node_modules/better-sqlite3/**/*
-  - node_modules/bindings/**/*
 win:
   target:
     - target: nsis

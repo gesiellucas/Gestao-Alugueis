@@ -1,11 +1,9 @@
 /**
- * Local SQLite maintenance records API — mirrors services/api/maintenanceRecords.ts
+ * Supabase maintenance records API
  */
-import { ipcInvoke } from '../../../lib/ipc';
+import { supabase } from '../../client/supabase';
 import { MaintenanceRecord, PaginatedResult } from '../../../types';
-import type { InsertDto, UpdateDto } from '../../client/types';
 
-// user_id is read from the current session via Supabase auth in Electron
 function requireUserId(): string {
   const userId = typeof localStorage !== 'undefined'
     ? localStorage.getItem('electron_user_id')
@@ -17,28 +15,82 @@ function requireUserId(): string {
 export const localMaintenanceApi = {
   async getAll(): Promise<MaintenanceRecord[]> {
     const user_id = requireUserId();
-    try {
-      const result = await ipcInvoke<MaintenanceRecord[]>('db:maintenance:getAll', { user_id });
-      return result;
-    } catch (err) {
-      throw err;
-    }
+    const { data, error } = await supabase
+      .from('maintenance_records')
+      .select('*')
+      .eq('user_id', user_id)
+      .eq('is_deleted', 0)
+      .order('entry_date', { ascending: false });
+
+    if (error) throw error;
+    return (data || []) as unknown as MaintenanceRecord[];
   },
 
   async getById(id: string): Promise<MaintenanceRecord | null> {
-    return ipcInvoke<MaintenanceRecord | null>('db:maintenance:getById', { id, user_id: requireUserId() });
+    const user_id = requireUserId();
+    const { data, error } = await supabase
+      .from('maintenance_records')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', user_id)
+      .eq('is_deleted', 0)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data as unknown as MaintenanceRecord | null;
   },
 
-  async create(record: Omit<InsertDto<'maintenance_records'>, 'user_id' | 'id' | 'device_id' | 'version' | 'is_deleted' | 'sync_status' | 'created_at' | 'updated_at'> & { user_id?: string }): Promise<MaintenanceRecord> {
-    return ipcInvoke<MaintenanceRecord>('db:maintenance:create', { ...record, user_id: requireUserId() });
+  async create(record: any): Promise<MaintenanceRecord> {
+    const user_id = requireUserId();
+    const { data, error } = await supabase
+      .from('maintenance_records')
+      .insert({
+        ...record,
+        id: crypto.randomUUID(),
+        user_id,
+        device_id: 'browser',
+        version: 1,
+        is_deleted: 0,
+        sync_status: 'synced',
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as unknown as MaintenanceRecord;
   },
 
-  async update(id: string, updates: Omit<UpdateDto<'maintenance_records'>, 'user_id' | 'id' | 'device_id' | 'version' | 'is_deleted' | 'sync_status' | 'created_at' | 'updated_at'> & { user_id?: string }): Promise<MaintenanceRecord> {
-    return ipcInvoke<MaintenanceRecord>('db:maintenance:update', { ...updates, id, user_id: requireUserId() });
+  async update(id: string, updates: any): Promise<MaintenanceRecord> {
+    const user_id = requireUserId();
+    const { data, error } = await supabase
+      .from('maintenance_records')
+      .update({
+        ...updates,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .eq('user_id', user_id)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data as unknown as MaintenanceRecord;
   },
 
   async delete(id: string): Promise<void> {
-    await ipcInvoke('db:maintenance:delete', { id, user_id: requireUserId() });
+    const user_id = requireUserId();
+    const { error } = await supabase
+      .from('maintenance_records')
+      .update({
+        is_deleted: 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+      .eq('user_id', user_id);
+
+    if (error) throw error;
   },
 
   async getOpen(): Promise<MaintenanceRecord[]> {
@@ -52,8 +104,15 @@ export const localMaintenanceApi = {
   },
 
   async getByVehicle(vehicle_id: string): Promise<MaintenanceRecord[]> {
-    const all = await this.getAll();
-    return all.filter((r) => r.vehicle_id === vehicle_id);
+    const { data, error } = await supabase
+      .from('maintenance_records')
+      .select('*')
+      .eq('vehicle_id', vehicle_id)
+      .eq('is_deleted', 0)
+      .order('entry_date', { ascending: false });
+
+    if (error) throw error;
+    return (data || []) as unknown as MaintenanceRecord[];
   },
 
   async complete(id: string, cost: number = 0): Promise<MaintenanceRecord> {
@@ -66,11 +125,37 @@ export const localMaintenanceApi = {
 
   async getToday(): Promise<MaintenanceRecord[]> {
     const today = new Date().toISOString().split('T')[0];
-    const all = await this.getAll();
-    return all.filter((r) => r.entry_date >= today);
+    const { data, error } = await supabase
+      .from('maintenance_records')
+      .select('*')
+      .gte('entry_date', today)
+      .eq('is_deleted', 0);
+
+    if (error) throw error;
+    return (data || []) as unknown as MaintenanceRecord[];
   },
 
   async getPaginated(page: number, pageSize: number): Promise<PaginatedResult<MaintenanceRecord>> {
-    return ipcInvoke<PaginatedResult<MaintenanceRecord>>('db:maintenance:getPaginated', { user_id: requireUserId(), page, pageSize });
+    const user_id = requireUserId();
+    const offset = (page - 1) * pageSize;
+
+    const { data, error, count } = await supabase
+      .from('maintenance_records')
+      .select('*', { count: 'exact' })
+      .eq('user_id', user_id)
+      .eq('is_deleted', 0)
+      .order('entry_date', { ascending: false })
+      .range(offset, offset + pageSize - 1);
+
+    if (error) throw error;
+
+    const total = count || 0;
+    return {
+      data: (data || []) as unknown as MaintenanceRecord[],
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize)
+    };
   },
 };

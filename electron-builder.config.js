@@ -17,9 +17,7 @@ const config = {
   // Files included in the built app
   files: [
     'dist/electron/**/*',                      // Compiled Electron main + preload (CommonJS)
-    'dist/database/**/*',                     // Compiled Database logic
     'out/**/*',                               // Next.js static export
-    'database/migrations/sqlite/**/*',        // Drizzle SQLite migrations (aplicadas em runtime)
     'node_modules/**/*',
     'package.json',
     '.env*'
@@ -28,12 +26,6 @@ const config = {
   // Rebuild native modules for Electron ABI during packaging
   npmRebuild: true,
 
-  // CRITICAL: better-sqlite3 contains native .node files that cannot be
-  // executed from inside the asar archive — they must be unpacked alongside it.
-  asarUnpack: [
-    'node_modules/better-sqlite3/**/*',
-    'node_modules/bindings/**/*',
-  ],
 
   // ── Windows ──
   win: {

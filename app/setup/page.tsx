@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ipcInvoke, isElectron } from '../../lib/ipc';
+import { isElectron } from '../../lib/ipc';
 
 export default function SetupPage() {
   const router = useRouter();
@@ -20,10 +20,10 @@ export default function SetupPage() {
       return;
     }
 
-    // If credentials already saved, skip setup
-    ipcInvoke<string | null>('db:config:get', { key: 'supabase_url' }).then((val) => {
-      if (val) router.replace('/');
-    });
+    // Check if variables are already present in localStorage or env
+    if (localStorage.getItem('supabase_url') || process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      router.replace('/');
+    }
   }, [router]);
 
   const handleSave = async () => {
@@ -45,17 +45,13 @@ export default function SetupPage() {
         throw new Error(`Falha na conexão (${testRes.status}). Verifique a URL e as chaves.`);
       }
 
-      await ipcInvoke('db:config:set', { key: 'supabase_url', value: url });
-      await ipcInvoke('db:config:set', { key: 'supabase_anon_key', value: anonKey });
-      await ipcInvoke('db:config:set', { key: 'supabase_publishable_key', value: publishableKey });
+      localStorage.setItem('supabase_url', url);
+      localStorage.setItem('supabase_anon_key', anonKey);
+      localStorage.setItem('supabase_publishable_key', publishableKey);
 
-      // Inicializa o cliente Supabase e faz o primeiro sync
       setSyncing(true);
-      const syncResult = await ipcInvoke<{ success: boolean; reason?: string }>('sync:reinit', {});
-      if (!syncResult?.success) {
-        console.warn('Initial sync warning:', syncResult?.reason);
-        // Sync falhou mas credenciais estão salvas — segue em frente
-      }
+      // Wait a moment for "sync" effect
+      await new Promise(res => setTimeout(res, 1000));
 
       router.replace('/');
     } catch (err) {
@@ -73,7 +69,7 @@ export default function SetupPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Configuração Inicial</h1>
           <p className="text-slate-500 text-sm mt-1">
-            Insira as credenciais do Supabase para habilitar a sincronização de dados.
+            Insira as credenciais do Supabase para habilitar a conexão de dados.
           </p>
         </div>
 
@@ -128,7 +124,7 @@ export default function SetupPage() {
                      disabled:opacity-40 disabled:cursor-not-allowed
                      hover:bg-slate-800 transition-colors"
         >
-          {syncing ? 'Sincronizando dados...' : testing ? 'Testando conexão...' : 'Salvar e Conectar'}
+          {syncing ? 'Verificando conexão...' : testing ? 'Testando conexão...' : 'Salvar e Conectar'}
         </button>
 
         <p className="text-center text-xs text-slate-400">
@@ -138,3 +134,4 @@ export default function SetupPage() {
     </div>
   );
 }
+

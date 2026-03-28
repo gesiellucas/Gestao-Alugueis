@@ -2,9 +2,6 @@ import { boolean, foreignKey, index, integer, numeric, pgTable, text, timestamp 
 
 // ---------------------------------------------------------------------------
 // Schema PostgreSQL (Supabase) — gerado pelo drizzle-kit para migrações
-//
-// IMPORTANTE: Mantenha os nomes de tabela e coluna idênticos ao database/schema/sqlite.ts.
-// Diferenças de tipo são esperadas (ex: boolean vs integer, timestamp vs text).
 // ---------------------------------------------------------------------------
 
 // ---------------------------------------------------------------------------

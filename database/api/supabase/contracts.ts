@@ -55,21 +55,11 @@ export const supabaseContractsApi = {
 
   /**
    * Garante que existe um contrato para o aluguel — cria se necessário.
-   * Aciona o motor de sincronização completo para garantir que o aluguel
-   * e suas dependências (cliente, veículo) existam no Supabase primeiro.
    */
   async ensureForRental(rental: RentalContract): Promise<Contract> {
-    // Tenta forçar a sincronização via IPC (Electron)
-    if (isElectron()) {
-      try {
-        await ipcInvoke('sync:force');
-      } catch (err) {
-        console.error('Falha ao forçar sincronização via IPC:', err);
-      }
-    }
-
     const existing = await supabaseContractsApi.getByRental(rental.id);
     if (existing) return existing;
     return supabaseContractsApi.create(rental.id);
   },
 };
+

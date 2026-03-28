@@ -8,9 +8,7 @@ import dotenv from 'dotenv';
 dotenv.config({ path: path.join(app.getAppPath(), '.env') });
 dotenv.config({ path: path.join(app.getAppPath(), '.env.local'), override: true });
 
-import { initDatabase, registerIpcHandlers } from '../../database/ipc/handlers';
-import { getRawDb } from '../../database/client/sqlite';
-import { initSyncEngine } from '../../database/ipc/sync';
+
 
 // Register custom protocol schemes as privileged.
 // This must be done before the app is ready and before any windows are created.
@@ -108,34 +106,7 @@ app.whenReady().then(async () => {
     });
   }
 
-  // 1. Initialize database
-  try {
-    await initDatabase();
-  } catch (err) {
-    console.error('[Main] Failed to initialize database. App will not start.', err);
-    return; // Stop execution
-  }
 
-  // 2. Inject Supabase credentials into local SQLite config (from .env)
-  if (process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-    try {
-      const db = getRawDb();
-      // Using execute for batching or direct execution with libsql client
-      await db.execute({
-        sql: 'INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)',
-        args: ['NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL]
-      });
-      await db.execute({
-        sql: 'INSERT OR REPLACE INTO config (key, value) VALUES (?, ?)',
-        args: ['NEXT_PUBLIC_SUPABASE_ANON_KEY', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY]
-      });
-    } catch (err) {
-      console.error('[Main] Failed to inject Supabase credentials:', err);
-    }
-  }
-
-  registerIpcHandlers();
-  initSyncEngine();
   createWindow();
 
   app.on('activate', () => {
@@ -176,6 +147,9 @@ function createWindow(): void {
   });
   ipcMain.handle('window:close', () => mainWindow?.close());
   ipcMain.handle('window:isMaximized', () => mainWindow?.isMaximized() ?? false);
+
+  ipcMain.handle('app:isElectron', () => true);
+  ipcMain.handle('app:getVersion', () => app.getVersion());
 
   if (isDev) {
     mainWindow.loadURL('http://localhost:3000');

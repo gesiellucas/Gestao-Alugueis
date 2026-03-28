@@ -50,14 +50,9 @@ jobs:
 
       - name: Build Application
         env:
-          # Para assinatura e notarização (Opcional por agora)
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          CSC_LINK: ${{ secrets.CSC_LINK }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
-          # Token do GitHub para possíveis releases
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Disable code signing — no certificate configured yet
+          CSC_IDENTITY_AUTO_DISCOVERY: false
         run: npm run electron:build -- --mac
 
       - name: Upload macOS Artifact

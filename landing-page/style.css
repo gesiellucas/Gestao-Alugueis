@@ -95,6 +95,14 @@ h1 {
   margin: 0 auto 2.5rem;
 }
 
+.download-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .btn-download {
   display: inline-flex;
   align-items: center;
@@ -124,6 +132,18 @@ h1 {
 
 .btn-download:active {
   transform: translateY(0);
+}
+
+.btn-download--mac {
+  background: transparent;
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  box-shadow: none;
+}
+
+.btn-download--mac:hover {
+  background: rgba(249, 115, 22, 0.1);
+  box-shadow: 0 10px 28px rgba(249, 115, 22, 0.2);
 }
 
 .version {
@@ -193,6 +213,10 @@ footer {
 @media (max-width: 480px) {
   .hero h2 {
     font-size: 1.7rem;
+  }
+
+  .download-buttons {
+    flex-direction: column;
   }
 
   .btn-download {

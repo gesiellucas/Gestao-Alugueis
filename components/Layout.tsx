@@ -26,7 +26,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { SyncIndicator } from "./SyncIndicator";
-import { isElectron as checkElectron } from "../lib/ipc";
+import { isElectron as checkElectron, windowControls } from "../lib/ipc";
 interface LayoutProps {
   user: AppUser;
   onLogout: () => void;
@@ -208,21 +208,21 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
             <div className="flex items-center electron-no-drag">
               <SyncIndicator />
               <button
-                onClick={() => window.electronAPI?.windowControls.minimize()}
+                onClick={() => windowControls.minimize()}
                 className="w-11 h-9 hover:bg-black/5 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
                 title="Minimizar"
               >
                 <Minus size={12} />
               </button>
               <button
-                onClick={() => window.electronAPI?.windowControls.maximize()}
+                onClick={() => windowControls.maximize()}
                 className="w-11 h-9 hover:bg-black/5 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors"
                 title="Maximizar"
               >
                 <Maximize2 size={11} />
               </button>
               <button
-                onClick={() => window.electronAPI?.windowControls.close()}
+                onClick={() => windowControls.close()}
                 className="w-11 h-9 hover:bg-red-500 hover:text-white flex items-center justify-center text-slate-400 transition-colors"
                 title="Fechar"
               >

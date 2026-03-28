@@ -2,15 +2,6 @@
 import React from "react";
 import { VEHICLE_STATUS_IDS } from "../types";
 import { useAppContext } from "../contexts/AppContext";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 import { Wrench, Bike, TrendingUp, Lock, ShieldOff } from "lucide-react";
 import StatCard from "./StatCard";
 import GaugeChart from "./GaugeChart";

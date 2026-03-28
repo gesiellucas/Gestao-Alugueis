@@ -26,6 +26,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { SyncIndicator } from "./SyncIndicator";
+import { isElectron as checkElectron } from "../lib/ipc";
 interface LayoutProps {
   user: AppUser;
   onLogout: () => void;
@@ -38,7 +39,7 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
   const pathname = usePathname();
 
   useEffect(() => {
-    setIsElectron(!!window.electronAPI?.isElectron);
+    setIsElectron(checkElectron());
   }, []);
 
   const perms = user.role?.permissions || [];

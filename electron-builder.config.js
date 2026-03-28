@@ -41,10 +41,8 @@ const config = {
   mac: {
     category: 'public.app-category.business',
     target: [
-      {
-        target: 'dmg',
-        arch: ['universal']
-      }
+      { target: 'dmg', arch: ['x64'] },
+      { target: 'dmg', arch: ['arm64'] },
     ],
     icon: 'resources/icon.icns',
     hardenedRuntime: true,

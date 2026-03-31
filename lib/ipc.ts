@@ -16,6 +16,13 @@ export function isElectron(): boolean {
   );
 }
 
+export const windowControls = {
+  minimize: () => window.electronAPI?.windowControls.minimize(),
+  maximize: () => window.electronAPI?.windowControls.maximize(),
+  close: () => window.electronAPI?.windowControls.close(),
+  isMaximized: () => window.electronAPI?.windowControls.isMaximized(),
+};
+
 export async function ipcInvoke<T = unknown>(
   channel: ElectronChannel,
   args?: unknown

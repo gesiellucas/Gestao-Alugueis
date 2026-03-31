@@ -7,8 +7,6 @@ const config = {
   productName: 'GC Locamoto',
   copyright: 'Copyright © 2026 GC Locamoto',
 
-  icon: 'resources/icon.ico',
-
   directories: {
     output: 'release',
     buildResources: 'resources',
@@ -29,6 +27,7 @@ const config = {
 
   // ── Windows ──
   win: {
+    icon: 'resources/icon.ico',
     target: [{ target: 'nsis', arch: ['x64'] }],
   },
   nsis: {
@@ -42,14 +41,10 @@ const config = {
   mac: {
     category: 'public.app-category.business',
     target: [
-      {
-        target: 'dmg',
-        arch: ['universal']
-      }
+      { target: 'dmg', arch: ['x64'] },
+      { target: 'dmg', arch: ['arm64'] },
     ],
-    // electron-builder will try to use the .ico and convert it, 
-    // or you can provide a resources/icon.icns later.
-    icon: 'resources/icon.ico',
+    icon: 'resources/icon.icns',
     hardenedRuntime: true,
     gatekeeperAssess: false,
   },

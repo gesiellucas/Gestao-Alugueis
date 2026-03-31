@@ -15,14 +15,24 @@ import pg from 'pg';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
+// Carrega o .env.local se existir, sobrescrevendo o .env (comportamento padrão do Next.js)
+dotenv.config({ path: join(process.cwd(), '.env.local'), override: true });
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const { Client } = pg;
 
 const url = process.env.SUPABASE_DB_URL;
 if (!url) {
-  console.error('❌  SUPABASE_DB_URL não definida no .env');
+  console.error('❌  SUPABASE_DB_URL não definida no .env ou .env.local');
   process.exit(1);
+}
+
+// Log de diagnóstico (seguro)
+try {
+    const parsedUrl = new URL(url);
+    console.log(`📡 Tentando conectar ao host: ${parsedUrl.hostname} na porta ${parsedUrl.port}`);
+} catch (e) {
+    console.log('📡 Tentando conectar usando a URL fornecida...');
 }
 
 const bootstrapSql = readFileSync(join(__dirname, 'supabase-bootstrap.sql'), 'utf-8');

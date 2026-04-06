@@ -5,10 +5,9 @@ import { ReportFilters, FilterSelect, type DateRange } from './ReportFilters';
 import { ExportBar } from './ExportBar';
 import { exportReport, type ExportFormat } from '@/lib/exportReport';
 import { printReport } from '@/lib/printReport';
-import { VEHICLE_STATUS_IDS } from '@/types';
 
 export const VeiculosReport: React.FC = () => {
-  const { vehicles, vehicleStatuses, rentalContracts } = useAppContext();
+  const { vehicles, vehicleStatuses, rentalContracts, vehicleStatusIds } = useAppContext();
 
   const today = new Date().toISOString().slice(0, 10);
   const oneYearAgo = new Date(Date.now() - 365 * 86400000).toISOString().slice(0, 10);
@@ -57,12 +56,12 @@ export const VeiculosReport: React.FC = () => {
 
   const getStatusColor = (statusId: string) => {
     switch (statusId) {
-      case VEHICLE_STATUS_IDS.AVAILABLE: return 'bg-green-100 text-green-700';
-      case VEHICLE_STATUS_IDS.RENTED: return 'bg-blue-100 text-blue-700';
-      case VEHICLE_STATUS_IDS.MAINTENANCE: return 'bg-amber-100 text-amber-700';
-      case VEHICLE_STATUS_IDS.UNAVAILABLE: return 'bg-red-100 text-red-700';
-      case VEHICLE_STATUS_IDS.STOLEN: return 'bg-purple-100 text-purple-700';
-      case VEHICLE_STATUS_IDS.TOTALED: return 'bg-gray-100 text-gray-700';
+      case vehicleStatusIds.AVAILABLE: return 'bg-green-100 text-green-700';
+      case vehicleStatusIds.RENTED: return 'bg-blue-100 text-blue-700';
+      case vehicleStatusIds.MAINTENANCE: return 'bg-amber-100 text-amber-700';
+      case vehicleStatusIds.UNAVAILABLE: return 'bg-red-100 text-red-700';
+      case vehicleStatusIds.STOLEN: return 'bg-purple-100 text-purple-700';
+      case vehicleStatusIds.TOTALED: return 'bg-gray-100 text-gray-700';
       default: return 'bg-slate-100 text-slate-600';
     }
   };

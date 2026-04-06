@@ -4,7 +4,6 @@ import {
   Vehicle,
   MaintenanceRecord,
   Customer,
-  VEHICLE_STATUS_IDS,
   VehicleStatusRecord,
   AppUser,
   RentalContract,
@@ -32,6 +31,7 @@ interface AppContextType {
   vehicleModels: VehicleModel[];
   setVehicleModels: React.Dispatch<React.SetStateAction<VehicleModel[]>>;
   vehicleStatuses: VehicleStatusRecord[];
+  vehicleStatusIds: Record<string, string>;
   workshops: Workshop[];
   maintenanceRecords: MaintenanceRecord[];
   setMaintenanceRecords: React.Dispatch<
@@ -79,6 +79,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [unavailableVehicles, setUnavailableVehicles] = useState<UnavailableVehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const vehicleStatusIds: Record<string, string> = Object.fromEntries(
+    vehicleStatuses.map((s) => [s.code, s.id])
+  );
 
   // Re-hydrate user from localStorage on mount
   useEffect(() => {
@@ -170,16 +174,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       await localVehiclesApi.updateStatus(
         record.vehicle_id,
-        VEHICLE_STATUS_IDS.MAINTENANCE,
+        vehicleStatusIds.MAINTENANCE,
       );
 
-      const maintenanceStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.MAINTENANCE);
+      const maintenanceStatus = vehicleStatuses.find(s => s.id === vehicleStatusIds.MAINTENANCE);
 
       setMaintenanceRecords((prev) => [newRecord, ...prev]);
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === record.vehicle_id
-            ? { ...v, status_id: VEHICLE_STATUS_IDS.MAINTENANCE, vehicleStatus: maintenanceStatus }
+            ? { ...v, status_id: vehicleStatusIds.MAINTENANCE, vehicleStatus: maintenanceStatus }
             : v,
         ),
       );
@@ -197,10 +201,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       await localVehiclesApi.updateStatus(
         record.vehicle_id,
-        VEHICLE_STATUS_IDS.AVAILABLE,
+        vehicleStatusIds.AVAILABLE,
       );
 
-      const availableStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.AVAILABLE);
+      const availableStatus = vehicleStatuses.find(s => s.id === vehicleStatusIds.AVAILABLE);
 
       setMaintenanceRecords((prev) =>
         prev.map((r) =>
@@ -218,7 +222,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === record.vehicle_id
-            ? { ...v, status_id: VEHICLE_STATUS_IDS.AVAILABLE, vehicleStatus: availableStatus }
+            ? { ...v, status_id: vehicleStatusIds.AVAILABLE, vehicleStatus: availableStatus }
             : v,
         ),
       );
@@ -244,11 +248,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       await localVehiclesApi.update(vehicleId, {
-        status_id: VEHICLE_STATUS_IDS.RENTED,
+        status_id: vehicleStatusIds.RENTED,
         current_renter_id: customerId,
       });
 
-      const rentedStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.RENTED);
+      const rentedStatus = vehicleStatuses.find(s => s.id === vehicleStatusIds.RENTED);
 
       await localCustomersApi.update(customerId, { active_contract: true });
 
@@ -256,7 +260,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === vehicleId
-            ? { ...v, status_id: VEHICLE_STATUS_IDS.RENTED, vehicleStatus: rentedStatus, current_renter_id: customerId }
+            ? { ...v, status_id: vehicleStatusIds.RENTED, vehicleStatus: rentedStatus, current_renter_id: customerId }
             : v,
         ),
       );
@@ -288,11 +292,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       await localRentalsApi.end(activeContract.id);
 
       await localVehiclesApi.update(vehicleId, {
-        status_id: VEHICLE_STATUS_IDS.AVAILABLE,
+        status_id: vehicleStatusIds.AVAILABLE,
         current_renter_id: null,
       });
 
-      const availableStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.AVAILABLE);
+      const availableStatus = vehicleStatuses.find(s => s.id === vehicleStatusIds.AVAILABLE);
 
       const customerId = activeContract.customer_id;
       const otherActiveContracts = rentalContracts.filter(
@@ -316,7 +320,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === vehicleId
-            ? { ...v, status_id: VEHICLE_STATUS_IDS.AVAILABLE, vehicleStatus: availableStatus, current_renter_id: null }
+            ? { ...v, status_id: vehicleStatusIds.AVAILABLE, vehicleStatus: availableStatus, current_renter_id: null }
             : v,
         ),
       );
@@ -345,9 +349,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       reason,
     });
 
-    // Encontra o status correspondente (Roubada = '5', PT = '6')
-    const statusName = statusType === 'STOLEN' ? 'Roubada' : 'PT';
-    const targetStatus = vehicleStatuses.find(s => s.name === statusName);
+    const statusCode = statusType === 'STOLEN' ? 'STOLEN' : 'TOTALED';
+    const targetStatus = vehicleStatuses.find(s => s.code === statusCode);
     const targetStatusId = targetStatus?.id ?? '';
 
     if (targetStatusId) {
@@ -400,6 +403,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         vehicleModels,
         setVehicleModels,
         vehicleStatuses,
+        vehicleStatusIds,
         workshops,
         maintenanceRecords,
         setMaintenanceRecords,

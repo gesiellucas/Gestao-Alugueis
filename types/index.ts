@@ -7,16 +7,6 @@ export interface PaginatedResult<T> {
   totalPages: number;
 }
 
-// Seed IDs for default vehicle statuses (match vehicle_statuses table)
-// IDs devem corresponder aos registros no seed (vehicle_statuses)
-export const VEHICLE_STATUS_IDS = {
-  AVAILABLE: '1',
-  RENTED: '2',
-  MAINTENANCE: '3',
-  UNAVAILABLE: '4',
-  STOLEN: '5',
-  TOTALED: '6',
-} as const;
 
 export interface SyncMetadata {
   created_at: string;
@@ -38,6 +28,7 @@ export interface Workshop extends SyncMetadata {
 export interface VehicleStatusRecord extends SyncMetadata {
   id: string;
   name: string;
+  code: string; // Stable semantic key: AVAILABLE, RENTED, MAINTENANCE, UNAVAILABLE, STOLEN, TOTALED
   color: string;
   is_default: boolean | number;
 }

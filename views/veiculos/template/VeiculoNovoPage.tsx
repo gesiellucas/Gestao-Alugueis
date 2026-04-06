@@ -4,13 +4,12 @@ import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { localVehiclesApi } from "../../../database/api/local/vehicles";
 import { localVehicleModelsApi } from "../../../database/api/local/vehicleModels";
-import { VEHICLE_STATUS_IDS } from "../../../types";
 import { ArrowLeft, Save, PlusCircle, Link } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const VeiculoNovoPage: React.FC = () => {
   const router = useRouter();
-  const { setVehicles, vehicleModels, setVehicleModels } = useAppContext();
+  const { setVehicles, vehicleModels, setVehicleModels, vehicleStatusIds } = useAppContext();
 
   const [form, setForm] = useState<{
     plate: string;
@@ -68,11 +67,18 @@ export const VeiculoNovoPage: React.FC = () => {
         return;
       }
 
+      const availableStatusId = vehicleStatusIds.AVAILABLE;
+      if (!availableStatusId) {
+        setError("Status 'Disponível' não encontrado no banco. Execute a migration e o seed.");
+        setSubmitting(false);
+        return;
+      }
+
       const newVehicle = await localVehiclesApi.create({
         plate: form.plate,
         model_id: finalModelId as string,
         year: form.year,
-        status_id: VEHICLE_STATUS_IDS.AVAILABLE,
+        status_id: availableStatusId,
         mileage: form.mileage,
         default_monthly_rate: form.default_monthly_rate,
       });
@@ -80,6 +86,7 @@ export const VeiculoNovoPage: React.FC = () => {
       setVehicles((prev) => [newVehicle, ...prev]);
       router.push("/veiculos");
     } catch (err) {
+      console.error('[VeiculoNovo] Erro ao criar veículo:', err);
       setError("Erro ao cadastrar veículo. Verifique se a placa já não está cadastrada.");
     } finally {
       setSubmitting(false);

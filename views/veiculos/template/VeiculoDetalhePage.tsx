@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
-import { VEHICLE_STATUS_IDS, Document, UnavailableStatusType } from "../../../types";
+import { Document, UnavailableStatusType } from "../../../types";
 import { supabaseDocumentsApi } from "../../../database/api/supabase/documents";
 import { supabaseWorkshopDocumentsApi } from "../../../database/api/supabase/workshopDocuments";
 import {
@@ -92,7 +92,7 @@ export const VeiculoDetalhePage: React.FC = () => {
   const params = useParams();
   const id = (typeof window !== 'undefined' && (!params.id || params.id === 'placeholder') ? window.location.pathname.split('/').filter(Boolean).pop() : params.id) as string;
   const router = useRouter();
-  const { vehicles, customers, maintenanceRecords, rentalContracts, unavailableVehicles, handleEndRental, handleMakeVehicleUnavailable, loading } =
+  const { vehicles, customers, maintenanceRecords, rentalContracts, unavailableVehicles, handleEndRental, handleMakeVehicleUnavailable, loading, vehicleStatusIds } =
     useAppContext();
   const [endingRental, setEndingRental] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
@@ -247,7 +247,7 @@ export const VeiculoDetalhePage: React.FC = () => {
             <>
               <div className="fixed inset-0 z-40" onClick={() => setActionsOpen(false)} />
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 z-50 py-1 overflow-hidden">
-                {vehicle.status_id === VEHICLE_STATUS_IDS.AVAILABLE && !isUnavailable && (
+                {vehicle.status_id === vehicleStatusIds.AVAILABLE && !isUnavailable && (
                   <Link
                     href={`/aluguel/novo/${vehicle.id}`}
                     className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-green-700 hover:bg-green-50 transition-colors"
@@ -256,7 +256,7 @@ export const VeiculoDetalhePage: React.FC = () => {
                     <KeyRound size={16} /> Alugar Moto
                   </Link>
                 )}
-                {vehicle.status_id === VEHICLE_STATUS_IDS.RENTED && (
+                {vehicle.status_id === vehicleStatusIds.RENTED && (
                   <button
                     onClick={() => { setShowEndConfirm(true); setActionsOpen(false); }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
@@ -264,7 +264,7 @@ export const VeiculoDetalhePage: React.FC = () => {
                     <XCircle size={16} /> Encerrar Contrato
                   </button>
                 )}
-                {vehicle.status_id !== VEHICLE_STATUS_IDS.MAINTENANCE && !isUnavailable && (
+                {vehicle.status_id !== vehicleStatusIds.MAINTENANCE && !isUnavailable && (
                   <Link
                     href={`/oficina/novo_entrada?plate=${vehicle.plate}`}
                     className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-amber-600 hover:bg-amber-50 transition-colors"

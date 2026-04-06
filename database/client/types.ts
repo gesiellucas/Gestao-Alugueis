@@ -254,6 +254,7 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          code: string;
           color: string;
           is_default: boolean;
           created_at: string;
@@ -267,6 +268,7 @@ export interface Database {
         Insert: {
           id: string;
           name: string;
+          code?: string;
           color?: string;
           is_default?: boolean;
           created_at?: string;
@@ -280,6 +282,7 @@ export interface Database {
         Update: {
           id?: string;
           name?: string;
+          code?: string;
           color?: string;
           is_default?: boolean;
           created_at?: string;

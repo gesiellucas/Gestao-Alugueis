@@ -2,7 +2,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { MaintenanceRecord, VEHICLE_STATUS_IDS } from "../../../types";
+import { MaintenanceRecord } from "../../../types";
 import { Camera, X } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { supabaseWorkshopDocumentsApi } from "../../../database/api/supabase/workshopDocuments";
@@ -10,7 +10,7 @@ import { supabaseWorkshopDocumentsApi } from "../../../database/api/supabase/wor
 export const OficinaNovePage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { vehicles, workshops, handleAddMaintenanceRecord } = useAppContext();
+  const { vehicles, workshops, handleAddMaintenanceRecord, vehicleStatusIds } = useAppContext();
 
   const [selectedPlate, setSelectedPlate] = useState(searchParams.get("plate") ?? "");
   const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | "">("");
@@ -43,7 +43,7 @@ export const OficinaNovePage: React.FC = () => {
   }, []);
 
   const availableVehicles = vehicles.filter(
-    (v) => v.status_id !== VEHICLE_STATUS_IDS.MAINTENANCE,
+    (v) => v.status_id !== vehicleStatusIds.MAINTENANCE,
   );
 
   const handleSubmit = async (e: React.FormEvent) => {

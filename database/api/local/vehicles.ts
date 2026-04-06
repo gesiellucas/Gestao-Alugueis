@@ -2,7 +2,7 @@
  * Supabase vehicle API
  */
 import { supabase } from '../../client/supabase';
-import { Vehicle, VEHICLE_STATUS_IDS, PaginatedResult } from '../../../types';
+import { Vehicle, PaginatedResult } from '../../../types';
 
 export const localVehiclesApi = {
   async getAll(): Promise<Vehicle[]> {
@@ -81,15 +81,18 @@ export const localVehiclesApi = {
   },
 
   async getAvailable(): Promise<Vehicle[]> {
-    return this.getByStatusId(VEHICLE_STATUS_IDS.AVAILABLE);
+    const all = await this.getAll();
+    return all.filter((v) => (v.vehicleStatus as any)?.code === 'AVAILABLE');
   },
 
   async getRented(): Promise<Vehicle[]> {
-    return this.getByStatusId(VEHICLE_STATUS_IDS.RENTED);
+    const all = await this.getAll();
+    return all.filter((v) => (v.vehicleStatus as any)?.code === 'RENTED');
   },
 
   async getInMaintenance(): Promise<Vehicle[]> {
-    return this.getByStatusId(VEHICLE_STATUS_IDS.MAINTENANCE);
+    const all = await this.getAll();
+    return all.filter((v) => (v.vehicleStatus as any)?.code === 'MAINTENANCE');
   },
 
   async updateStatus(id: string, statusId: string): Promise<Vehicle> {

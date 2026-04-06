@@ -2,7 +2,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { VEHICLE_STATUS_IDS } from "../../../types";
 import {
   Save,
   Search,
@@ -18,13 +17,13 @@ export const AluguelNovoPage: React.FC = () => {
   const params = useParams();
   const rawId = params.vehicleId as string;
   const router = useRouter();
-  const { vehicles, customers, handleCreateRental, loading } = useAppContext();
+  const { vehicles, customers, handleCreateRental, loading, vehicleStatusIds } = useAppContext();
 
   // Resolve preselected vehicle ID: only use rawId when it's a valid vehicleId param
   const preselectedVehicleId = (rawId && rawId !== 'placeholder') ? rawId : null;
 
   const availableVehicles = vehicles.filter(
-    (v) => v.status_id === VEHICLE_STATUS_IDS.AVAILABLE,
+    (v) => v.status_id === vehicleStatusIds.AVAILABLE,
   );
 
   const [selectedVehicleId, setSelectedVehicleId] = useState<string | null>(preselectedVehicleId);

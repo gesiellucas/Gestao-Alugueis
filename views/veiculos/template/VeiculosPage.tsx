@@ -3,7 +3,6 @@ import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { VEHICLE_STATUS_IDS } from "../../../types";
 import { PlusCircle, Search, ChevronDown, ChevronUp, ChevronsUpDown, Wrench, User, ShieldOff } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { TablePagination } from "@/components/TablePagination";
@@ -20,7 +19,7 @@ function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; s
 }
 
 export const VeiculosPage: React.FC = () => {
-  const { vehicles, customers, rentalContracts, maintenanceRecords, vehicleStatuses } = useAppContext();
+  const { vehicles, customers, rentalContracts, maintenanceRecords, vehicleStatuses, vehicleStatusIds } = useAppContext();
   const router = useRouter();
 
   const [statusFilter, setStatusFilter] = useState<string | "TODOS">("TODOS");
@@ -181,14 +180,14 @@ export const VeiculosPage: React.FC = () => {
                     <td className="px-4 py-3 font-mono font-bold text-slate-700">{row.plate}</td>
                     <td className="px-4 py-3 text-slate-500">{row.year}</td>
                     <td className="px-4 py-3">
-                      {row.status_id === VEHICLE_STATUS_IDS.RENTED && row.renterId ? (
+                      {row.status_id === vehicleStatusIds.RENTED && row.renterId ? (
                         <button
                           onClick={(e) => { e.stopPropagation(); router.push(`/cliente/${row.renterId}`); }}
                           className="inline-flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-semibold"
                         >
                           {row.renter || "Ver locatário"}
                         </button>
-                      ) : row.status_id === VEHICLE_STATUS_IDS.MAINTENANCE && row.maintenanceId ? (
+                      ) : row.status_id === vehicleStatusIds.MAINTENANCE && row.maintenanceId ? (
                         <button
                           onClick={(e) => { e.stopPropagation(); router.push(`/oficina/${row.maintenanceId}`); }}
                           className="inline-flex items-center gap-1.5 text-amber-600 hover:text-amber-800 font-semibold"

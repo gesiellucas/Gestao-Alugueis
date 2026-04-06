@@ -48,6 +48,7 @@ export const workshops = pgTable('workshops', {
 export const vehicleStatuses = pgTable('vehicle_statuses', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
+  code: text('code').notNull().default(''),
   color: text('color').notNull().default('#6b7280'),
   is_default: boolean('is_default').notNull().default(false),
   ...syncMetadataColumns,

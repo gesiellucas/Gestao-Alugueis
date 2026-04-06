@@ -1,5 +1,5 @@
 'use client';
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
@@ -11,6 +11,8 @@ import {
   CheckCircle,
   MessageSquare,
   Bike,
+  ChevronDown,
+  Trash2,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
@@ -20,7 +22,11 @@ export const ClienteDetalhePage: React.FC = () => {
   const params = useParams();
   const id = (typeof window !== 'undefined' && (!params.id || params.id === 'placeholder') ? window.location.pathname.split('/').filter(Boolean).pop() : params.id) as string;
   const router = useRouter();
-  const { customers, vehicles, rentalContracts, loading } = useAppContext();
+  const { customers, vehicles, rentalContracts, loading, handleDeleteCustomer } = useAppContext();
+
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const hasFinanceAccess = useFinanceAccess();
   const customer = customers.find((c) => c.id === id);
@@ -59,14 +65,78 @@ export const ClienteDetalhePage: React.FC = () => {
           { label: customer.name }
         ]}
         extraHeader={
-          <Link
-            href={`/cliente/editar/${customer.id}`}
-            className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"
-          >
-            <Pencil size={16} /> Editar Cliente
-          </Link>
+          <div className="relative">
+            <button
+              onClick={() => setActionsOpen((v) => !v)}
+              className="bg-[#004AAD] text-white px-5 py-2.5 rounded-xl font-bold hover:bg-[#003a8c] transition-all flex items-center gap-2 text-sm"
+            >
+              Ações <ChevronDown size={16} className={`transition-transform ${actionsOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {actionsOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setActionsOpen(false)} />
+                <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-slate-200 z-50 py-1 overflow-hidden">
+                  <Link
+                    href={`/cliente/editar/${customer.id}`}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors"
+                    onClick={() => setActionsOpen(false)}
+                  >
+                    <Pencil size={16} /> Editar Cliente
+                  </Link>
+                  {!customer.active_contract && (
+                    <>
+                      <div className="border-t border-slate-100 my-1" />
+                      <button
+                        onClick={() => { setActionsOpen(false); setShowDeleteConfirm(true); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <Trash2 size={16} /> Excluir Cliente
+                      </button>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         }
       />
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-6">
+            <h3 className="text-xl font-extrabold text-red-600">Excluir Cliente</h3>
+            <p className="text-slate-600">
+              Tem certeza que deseja excluir o cliente{" "}
+              <span className="font-bold">{customer.name}</span>? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 py-3 font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  setDeleting(true);
+                  try {
+                    await handleDeleteCustomer(customer.id);
+                    router.push('/clientes');
+                  } finally {
+                    setDeleting(false);
+                    setShowDeleteConfirm(false);
+                  }
+                }}
+                disabled={deleting}
+                className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all disabled:opacity-50"
+              >
+                {deleting ? 'Excluindo...' : 'Excluir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-10">

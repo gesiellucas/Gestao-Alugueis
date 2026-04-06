@@ -23,6 +23,7 @@ import {
   ShieldOff,
   ImagePlus,
   FileText,
+  Trash2,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
@@ -92,10 +93,12 @@ export const VeiculoDetalhePage: React.FC = () => {
   const params = useParams();
   const id = (typeof window !== 'undefined' && (!params.id || params.id === 'placeholder') ? window.location.pathname.split('/').filter(Boolean).pop() : params.id) as string;
   const router = useRouter();
-  const { vehicles, customers, maintenanceRecords, rentalContracts, unavailableVehicles, handleEndRental, handleMakeVehicleUnavailable, loading, vehicleStatusIds } =
+  const { vehicles, customers, maintenanceRecords, rentalContracts, unavailableVehicles, handleEndRental, handleDeleteVehicle, handleMakeVehicleUnavailable, loading, vehicleStatusIds } =
     useAppContext();
   const [endingRental, setEndingRental] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
 
   // Unavailable modal state
@@ -288,6 +291,17 @@ export const VeiculoDetalhePage: React.FC = () => {
                     <ShieldOff size={16} /> Indisponível
                   </button>
                 )}
+                {vehicle.status_id === vehicleStatusIds.AVAILABLE && !isUnavailable && (
+                  <>
+                    <div className="border-t border-slate-100 my-1" />
+                    <button
+                      onClick={() => { setActionsOpen(false); setShowDeleteConfirm(true); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 size={16} /> Excluir Veículo
+                    </button>
+                  </>
+                )}
               </div>
             </>
           )}
@@ -336,6 +350,43 @@ export const VeiculoDetalhePage: React.FC = () => {
                 className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all disabled:opacity-50"
               >
                 {endingRental ? "Encerrando..." : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-6">
+            <h3 className="text-xl font-extrabold text-red-600">Excluir Veículo</h3>
+            <p className="text-slate-600">
+              Tem certeza que deseja excluir o veículo{" "}
+              <span className="font-bold font-mono">{vehicle.plate}</span>? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 py-3 font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  setDeleting(true);
+                  try {
+                    await handleDeleteVehicle(vehicle.id);
+                    router.push('/veiculos');
+                  } finally {
+                    setDeleting(false);
+                    setShowDeleteConfirm(false);
+                  }
+                }}
+                disabled={deleting}
+                className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all disabled:opacity-50"
+              >
+                {deleting ? 'Excluindo...' : 'Excluir'}
               </button>
             </div>
           </div>

@@ -46,6 +46,8 @@ interface AppContextType {
   handleCreateRental: (vehicleId: string, customerId: string, monthlyRate: number, startDate: string) => Promise<RentalContract>;
   handleUpdateRental: (id: string, updates: { start_date?: string; monthly_rate?: number }) => Promise<void>;
   handleEndRental: (vehicleId: string) => Promise<void>;
+  handleDeleteVehicle: (vehicleId: string) => Promise<void>;
+  handleDeleteCustomer: (customerId: string) => Promise<void>;
   unavailableVehicles: UnavailableVehicle[];
   handleMakeVehicleUnavailable: (vehicleId: string, statusType: UnavailableStatusType, reason: string) => Promise<UnavailableVehicle>;
   loading: boolean;
@@ -336,6 +338,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const handleDeleteVehicle = async (vehicleId: string): Promise<void> => {
+    await localVehiclesApi.delete(vehicleId);
+    setVehicles((prev) => prev.filter((v) => v.id !== vehicleId));
+  };
+
+  const handleDeleteCustomer = async (customerId: string): Promise<void> => {
+    await localCustomersApi.delete(customerId);
+    setCustomers((prev) => prev.filter((c) => c.id !== customerId));
+  };
+
   const handleMakeVehicleUnavailable = async (
     vehicleId: string,
     statusType: UnavailableStatusType,
@@ -416,6 +428,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         handleCreateRental,
         handleUpdateRental,
         handleEndRental,
+        handleDeleteVehicle,
+        handleDeleteCustomer,
         unavailableVehicles,
         handleMakeVehicleUnavailable,
         loading,

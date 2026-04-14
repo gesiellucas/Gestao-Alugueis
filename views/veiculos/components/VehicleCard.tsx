@@ -55,7 +55,7 @@ export const VehicleCard = ({
     e.preventDefault();
     e.stopPropagation();
     if (maintenanceId) {
-      router.push(`/oficina/${maintenanceId}`);
+      router.push(`/oficina/manutencao/${maintenanceId}`);
     }
   };
 

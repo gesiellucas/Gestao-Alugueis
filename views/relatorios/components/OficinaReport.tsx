@@ -5,7 +5,7 @@ import { ReportFilters, FilterSelect, type DateRange } from './ReportFilters';
 import { ExportBar } from './ExportBar';
 import { exportReport, type ExportFormat } from '@/lib/exportReport';
 import { printReport } from '@/lib/printReport';
-import { formatDate } from '@/lib/formatters';
+import { formatDate, formatDateTime } from '@/lib/formatters';
 
 export const OficinaReport: React.FC = () => {
   const { maintenanceRecords, vehicles, workshops } = useAppContext();
@@ -67,8 +67,8 @@ export const OficinaReport: React.FC = () => {
       mechanic_name: m.mechanic_name,
       type: m.type,
       description: m.description,
-      entry_date_fmt: formatDate(m.entry_date),
-      completion_date_fmt: m.completion_date ? formatDate(m.completion_date) : '—',
+      entry_date_fmt: formatDateTime(m.entry_date),
+      completion_date_fmt: m.completion_date ? formatDateTime(m.completion_date) : '—',
       cost_fmt: m.cost.toFixed(2),
       status_label: m.status === 'OPEN' ? 'Aberto' : 'Concluído',
     }));
@@ -87,7 +87,7 @@ export const OficinaReport: React.FC = () => {
     ];
     const rows = filtered.map((m) => [
       getVehiclePlate(m.vehicle_id), getWorkshopName(m.workshop_id), m.mechanic_name, m.type,
-      formatDate(m.entry_date), m.completion_date ? formatDate(m.completion_date) : '—',
+      formatDateTime(m.entry_date), m.completion_date ? formatDateTime(m.completion_date) : '—',
       m.cost.toFixed(2), m.status === 'OPEN' ? 'Aberto' : 'Concluído',
     ]);
     printReport({ title: 'Relatório de Oficina', subtitle: `Período: ${dateRange.start} a ${dateRange.end}`, columns, rows });
@@ -155,8 +155,8 @@ export const OficinaReport: React.FC = () => {
                     <td className="px-5 py-3 text-slate-600">{getWorkshopName(m.workshop_id)}</td>
                     <td className="px-5 py-3 text-slate-600">{m.mechanic_name}</td>
                     <td className="px-5 py-3 text-slate-600">{m.type}</td>
-                    <td className="px-5 py-3 text-slate-600">{formatDate(m.entry_date)}</td>
-                    <td className="px-5 py-3 text-slate-600">{m.completion_date ? formatDate(m.completion_date) : '—'}</td>
+                    <td className="px-5 py-3 text-slate-600">{formatDateTime(m.entry_date)}</td>
+                    <td className="px-5 py-3 text-slate-600">{m.completion_date ? formatDateTime(m.completion_date) : '—'}</td>
                     <td className="px-5 py-3 font-bold text-slate-700">R$ {m.cost.toFixed(2)}</td>
                     <td className="px-5 py-3">
                       <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-bold ${m.status === 'OPEN' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>

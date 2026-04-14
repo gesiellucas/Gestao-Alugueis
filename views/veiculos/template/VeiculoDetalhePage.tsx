@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
-import { formatDate, formatPhone, toWhatsApp } from "../../../lib/formatters";
+import { formatDate, formatDateTime, formatPhone, toWhatsApp } from "../../../lib/formatters";
 
 function PhotoCellReadOnly({ recordId }: { recordId: string }) {
   const [photos, setPhotos] = useState<Document[]>([]);
@@ -680,17 +680,17 @@ export const VeiculoDetalhePage: React.FC = () => {
                     <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name || '—'}</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description || '—'}</td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      {formatDate(record.entry_date)}
+                      {formatDateTime(record.entry_date)}
                     </td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      {record.completion_date ? formatDate(record.completion_date) : '—'}
+                      {record.completion_date ? formatDateTime(record.completion_date) : '—'}
                     </td>
                     <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                       <PhotoCellReadOnly recordId={record.id} />
                     </td>
                     <td className="px-6 py-4">
                       {record.status === "OPEN" ? (
-                        <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-amber-200 inline-flex items-center gap-1">
+                        <span className="bg-amber-100 text-amber-700 text-[7px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-amber-200 inline-flex items-center gap-1">
                           <Wrench size={10} /> Em andamento
                         </span>
                       ) : (
@@ -732,13 +732,12 @@ export const VeiculoDetalhePage: React.FC = () => {
                     key={opt.value}
                     type="button"
                     onClick={() => setUnavailableType(opt.value)}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-colors ${
-                      unavailableType === opt.value
-                        ? opt.color === 'purple'
-                          ? 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-slate-700 bg-slate-50 text-slate-800'
-                        : 'border-slate-200 text-slate-400 hover:border-slate-300'
-                    }`}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-colors ${unavailableType === opt.value
+                      ? opt.color === 'purple'
+                        ? 'border-purple-500 bg-purple-50 text-purple-700'
+                        : 'border-slate-700 bg-slate-50 text-slate-800'
+                      : 'border-slate-200 text-slate-400 hover:border-slate-300'
+                      }`}
                   >
                     {opt.label}
                   </button>

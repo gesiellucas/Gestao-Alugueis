@@ -28,6 +28,18 @@ export function formatDate(dateString: string | null | undefined): string {
   return date.toLocaleDateString('pt-BR');
 }
 
+/** Formata data+hora ISO para "DD/MM/AAAA HH:mm" no locale pt-BR */
+export function formatDateTime(dateString: string | null | undefined): string {
+  if (!dateString) return '—';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  return (
+    date.toLocaleDateString('pt-BR') +
+    ' ' +
+    date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  );
+}
+
 /** Máscara de CPF para uso em inputs: aplica "000.000.000-00" em tempo real */
 export function maskCPF(value: string): string {
   const d = value.replace(/\D/g, '').slice(0, 11);

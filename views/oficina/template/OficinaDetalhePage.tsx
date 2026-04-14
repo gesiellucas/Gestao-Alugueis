@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
-import { formatDate } from "../../../lib/formatters";
+import { formatDate, formatDateTime } from "../../../lib/formatters";
 
 function MaintenancePhotos({ record }: { record: MaintenanceRecord }) {
   const [photos, setPhotos] = useState<Document[]>([]);
@@ -218,7 +218,7 @@ export const OficinaDetalhePage: React.FC = () => {
             <li className="flex items-center justify-between px-6 py-3">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Entrada</span>
               <span className="font-bold text-slate-700">
-                {formatDate(activeRecords[0].entry_date)}
+                {formatDateTime(activeRecords[0].entry_date)}
               </span>
             </li>
             {activeRecords[0].description && (
@@ -273,10 +273,10 @@ export const OficinaDetalhePage: React.FC = () => {
                     <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name || '—'}</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description || '—'}</td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      {formatDate(record.entry_date)}
+                      {formatDateTime(record.entry_date)}
                     </td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      {record.completion_date ? formatDate(record.completion_date) : '—'}
+                      {record.completion_date ? formatDateTime(record.completion_date) : '—'}
                     </td>
                     <td className="px-6 py-4">
                       <MaintenancePhotos record={record} />

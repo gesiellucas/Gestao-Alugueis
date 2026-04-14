@@ -96,63 +96,7 @@ export const VehicleStatusesTab: React.FC = () => {
           { label: "Configurações", href: "/configuracoes" },
           { label: "Status" }
         ]}
-        extraHeader={
-          !showForm && (
-            <button
-              onClick={openCreate}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition"
-            >
-              Novo Status
-            </button>
-          )
-        } />
-
-      {showForm && (
-        <div className="mb-8 p-6 bg-slate-50 border border-slate-200 rounded-2xl grid gap-4 grid-cols-1 md:grid-cols-3">
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nome</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Ex: Em Vistoria"
-              className="w-full border border-slate-300 rounded-xl p-2 text-sm"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Cor</label>
-            <div className="flex items-center gap-3">
-              <input
-                type="color"
-                value={form.color}
-                onChange={e => setForm(prev => ({ ...prev, color: e.target.value }))}
-                className="w-10 h-10 rounded-lg border border-slate-300 cursor-pointer"
-              />
-              <input
-                type="text"
-                value={form.color}
-                onChange={e => setForm(prev => ({ ...prev, color: e.target.value }))}
-                className="flex-1 border border-slate-300 rounded-xl p-2 text-sm font-mono"
-              />
-            </div>
-          </div>
-          <div className="col-span-full flex justify-end gap-3 mt-2">
-            <button
-              onClick={cancelForm}
-              className="px-4 py-2 text-slate-500 hover:text-slate-700 font-bold flex items-center gap-1"
-            >
-              <X size={16} /> Cancelar
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="px-6 py-2 bg-blue-600 text-white rounded-xl font-bold flex items-center gap-2 disabled:opacity-50"
-            >
-              <Check size={16} /> {saving ? 'Salvando...' : editingId ? 'Atualizar' : 'Cadastrar'}
-            </button>
-          </div>
-        </div>
-      )}
+        extraHeader={null} />
 
       {loading ? (
         <p className="text-slate-400 text-sm font-medium py-6 text-center">Carregando...</p>
@@ -167,7 +111,6 @@ export const VehicleStatusesTab: React.FC = () => {
                   <th>Cor</th>
                   <th>Nome</th>
                   <th>Tipo</th>
-                  <th>Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -190,24 +133,6 @@ export const VehicleStatusesTab: React.FC = () => {
                           Personalizado
                         </span>
                       )}
-                    </td>
-                    <td className="p-4 text-right">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => openEdit(s)}
-                          className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        {!s.is_default && (
-                          <button
-                            onClick={() => handleDelete(s)}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
-                          >
-                            <Trash2 size={16} />
-                          </button>
-                        )}
-                      </div>
                     </td>
                   </tr>
                 ))}

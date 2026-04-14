@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
-import { formatDate } from "../../../lib/formatters";
+import { formatDate, formatDateTime } from "../../../lib/formatters";
 
 export const OficinaManutencaoDetalhe: React.FC = () => {
   const params = useParams();
@@ -170,7 +170,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
         breadcrumbs={[
           { label: "Oficina", href: "/oficina" },
           { label: vehicle.plate, href: `/oficina/${vehicle.id}` },
-          { label: `Manutenção · ${formatDate(record.entry_date)}` },
+          { label: `Manutenção · ${formatDateTime(record.entry_date)}` },
         ]}
       />
 
@@ -268,7 +268,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
                 Data de Entrada
               </span>
               <span className="font-bold text-slate-700">
-                {formatDate(record.entry_date)}
+                {formatDateTime(record.entry_date)}
               </span>
             </li>
             {record.status === "COMPLETED" && record.completion_date && (
@@ -277,7 +277,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
                   Conclusão
                 </span>
                 <span className="font-bold text-green-700">
-                  {formatDate(record.completion_date)}
+                  {formatDateTime(record.completion_date)}
                 </span>
               </li>
             )}

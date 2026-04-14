@@ -189,7 +189,7 @@ export const VeiculosPage: React.FC = () => {
                         </button>
                       ) : row.status_id === vehicleStatusIds.MAINTENANCE && row.maintenanceId ? (
                         <button
-                          onClick={(e) => { e.stopPropagation(); router.push(`/oficina/${row.maintenanceId}`); }}
+                          onClick={(e) => { e.stopPropagation(); router.push(`/oficina/manutencao/${row.maintenanceId}`); }}
                           className="inline-flex items-center gap-1.5 text-amber-600 hover:text-amber-800 font-semibold"
                         >
                           Ver ticket

@@ -82,9 +82,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const vehicleStatusIds: Record<string, string> = Object.fromEntries(
-    vehicleStatuses.map((s) => [s.code, s.id])
-  );
+  // const vehicleStatusIds: Record<string, string> = Object.fromEntries(
+  //   vehicleStatuses.map((s) => [s.name, s.id])
+  // );
+
+  const vehicleStatusIds = {
+    AVAILABLE: "1",
+    RENTED: "2",
+    MAINTENANCE: "3",
+    UNAVAILABLE: "4",
+    RESERVED: "5",
+    STOLEN: "6",
+    TOTALED: "7",
+  }
 
   // Re-hydrate user from localStorage on mount
   useEffect(() => {
@@ -201,22 +211,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       await localMaintenanceApi.complete(recordId, record.cost);
 
-      await localVehiclesApi.updateStatus(
-        record.vehicle_id,
-        vehicleStatusIds.AVAILABLE,
+      // Se havia contrato ativo quando foi para manutenção, restaura para ALUGADO
+      const activeContract = rentalContracts.find(
+        (c) => c.vehicle_id === record.vehicle_id && c.status === 'ACTIVE',
       );
 
-      const availableStatus = vehicleStatuses.find(s => s.id === vehicleStatusIds.AVAILABLE);
+      const targetStatusId = activeContract
+        ? vehicleStatusIds.RENTED
+        : vehicleStatusIds.AVAILABLE;
+      const targetStatus = vehicleStatuses.find(s => s.id === targetStatusId);
+
+      await localVehiclesApi.updateStatus(record.vehicle_id, targetStatusId);
 
       setMaintenanceRecords((prev) =>
         prev.map((r) =>
           r.id === recordId
-            ? {
-              ...r,
-              status: "COMPLETED",
-              completion_date: new Date().toISOString(),
-              cost: record.cost,
-            }
+            ? { ...r, status: "COMPLETED", completion_date: new Date().toISOString(), cost: record.cost }
             : r,
         ),
       );
@@ -224,7 +234,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === record.vehicle_id
-            ? { ...v, status_id: vehicleStatusIds.AVAILABLE, vehicleStatus: availableStatus }
+            ? { ...v, status_id: targetStatusId, vehicleStatus: targetStatus }
             : v,
         ),
       );

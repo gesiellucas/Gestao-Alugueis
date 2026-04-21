@@ -84,11 +84,13 @@ export const OficinaReport: React.FC = () => {
     const columns = [
       { label: 'Placa' }, { label: 'Oficina' }, { label: 'Mecânico' }, { label: 'Tipo' },
       { label: 'Entrada' }, { label: 'Conclusão' }, { label: 'Custo (R$)' }, { label: 'Status' },
+      { label: 'Observações' },
     ];
     const rows = filtered.map((m) => [
       getVehiclePlate(m.vehicle_id), getWorkshopName(m.workshop_id), m.mechanic_name, m.type,
       formatDateTime(m.entry_date), m.completion_date ? formatDateTime(m.completion_date) : '—',
       m.cost.toFixed(2), m.status === 'OPEN' ? 'Aberto' : 'Concluído',
+      m.description || '—',
     ]);
     printReport({ title: 'Relatório de Oficina', subtitle: `Período: ${dateRange.start} a ${dateRange.end}`, columns, rows });
   };
@@ -139,12 +141,13 @@ export const OficinaReport: React.FC = () => {
                 <th>Conclusão</th>
                 <th>Custo</th>
                 <th>Status</th>
+                <th>Observações</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-slate-400 text-sm">
+                  <td colSpan={9} className="px-5 py-10 text-center text-slate-400 text-sm">
                     Nenhum registro encontrado para o período selecionado.
                   </td>
                 </tr>
@@ -162,6 +165,9 @@ export const OficinaReport: React.FC = () => {
                       <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-bold ${m.status === 'OPEN' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
                         {m.status === 'OPEN' ? 'Aberto' : 'Concluído'}
                       </span>
+                    </td>
+                    <td className="px-5 py-3 text-slate-500 max-w-xs truncate" title={m.description || ''}>
+                      {m.description || '—'}
                     </td>
                   </tr>
                 ))

@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Camera,
   CheckCircle,
+  FileText,
   Pencil,
   Trash2,
   Wrench,
@@ -17,6 +18,7 @@ import {
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
 import { formatDate, formatDateTime } from "../../../lib/formatters";
+import { OrdemServicoModal } from "../components/OrdemServicoModal";
 
 export const OficinaManutencaoDetalhe: React.FC = () => {
   const params = useParams();
@@ -26,6 +28,8 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
     maintenanceRecords,
     vehicles,
     workshops,
+    customers,
+    rentalContracts,
     setMaintenanceRecords,
     handleFinishMaintenance,
   } = useAppContext();
@@ -34,8 +38,16 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
   const record = maintenanceRecords.find((r) => r.id === id);
   const vehicle = vehicles.find((v) => v.id === record?.vehicle_id);
   const workshop = workshops.find((w) => w.id === record?.workshop_id);
+  const customer = vehicle?.current_renter_id
+    ? customers.find((c) => c.id === vehicle.current_renter_id) ?? null
+    : null;
+  const rentalContract =
+    rentalContracts.find(
+      (rc) => rc.vehicle_id === vehicle?.id && rc.status === 'ACTIVE',
+    ) ?? null;
 
   const [editing, setEditing] = useState(false);
+  const [showOrdemServico, setShowOrdemServico] = useState(false);
   const [editDescription, setEditDescription] = useState(
     record?.description ?? "",
   );
@@ -217,6 +229,12 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
           <h3 className="flex-1 font-bold text-white text-sm uppercase tracking-tight">
             {record.status === "COMPLETED" ? "Manutenção Concluída" : "Manutenção em Andamento"}
           </h3>
+          <button
+            onClick={() => setShowOrdemServico(true)}
+            className="flex items-center gap-1.5 text-xs font-bold text-white/90 hover:text-white bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition-colors"
+          >
+            <FileText size={13} /> Gerar OS
+          </button>
           {record.status === "OPEN" && !editing && (
             <>
               <button
@@ -434,6 +452,18 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Ordem de Serviço modal */}
+      {showOrdemServico && (
+        <OrdemServicoModal
+          record={record}
+          vehicle={vehicle}
+          workshop={workshop}
+          customer={customer}
+          rentalContract={rentalContract}
+          onClose={() => setShowOrdemServico(false)}
+        />
+      )}
 
       {/* Lightbox */}
       {lightbox && (

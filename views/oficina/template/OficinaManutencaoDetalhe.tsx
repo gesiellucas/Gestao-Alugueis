@@ -9,6 +9,7 @@ import {
   ArrowLeft,
   Camera,
   CheckCircle,
+  ExternalLink,
   FileText,
   Pencil,
   Trash2,
@@ -61,6 +62,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const [serviceOrderUrl, setServiceOrderUrl] = useState<string | null>(record?.service_order_url ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -453,6 +455,25 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
         </div>
       </div>
 
+      {/* Link da Ordem de Serviço salva */}
+      {serviceOrderUrl && (
+        <div className="bg-white rounded-xl shadow-sm border border-slate-100 px-5 py-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-sm text-slate-600">
+            <FileText size={15} className="text-blue-500 shrink-0" />
+            <span className="font-medium">Ordem de Serviço salva</span>
+            <span className="text-slate-400 text-xs font-mono">OS-{record.id.slice(-8).toUpperCase()}</span>
+          </div>
+          <a
+            href={serviceOrderUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            <ExternalLink size={13} /> Abrir documento
+          </a>
+        </div>
+      )}
+
       {/* Ordem de Serviço modal */}
       {showOrdemServico && (
         <OrdemServicoModal
@@ -462,6 +483,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
           customer={customer}
           rentalContract={rentalContract}
           onClose={() => setShowOrdemServico(false)}
+          onSaved={(url) => setServiceOrderUrl(url)}
         />
       )}
 

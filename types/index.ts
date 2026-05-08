@@ -111,6 +111,7 @@ export interface MaintenanceRecord extends SyncMetadata {
   type: MaintenanceType;
   cost: number;
   status: 'OPEN' | 'COMPLETED';
+  service_order_url?: string | null;
 }
 
 export type UnavailableStatusType = 'STOLEN' | 'TOTAL_LOSS';

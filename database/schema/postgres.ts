@@ -182,6 +182,7 @@ export const maintenanceRecords = pgTable('maintenance_records', {
   type: text('type').notNull(),
   cost: numeric('cost', { precision: 10, scale: 2 }).notNull().default('0'),
   status: text('status').notNull().default('OPEN'), // 'OPEN' | 'COMPLETED'
+  service_order_url: text('service_order_url'),
   ...syncMetadataColumns,
 }, (table) => [
   index('idx_maintenance_user_id').on(table.user_id),

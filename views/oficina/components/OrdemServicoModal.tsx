@@ -1,9 +1,11 @@
 'use client';
 import React, { useState } from 'react';
-import { FileText, Printer, X } from 'lucide-react';
+import { CheckCircle, FileText, Printer, X } from 'lucide-react';
 import { MaintenanceRecord, Vehicle, Workshop, Customer, RentalContract } from '../../../types';
-import { formatCPF, formatPhone, formatDateTime } from '../../../lib/formatters';
+import { formatCPF, formatPhone } from '../../../lib/formatters';
 import { useFinanceAccess } from '../../../hooks/useFinanceAccess';
+import { supabaseWorkshopDocumentsApi } from '../../../database/api/supabase/workshopDocuments';
+import { localMaintenanceApi } from '../../../database/api/local/maintenance';
 
 interface Props {
   record: MaintenanceRecord;
@@ -12,6 +14,7 @@ interface Props {
   customer: Customer | null;
   rentalContract: RentalContract | null;
   onClose: () => void;
+  onSaved?: (url: string) => void;
 }
 
 export const OrdemServicoModal: React.FC<Props> = ({
@@ -21,6 +24,7 @@ export const OrdemServicoModal: React.FC<Props> = ({
   customer,
   rentalContract,
   onClose,
+  onSaved,
 }) => {
   const hasFinanceAccess = useFinanceAccess();
 
@@ -30,8 +34,42 @@ export const OrdemServicoModal: React.FC<Props> = ({
   );
   const [cost, setCost] = useState(String(record.cost ?? 0));
   const [observations, setObservations] = useState(record.description || '');
+  const [saving, setSaving] = useState(false);
+  const [savedUrl, setSavedUrl] = useState<string | null>(record.service_order_url ?? null);
 
   const osNumber = record.id.slice(-8).toUpperCase();
+
+  const buildFullHtml = (bodyHtml: string): string => `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>OS-${osNumber} · GC Loca Moto</title>
+  <style>
+    body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; padding: 24px; }
+    .lb { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#64748b; width:35%; padding:7px 12px; }
+    .vl { font-size:12px; font-weight:600; color:#1e293b; padding:7px 12px; }
+    .cost { font-size:14px; font-weight:900; color:#15803d; }
+  </style>
+</head>
+<body>${bodyHtml}</body>
+</html>`;
+
+  const handleSaveOS = async () => {
+    setSaving(true);
+    try {
+      const url = await supabaseWorkshopDocumentsApi.uploadServiceOrder(
+        record.id,
+        buildFullHtml(buildOsHtml()),
+      );
+      await localMaintenanceApi.update(record.id, { service_order_url: url });
+      setSavedUrl(url);
+      onSaved?.(url);
+    } catch (err) {
+      console.error('Erro ao salvar OS:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const buildOsHtml = (): string => {
     const issueDate = new Date().toLocaleString('pt-BR', {
@@ -289,9 +327,23 @@ export const OrdemServicoModal: React.FC<Props> = ({
         <div className="flex gap-3 px-6 py-4 border-t border-slate-100">
           <button
             onClick={onClose}
-            className="flex-1 py-2.5 font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors border border-slate-200 text-sm"
+            className="py-2.5 px-4 font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors border border-slate-200 text-sm"
           >
-            Cancelar
+            Fechar
+          </button>
+          <button
+            onClick={handleSaveOS}
+            disabled={saving}
+            className="flex items-center justify-center gap-2 py-2.5 px-4 bg-slate-700 hover:bg-slate-800 disabled:opacity-50 text-white rounded-xl font-bold text-sm transition-colors"
+          >
+            {saving ? (
+              <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+            ) : savedUrl ? (
+              <CheckCircle size={15} />
+            ) : (
+              <span className="text-base leading-none">☁</span>
+            )}
+            {saving ? 'Salvando...' : savedUrl ? 'OS Salva' : 'Salvar OS'}
           </button>
           <button
             onClick={handlePrint}

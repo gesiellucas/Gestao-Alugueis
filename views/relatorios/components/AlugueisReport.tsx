@@ -15,6 +15,8 @@ export const AlugueisReport: React.FC = () => {
 
   const [dateRange, setDateRange] = useState<DateRange>({ start: thirtyDaysAgo, end: today });
   const [statusFilter, setStatusFilter] = useState('');
+  const [vehicleFilter, setVehicleFilter] = useState('');
+  const [customerFilter, setCustomerFilter] = useState('');
 
   const filtered = useMemo(() => {
     return rentalContracts.filter((r) => {
@@ -22,9 +24,11 @@ export const AlugueisReport: React.FC = () => {
       if (dateRange.start && startDate < dateRange.start) return false;
       if (dateRange.end && startDate > dateRange.end) return false;
       if (statusFilter && r.status !== statusFilter) return false;
+      if (vehicleFilter && r.vehicle_id !== vehicleFilter) return false;
+      if (customerFilter && r.customer_id !== customerFilter) return false;
       return true;
     });
-  }, [rentalContracts, dateRange, statusFilter]);
+  }, [rentalContracts, dateRange, statusFilter, vehicleFilter, customerFilter]);
 
   const getVehiclePlate = (vehicleId: string) => {
     return vehicles.find((v) => v.id === vehicleId)?.plate || vehicleId;
@@ -91,6 +95,20 @@ export const AlugueisReport: React.FC = () => {
             { value: 'ACTIVE', label: 'Ativo' },
             { value: 'ENDED', label: 'Encerrado' },
           ]}
+        />
+        <FilterSelect
+          label="Veículo"
+          value={vehicleFilter}
+          onChange={setVehicleFilter}
+          options={vehicles.map((v) => ({ value: v.id, label: `${v.plate} — ${v.model?.name || ''}` }))}
+          placeholder="Todos os veículos"
+        />
+        <FilterSelect
+          label="Cliente"
+          value={customerFilter}
+          onChange={setCustomerFilter}
+          options={customers.map((c) => ({ value: c.id, label: c.name }))}
+          placeholder="Todos os clientes"
         />
       </ReportFilters>
 

@@ -58,7 +58,8 @@
       "Bash(grep -E \"\\\\.\\(tsx|ts\\)$\")",
       "Bash(find 'd:\\\\Workspace\\\\GitHub\\\\Gestao Alugueis' -type f \\\\\\(-name middleware.* -o -name *layout* -o -name *auth* -o -name *login* -o -name *provider* -o -name *guard* \\\\\\))",
       "Bash(find 'd:\\\\Workspace\\\\GitHub\\\\Gestao Alugueis' -path */node_modules -prune -o -name types.ts -o -name types.d.ts -print)",
-      "Bash(find 'd:\\\\Workspace\\\\GitHub\\\\Gestao Alugueis' -maxdepth 2 -name *.ts -o -name *.d.ts)"
+      "Bash(find 'd:\\\\Workspace\\\\GitHub\\\\Gestao Alugueis' -maxdepth 2 -name *.ts -o -name *.d.ts)",
+      "Bash(xargs grep *)"
     ]
   }
 }

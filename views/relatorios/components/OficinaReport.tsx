@@ -5,7 +5,7 @@ import { ReportFilters, FilterSelect, type DateRange } from './ReportFilters';
 import { ExportBar } from './ExportBar';
 import { exportReport, type ExportFormat } from '@/lib/exportReport';
 import { printReport } from '@/lib/printReport';
-import { formatDate, formatDateTime } from '@/lib/formatters';
+import { formatDateTime } from '@/lib/formatters';
 
 export const OficinaReport: React.FC = () => {
   const { maintenanceRecords, vehicles, workshops } = useAppContext();
@@ -17,6 +17,8 @@ export const OficinaReport: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [sortByCost, setSortByCost] = useState('');
   const [mechanicFilter, setMechanicFilter] = useState('');
+  const [vehicleFilter, setVehicleFilter] = useState('');
+  const [workshopFilter, setWorkshopFilter] = useState('');
 
   const mechanics = useMemo(() => {
     const set = new Set(maintenanceRecords.map((m) => m.mechanic_name).filter(Boolean));
@@ -30,6 +32,8 @@ export const OficinaReport: React.FC = () => {
       if (dateRange.end && entryDate > dateRange.end) return false;
       if (statusFilter && m.status !== statusFilter) return false;
       if (mechanicFilter && m.mechanic_name !== mechanicFilter) return false;
+      if (vehicleFilter && m.vehicle_id !== vehicleFilter) return false;
+      if (workshopFilter && m.workshop_id !== workshopFilter) return false;
       return true;
     });
 
@@ -37,7 +41,7 @@ export const OficinaReport: React.FC = () => {
     if (sortByCost === 'desc') data = [...data].sort((a, b) => b.cost - a.cost);
 
     return data;
-  }, [maintenanceRecords, dateRange, statusFilter, sortByCost, mechanicFilter]);
+  }, [maintenanceRecords, dateRange, statusFilter, sortByCost, mechanicFilter, vehicleFilter, workshopFilter]);
 
   const getVehiclePlate = (vehicleId: string) => {
     return vehicles.find((v) => v.id === vehicleId)?.plate || vehicleId;
@@ -98,6 +102,20 @@ export const OficinaReport: React.FC = () => {
   return (
     <div className="space-y-5">
       <ReportFilters dateRange={dateRange} onDateRangeChange={setDateRange}>
+        <FilterSelect
+          label="Veículo"
+          value={vehicleFilter}
+          onChange={setVehicleFilter}
+          options={vehicles.map((v) => ({ value: v.id, label: `${v.plate} — ${v.model?.name || ''}` }))}
+          placeholder="Todos os veículos"
+        />
+        <FilterSelect
+          label="Oficina"
+          value={workshopFilter}
+          onChange={setWorkshopFilter}
+          options={workshops.map((w) => ({ value: w.id, label: w.name }))}
+          placeholder="Todas as oficinas"
+        />
         <FilterSelect
           label="Status do Serviço"
           value={statusFilter}

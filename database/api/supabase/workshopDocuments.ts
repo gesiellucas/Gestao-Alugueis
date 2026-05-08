@@ -94,6 +94,27 @@ export const supabaseWorkshopDocumentsApi = {
     return mapRow(data as Record<string, unknown>);
   },
 
+  async uploadServiceOrder(maintenanceId: string, htmlContent: string): Promise<string> {
+    const timestamp = Date.now();
+    const storagePath = `${maintenanceId}/service-order-${timestamp}.html`;
+    const blob = new Blob([htmlContent], { type: 'text/html; charset=utf-8' });
+
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET)
+      .upload(storagePath, blob, {
+        contentType: 'text/html; charset=utf-8',
+        upsert: true,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = supabase.storage
+      .from(BUCKET)
+      .getPublicUrl(storagePath);
+
+    return urlData.publicUrl;
+  },
+
   async delete(doc: Document): Promise<void> {
     const { error: dbError } = await supabase
       .from('documents')

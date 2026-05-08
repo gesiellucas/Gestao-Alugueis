@@ -15,6 +15,7 @@ export const VeiculosReport: React.FC = () => {
   const [dateRange, setDateRange] = useState<DateRange>({ start: oneYearAgo, end: today });
   const [statusFilter, setStatusFilter] = useState('');
   const [mileageControl, setMileageControl] = useState('');
+  const [vehicleFilter, setVehicleFilter] = useState('');
 
   // Calculate accumulated mileage from rentals in the period
   const mileageByVehicle = useMemo(() => {
@@ -38,6 +39,7 @@ export const VeiculosReport: React.FC = () => {
   const filtered = useMemo(() => {
     let data = vehicles.filter((v) => {
       if (statusFilter && v.status_id !== statusFilter) return false;
+      if (vehicleFilter && v.id !== vehicleFilter) return false;
       return true;
     });
 
@@ -48,7 +50,7 @@ export const VeiculosReport: React.FC = () => {
     }
 
     return data;
-  }, [vehicles, statusFilter, mileageControl]);
+  }, [vehicles, statusFilter, mileageControl, vehicleFilter]);
 
   const getStatusName = (statusId: string) => {
     return vehicleStatuses.find((s) => s.id === statusId)?.name || '—';
@@ -122,6 +124,13 @@ export const VeiculosReport: React.FC = () => {
   return (
     <div className="space-y-5">
       <ReportFilters dateRange={dateRange} onDateRangeChange={setDateRange}>
+        <FilterSelect
+          label="Veículo"
+          value={vehicleFilter}
+          onChange={setVehicleFilter}
+          options={vehicles.map((v) => ({ value: v.id, label: `${v.plate} — ${v.model?.name || ''}` }))}
+          placeholder="Todos os veículos"
+        />
         <FilterSelect
           label="Status do Veículo"
           value={statusFilter}

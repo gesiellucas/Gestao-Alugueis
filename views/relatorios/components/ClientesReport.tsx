@@ -15,6 +15,7 @@ export const ClientesReport: React.FC = () => {
 
   const [dateRange, setDateRange] = useState<DateRange>({ start: oneYearAgo, end: today });
   const [statusFilter, setStatusFilter] = useState('');
+  const [customerFilter, setCustomerFilter] = useState('');
 
   // Vehicles rented by each customer in period
   const rentalsByCustomer = useMemo(() => {
@@ -39,9 +40,10 @@ export const ClientesReport: React.FC = () => {
       if (statusFilter === 'active' && !c.active_contract) return false;
       if (statusFilter === 'inactive' && c.active_contract) return false;
       if (statusFilter === 'debt' && c.balance_due <= 0) return false;
+      if (customerFilter && c.id !== customerFilter) return false;
       return true;
     });
-  }, [customers, statusFilter]);
+  }, [customers, statusFilter, customerFilter]);
 
   const handleExport = (format: ExportFormat) => {
     const columns: { key: string; label: string }[] = [
@@ -95,6 +97,13 @@ export const ClientesReport: React.FC = () => {
   return (
     <div className="space-y-5">
       <ReportFilters dateRange={dateRange} onDateRangeChange={setDateRange}>
+        <FilterSelect
+          label="Cliente"
+          value={customerFilter}
+          onChange={setCustomerFilter}
+          options={customers.map((c) => ({ value: c.id, label: c.name }))}
+          placeholder="Todos os clientes"
+        />
         <FilterSelect
           label="Status do Cliente"
           value={statusFilter}

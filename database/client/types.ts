@@ -625,7 +625,7 @@ export interface Database {
         Row: {
           id: string;
           parent_id: string;
-          origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE';
+          origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE' | 'SERVICE_ORDER';
           file_url: string;
           created_at: string;
           updated_at: string;
@@ -638,7 +638,7 @@ export interface Database {
         Insert: {
           id: string;
           parent_id: string;
-          origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE';
+          origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE' | 'SERVICE_ORDER';
           file_url: string;
           created_at?: string;
           updated_at?: string;
@@ -651,7 +651,7 @@ export interface Database {
         Update: {
           id?: string;
           parent_id?: string;
-          origin_type?: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE';
+          origin_type?: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE' | 'SERVICE_ORDER';
           file_url?: string;
           created_at?: string;
           updated_at?: string;

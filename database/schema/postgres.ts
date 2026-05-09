@@ -214,7 +214,7 @@ export const unavailableVehicles = pgTable('unavailable_vehicles', {
 export const documents = pgTable('documents', {
   id: text('id').primaryKey(),
   parent_id: text('parent_id').notNull(),
-  origin_type: text('origin_type').notNull(), // 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE'
+  origin_type: text('origin_type').notNull(), // 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE' | 'SERVICE_ORDER'
   file_url: text('file_url').notNull(),
   ...syncMetadataColumns,
 }, (table) => [

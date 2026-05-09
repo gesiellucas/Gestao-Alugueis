@@ -127,6 +127,6 @@ export interface UnavailableVehicle extends SyncMetadata {
 export interface Document extends SyncMetadata {
   id: string;
   parent_id: string;
-  origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE';
+  origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE' | 'SERVICE_ORDER';
   file_url: string;
 }

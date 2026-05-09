@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { CheckCircle, FileText, Printer, X } from 'lucide-react';
-import { MaintenanceRecord, Vehicle, Workshop, Customer, RentalContract } from '../../../types';
+import { Document, MaintenanceRecord, Vehicle, Workshop, Customer, RentalContract } from '../../../types';
 import { formatCPF, formatPhone } from '../../../lib/formatters';
 import { useFinanceAccess } from '../../../hooks/useFinanceAccess';
 import { supabaseWorkshopDocumentsApi } from '../../../database/api/supabase/workshopDocuments';
@@ -14,7 +14,7 @@ interface Props {
   customer: Customer | null;
   rentalContract: RentalContract | null;
   onClose: () => void;
-  onSaved?: (url: string) => void;
+  onSaved?: (doc: Document) => void;
 }
 
 export const OrdemServicoModal: React.FC<Props> = ({
@@ -35,41 +35,9 @@ export const OrdemServicoModal: React.FC<Props> = ({
   const [cost, setCost] = useState(String(record.cost ?? 0));
   const [observations, setObservations] = useState(record.description || '');
   const [saving, setSaving] = useState(false);
-  const [savedUrl, setSavedUrl] = useState<string | null>(record.service_order_url ?? null);
+  const [saved, setSaved] = useState(!!record.service_order_url);
 
   const osNumber = record.id.slice(-8).toUpperCase();
-
-  const buildFullHtml = (bodyHtml: string): string => `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>OS-${osNumber} · GC Loca Moto</title>
-  <style>
-    body { font-family: Arial, sans-serif; font-size: 12px; color: #1a1a1a; padding: 24px; }
-    .lb { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#64748b; width:35%; padding:7px 12px; }
-    .vl { font-size:12px; font-weight:600; color:#1e293b; padding:7px 12px; }
-    .cost { font-size:14px; font-weight:900; color:#15803d; }
-  </style>
-</head>
-<body>${bodyHtml}</body>
-</html>`;
-
-  const handleSaveOS = async () => {
-    setSaving(true);
-    try {
-      const url = await supabaseWorkshopDocumentsApi.uploadServiceOrder(
-        record.id,
-        buildFullHtml(buildOsHtml()),
-      );
-      await localMaintenanceApi.update(record.id, { service_order_url: url });
-      setSavedUrl(url);
-      onSaved?.(url);
-    } catch (err) {
-      console.error('Erro ao salvar OS:', err);
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const buildOsHtml = (): string => {
     const issueDate = new Date().toLocaleString('pt-BR', {
@@ -167,11 +135,67 @@ export const OrdemServicoModal: React.FC<Props> = ({
     `;
   };
 
+  const generateDocumentBlob = async (): Promise<Blob> => {
+    const styleId = 'os-pdf-gen-style';
+    const containerId = 'os-pdf-gen-container';
+
+    const styleEl = document.createElement('style');
+    styleEl.id = styleId;
+    styleEl.textContent = `
+      #${containerId} .lb { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;width:35%;padding:7px 12px; }
+      #${containerId} .vl { font-size:12px;font-weight:600;color:#1e293b;padding:7px 12px; }
+      #${containerId} .cost { font-size:14px;font-weight:900;color:#15803d; }
+    `;
+    document.head.appendChild(styleEl);
+
+    const container = document.createElement('div');
+    container.id = containerId;
+    container.style.cssText = 'position:absolute;left:-9999px;top:0;width:794px;background:white;padding:20px 24px;box-sizing:border-box;';
+    container.innerHTML = buildOsHtml();
+    document.body.appendChild(container);
+
+    try {
+      const { default: html2canvas } = await import('html2canvas');
+
+      const canvas = await html2canvas(container, {
+        scale: 3,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+
+      return new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob(
+          (blob) => (blob ? resolve(blob) : reject(new Error('Falha ao gerar imagem da OS'))),
+          'image/jpeg',
+          0.95,
+        );
+      });
+    } finally {
+      document.getElementById(styleId)?.remove();
+      document.getElementById(containerId)?.remove();
+    }
+  };
+
+  const handleSaveOS = async () => {
+    setSaving(true);
+    try {
+      const pdfBlob = await generateDocumentBlob();
+      const doc = await supabaseWorkshopDocumentsApi.uploadServiceOrderPdf(record.id, pdfBlob, osNumber);
+      await localMaintenanceApi.update(record.id, { service_order_url: doc.file_url });
+      setSaved(true);
+      onSaved?.(doc);
+    } catch (err) {
+      console.error('Erro ao salvar OS:', err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handlePrint = () => {
     const styleId = 'os-print-style';
     const divId = 'os-print-content';
 
-    // Remove any existing print elements
     document.getElementById(styleId)?.remove();
     document.getElementById(divId)?.remove();
 
@@ -181,23 +205,12 @@ export const OrdemServicoModal: React.FC<Props> = ({
       #${divId} .lb { font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#64748b;width:35%;padding:7px 12px; }
       #${divId} .vl { font-size:12px;font-weight:600;color:#1e293b;padding:7px 12px; }
       #${divId} .cost { font-size:14px;font-weight:900;color:#15803d; }
-      
-      @media screen {
-        #${divId} { display: none !important; }
-      }
-      
+      @media screen { #${divId} { display: none !important; } }
       @media print {
         @page { margin: 15mm; size: portrait; }
         body > *:not(#${divId}) { display: none !important; }
         html, body { height: auto !important; overflow: visible !important; }
-        #${divId} { 
-          display: block !important; 
-          position: static !important;
-          width: 100% !important;
-          background: #fff !important;
-          margin: 0 !important;
-          padding: 0 !important;
-        }
+        #${divId} { display: block !important; position: static !important; width: 100% !important; background: #fff !important; margin: 0 !important; padding: 0 !important; }
       }
     `;
 
@@ -208,11 +221,8 @@ export const OrdemServicoModal: React.FC<Props> = ({
     document.head.appendChild(style);
     document.body.appendChild(div);
 
-    // Pequeno atraso para garantir que o DOM renderizou o conteúdo antes de imprimir
     setTimeout(() => {
       window.print();
-      
-      // Cleanup opcional após a impressão
       setTimeout(() => {
         document.getElementById(styleId)?.remove();
         document.getElementById(divId)?.remove();
@@ -338,12 +348,12 @@ export const OrdemServicoModal: React.FC<Props> = ({
           >
             {saving ? (
               <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-            ) : savedUrl ? (
+            ) : saved ? (
               <CheckCircle size={15} />
             ) : (
               <span className="text-base leading-none">☁</span>
             )}
-            {saving ? 'Salvando...' : savedUrl ? 'OS Salva' : 'Salvar OS'}
+            {saving ? 'Gerando PDF...' : saved ? 'PDF Salvo' : 'Salvar PDF'}
           </button>
           <button
             onClick={handlePrint}

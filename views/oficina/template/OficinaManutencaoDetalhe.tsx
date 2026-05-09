@@ -18,7 +18,7 @@ import {
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
-import { formatDate, formatDateTime } from "../../../lib/formatters";
+import { formatDateTime } from "../../../lib/formatters";
 import { OrdemServicoModal } from "../components/OrdemServicoModal";
 
 export const OficinaManutencaoDetalhe: React.FC = () => {
@@ -49,29 +49,36 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
 
   const [editing, setEditing] = useState(false);
   const [showOrdemServico, setShowOrdemServico] = useState(false);
-  const [editDescription, setEditDescription] = useState(
-    record?.description ?? "",
-  );
+  const [editDescription, setEditDescription] = useState(record?.description ?? "");
   const [editCost, setEditCost] = useState(String(record?.cost ?? 0));
   const [editMechanicName, setEditMechanicName] = useState(record?.mechanic_name ?? "");
   const [photos, setPhotos] = useState<Document[]>([]);
-  const [loadingPhotos, setLoadingPhotos] = useState(true);
+  const [serviceOrderDocs, setServiceOrderDocs] = useState<Document[]>([]);
+  const [loadingDocs, setLoadingDocs] = useState(true);
   const [saving, setSaving] = useState(false);
   const [finishing, setFinishing] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [newFiles, setNewFiles] = useState<File[]>([]);
   const [newPreviews, setNewPreviews] = useState<string[]>([]);
   const [lightbox, setLightbox] = useState<string | null>(null);
-  const [serviceOrderUrl, setServiceOrderUrl] = useState<string | null>(record?.service_order_url ?? null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!record) return;
-    supabaseWorkshopDocumentsApi
-      .getByMaintenance(record.id)
-      .then(setPhotos)
-      .catch(() => setPhotos([]))
-      .finally(() => setLoadingPhotos(false));
+    setLoadingDocs(true);
+    Promise.all([
+      supabaseWorkshopDocumentsApi.getByMaintenance(record.id),
+      supabaseWorkshopDocumentsApi.getServiceOrders(record.id),
+    ])
+      .then(([p, os]) => {
+        setPhotos(p);
+        setServiceOrderDocs(os);
+      })
+      .catch(() => {
+        setPhotos([]);
+        setServiceOrderDocs([]);
+      })
+      .finally(() => setLoadingDocs(false));
   }, [record?.id]);
 
   const handleFileSelect = useCallback(
@@ -101,6 +108,16 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
     try {
       await supabaseWorkshopDocumentsApi.delete(doc);
       setPhotos((prev) => prev.filter((d) => d.id !== doc.id));
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleDeleteServiceOrder = async (doc: Document) => {
+    setDeleting(doc.id);
+    try {
+      await supabaseWorkshopDocumentsApi.delete(doc);
+      setServiceOrderDocs((prev) => prev.filter((d) => d.id !== doc.id));
     } finally {
       setDeleting(null);
     }
@@ -197,26 +214,16 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
         </div>
         <ul className="divide-y divide-slate-100">
           <li className="flex items-center justify-between px-6 py-3">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-              Placa
-            </span>
-            <span className="font-bold text-slate-700 font-mono">
-              {vehicle.plate}
-            </span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Placa</span>
+            <span className="font-bold text-slate-700 font-mono">{vehicle.plate}</span>
           </li>
           <li className="flex items-center justify-between px-6 py-3">
-            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-              Modelo
-            </span>
-            <span className="font-bold text-slate-700">
-              {vehicle.model?.name || "—"}
-            </span>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Modelo</span>
+            <span className="font-bold text-slate-700">{vehicle.model?.name || "—"}</span>
           </li>
           {workshop && (
             <li className="flex items-center justify-between px-6 py-3">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                Oficina
-              </span>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Oficina</span>
               <span className="font-bold text-slate-700">{workshop.name}</span>
             </li>
           )}
@@ -266,9 +273,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
         <div className="p-6 space-y-5">
           <ul className="divide-y divide-slate-100 border border-slate-100 rounded-xl overflow-hidden">
             <li className="flex items-center justify-between px-5 py-3">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                Mecânico
-              </span>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mecânico</span>
               {editing ? (
                 <input
                   type="text"
@@ -278,39 +283,25 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
                   placeholder="Nome do mecânico"
                 />
               ) : (
-                <span className="font-bold text-slate-700">
-                  {record.mechanic_name || "—"}
-                </span>
+                <span className="font-bold text-slate-700">{record.mechanic_name || "—"}</span>
               )}
             </li>
             <li className="flex items-center justify-between px-5 py-3">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                Data de Entrada
-              </span>
-              <span className="font-bold text-slate-700">
-                {formatDateTime(record.entry_date)}
-              </span>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Data de Entrada</span>
+              <span className="font-bold text-slate-700">{formatDateTime(record.entry_date)}</span>
             </li>
             {record.status === "COMPLETED" && record.completion_date && (
               <li className="flex items-center justify-between px-5 py-3">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  Conclusão
-                </span>
-                <span className="font-bold text-green-700">
-                  {formatDateTime(record.completion_date)}
-                </span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Conclusão</span>
+                <span className="font-bold text-green-700">{formatDateTime(record.completion_date)}</span>
               </li>
             )}
             {hasFinanceAccess && (
               <li className="flex items-center justify-between px-5 py-3">
-                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  Custo
-                </span>
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Custo</span>
                 {editing ? (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-bold text-slate-400">
-                      R$
-                    </span>
+                    <span className="text-sm font-bold text-slate-400">R$</span>
                     <input
                       type="number"
                       min="0"
@@ -329,9 +320,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
               </li>
             )}
             <li className="flex flex-col gap-2 px-5 py-3">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                Observações
-              </span>
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Observações</span>
               {editing ? (
                 <textarea
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm text-slate-700 outline-none focus:ring-4 focus:ring-amber-500/10 focus:border-amber-400 resize-none"
@@ -341,20 +330,67 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
                   placeholder="Descreva os serviços..."
                 />
               ) : (
-                <span className="text-sm text-slate-600">
-                  {record.description || "—"}
-                </span>
+                <span className="text-sm text-slate-600">{record.description || "—"}</span>
               )}
             </li>
           </ul>
 
-          {/* Photos */}
+          {/* Documentos da OS */}
+          <div>
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              Documentos
+            </span>
+            <div className="mt-3 space-y-2">
+              {loadingDocs ? (
+                <p className="text-xs text-slate-400">Carregando documentos...</p>
+              ) : serviceOrderDocs.length === 0 ? (
+                <p className="text-xs text-slate-400">Nenhuma ordem de serviço salva.</p>
+              ) : (
+                serviceOrderDocs.map((doc) => {
+                  const fileName = decodeURIComponent(doc.file_url.split('/').pop() ?? 'OS.pdf');
+                  return (
+                    <div
+                      key={doc.id}
+                      className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3"
+                    >
+                      <div className="w-9 h-9 rounded-lg bg-red-50 border border-red-100 flex items-center justify-center shrink-0">
+                        <FileText size={16} className="text-red-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-bold text-slate-700 truncate">{fileName}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">
+                          {new Date(doc.created_at).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                      <a
+                        href={doc.file_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors shrink-0"
+                      >
+                        <ExternalLink size={13} /> Abrir
+                      </a>
+                      <button
+                        onClick={() => handleDeleteServiceOrder(doc)}
+                        disabled={deleting === doc.id}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-30 shrink-0"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          </div>
+
+          {/* Fotos */}
           <div>
             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
               Fotos
             </span>
             <div className="mt-3 flex flex-wrap gap-3">
-              {loadingPhotos ? (
+              {loadingDocs ? (
                 <p className="text-xs text-slate-400">Carregando fotos...</p>
               ) : (
                 <>
@@ -386,11 +422,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
                     newPreviews.map((src, i) => (
                       <div key={`new-${i}`} className="relative">
                         <div className="w-20 h-20 rounded-xl overflow-hidden border-2 border-dashed border-amber-400">
-                          <img
-                            src={src}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
+                          <img src={src} alt="" className="w-full h-full object-cover" />
                         </div>
                         <button
                           onClick={() => removeNewFile(i)}
@@ -409,9 +441,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
                         className="w-20 h-20 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-1 text-slate-400 hover:border-amber-400 hover:text-amber-500 transition-colors"
                       >
                         <Camera size={18} />
-                        <span className="text-[10px] font-medium">
-                          Adicionar
-                        </span>
+                        <span className="text-[10px] font-medium">Adicionar</span>
                       </button>
                       <input
                         ref={fileInputRef}
@@ -425,9 +455,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
                   )}
 
                   {!editing && photos.length === 0 && (
-                    <p className="text-xs text-slate-400">
-                      Nenhuma foto anexada.
-                    </p>
+                    <p className="text-xs text-slate-400">Nenhuma foto anexada.</p>
                   )}
                 </>
               )}
@@ -455,25 +483,6 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
         </div>
       </div>
 
-      {/* Link da Ordem de Serviço salva */}
-      {serviceOrderUrl && (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-100 px-5 py-3 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 text-sm text-slate-600">
-            <FileText size={15} className="text-blue-500 shrink-0" />
-            <span className="font-medium">Ordem de Serviço salva</span>
-            <span className="text-slate-400 text-xs font-mono">OS-{record.id.slice(-8).toUpperCase()}</span>
-          </div>
-          <a
-            href={serviceOrderUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors"
-          >
-            <ExternalLink size={13} /> Abrir documento
-          </a>
-        </div>
-      )}
-
       {/* Ordem de Serviço modal */}
       {showOrdemServico && (
         <OrdemServicoModal
@@ -483,7 +492,7 @@ export const OficinaManutencaoDetalhe: React.FC = () => {
           customer={customer}
           rentalContract={rentalContract}
           onClose={() => setShowOrdemServico(false)}
-          onSaved={(url) => setServiceOrderUrl(url)}
+          onSaved={(doc) => setServiceOrderDocs((prev) => [doc, ...prev])}
         />
       )}
 

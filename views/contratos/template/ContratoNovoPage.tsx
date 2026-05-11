@@ -1,6 +1,6 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, ChevronRight, FileSignature, AlertCircle, User, Bike, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { ModuleHeader } from '@/components/ModuleHeader';
@@ -11,6 +11,7 @@ import { ContratoFormField } from '../components/ContratoFormField';
 import { fetchTemplateBuffer, fillDocxTemplate, downloadDocx, buildDateFields } from '../../../lib/docxTemplate';
 import { supabaseContractsApi } from '../../../database/api/supabase/contracts';
 import { supabaseContractDocumentsApi } from '../../../database/api/supabase/contractDocuments';
+import { localRentalsApi } from '../../../database/api/local/rentals';
 import { formatCPF } from '../../../lib/formatters';
 
 type Step = 'selecionar-template' | 'selecionar-cliente' | 'preencher-formulario';
@@ -20,50 +21,100 @@ function resolveSource(source: string | undefined, customer: Customer | null, ve
   if (source === 'customer.name') return customer?.name ?? '';
   if (source === 'customer.cpf') return formatCPF(customer?.cpf ?? '');
   if (source === 'customer.phone') return customer?.phone ?? '';
+  if (source === 'customer.email') return customer?.email ?? '';
+  if (source === 'customer.cnh') return customer?.cnh ?? '';
+  if (source === 'customer.cnh_category') return customer?.cnh_category ?? '';
+  if (source === 'customer.address') return customer?.address ?? '';
+  if (source === 'customer.neighborhood') return customer?.neighborhood ?? '';
+  if (source === 'customer.city') return customer?.city ?? '';
+  if (source === 'customer.cityState') {
+    const city = customer?.city ?? '';
+    const state = customer?.state ?? '';
+    if (city && state) return `${city}-${state}`;
+    return city || state;
+  }
+  if (source === 'customer.addressFull') {
+    const city = customer?.city ?? '';
+    const state = customer?.state ?? '';
+    const cityState = city && state ? `${city}-${state}` : (city || state);
+    return [customer?.address, customer?.neighborhood, cityState].filter(Boolean).join(', ');
+  }
   if (source === 'vehicle.plate') return vehicle?.plate ?? '';
+  if (source === 'vehicle.chassi') return vehicle?.chassi ?? '';
+  if (source === 'vehicle.model') return vehicle?.model?.name ?? '';
+  if (source === 'vehicle.brand') return vehicle?.model?.brand ?? '';
+  if (source === 'vehicle.year') return vehicle?.year ? String(vehicle.year) : '';
   return '';
 }
 
-export const ContratoNovoPage: React.FC = () => {
+function ContratoNovoPageInner() {
   const router = useRouter();
-  const { customers, vehicles, rentalContracts } = useAppContext();
+  const searchParams = useSearchParams();
+  const rentalIdParam = searchParams.get('rental_id');
+
+  const { customers, vehicles, rentalContracts, setRentalContracts } = useAppContext();
 
   const [step, setStep] = useState<Step>('selecionar-template');
   const [selectedTemplate, setSelectedTemplate] = useState<ContratoTemplate | null>(null);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [selectedRental, setSelectedRental] = useState<RentalContract | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [preselected, setPreselected] = useState(false);
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-
   const [customerSearch, setCustomerSearch] = useState('');
+
+  // Pre-select rental/customer/vehicle when coming from rental detail
+  useEffect(() => {
+    if (!rentalIdParam || !rentalContracts.length) return;
+    const rental = rentalContracts.find((r) => r.id === rentalIdParam) ?? null;
+    if (!rental) return;
+    const customer = customers.find((c) => c.id === rental.customer_id) ?? null;
+    const vehicle = vehicles.find((v) => v.id === rental.vehicle_id) ?? null;
+    setSelectedRental(rental);
+    setSelectedCustomer(customer);
+    setSelectedVehicle(vehicle);
+    setPreselected(true);
+  }, [rentalIdParam, rentalContracts, customers, vehicles]);
+
+  // Fallback: if rental_id is in URL but not in context yet (race condition right after creation),
+  // fetch directly from DB and add to context so the effect above can pick it up.
+  useEffect(() => {
+    if (!rentalIdParam) return;
+    if (rentalContracts.some((r) => r.id === rentalIdParam)) return;
+    localRentalsApi.getById(rentalIdParam)
+      .then((r) => {
+        if (!r) return;
+        setRentalContracts((prev) => {
+          if (prev.some((c) => c.id === r.id)) return prev;
+          return [r, ...prev];
+        });
+      })
+      .catch(() => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rentalIdParam]); // intentionally omit rentalContracts to avoid re-fetching after we add it
 
   const activeCustomers = customers.filter((c) =>
     c.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
     (c.cpf ?? '').includes(customerSearch),
   );
 
-  // Ao selecionar cliente, encontra o aluguel ativo e o veículo automaticamente
+  // When selecting a customer manually, find active rental and vehicle
   useEffect(() => {
-    if (!selectedCustomer) {
-      setSelectedRental(null);
-      setSelectedVehicle(null);
-      return;
-    }
+    if (preselected || !selectedCustomer) return;
     const rental = rentalContracts.find(
       (r) => r.customer_id === selectedCustomer.id && r.status === 'ACTIVE',
     ) ?? null;
     setSelectedRental(rental);
-
     const vehicle = rental
       ? vehicles.find((v) => v.id === rental.vehicle_id) ?? null
       : vehicles.find((v) => v.current_renter_id === selectedCustomer.id) ?? null;
     setSelectedVehicle(vehicle);
-  }, [selectedCustomer, rentalContracts, vehicles]);
+  }, [selectedCustomer, rentalContracts, vehicles, preselected]);
 
-  // Pré-preenche campos com source ao avançar para o formulário
+  // Pre-fill form fields with source values when entering the form step
   useEffect(() => {
     if (!selectedTemplate || step !== 'preencher-formulario') return;
     const prefilled: Record<string, string> = { ...buildDateFields() };
@@ -81,7 +132,12 @@ export const ContratoNovoPage: React.FC = () => {
     setSelectedTemplate(template);
     setFormData({});
     setErrors({});
-    setStep('selecionar-cliente');
+    // If customer is pre-selected from rental, skip the customer selection step
+    if (preselected && selectedCustomer) {
+      setStep('preencher-formulario');
+    } else {
+      setStep('selecionar-cliente');
+    }
   };
 
   const handleSelectCustomer = (customer: Customer) => {
@@ -113,12 +169,10 @@ export const ContratoNovoPage: React.FC = () => {
     setSubmitError('');
 
     try {
-      // 1. Preencher o DOCX template
       const buffer = await fetchTemplateBuffer(selectedTemplate.templateFile);
       const allData = { ...buildDateFields(), ...formData };
       const docxBlob = fillDocxTemplate(buffer, allData);
 
-      // 2. Salvar contrato no banco
       const contract = await supabaseContractsApi.create({
         rental_id: selectedRental.id,
         template_id: selectedTemplate.id,
@@ -127,7 +181,6 @@ export const ContratoNovoPage: React.FC = () => {
         status: 'ativo',
       });
 
-      // 3. Upload do DOCX no storage
       await supabaseContractDocumentsApi.uploadDocx(
         selectedRental.id,
         contract.id,
@@ -135,7 +188,6 @@ export const ContratoNovoPage: React.FC = () => {
         selectedTemplate.name,
       );
 
-      // 4. Baixar DOCX para o usuário imediatamente
       const filename = `${selectedTemplate.name} - ${formData['nome_cliente'] ?? ''}.docx`;
       downloadDocx(docxBlob, filename);
 
@@ -150,6 +202,17 @@ export const ContratoNovoPage: React.FC = () => {
       setSubmitting(false);
     }
   };
+
+  const stepLabels: Record<Step, string> = {
+    'selecionar-template': 'Escolher Template',
+    'selecionar-cliente': 'Selecionar Cliente',
+    'preencher-formulario': 'Preencher Dados',
+  };
+  const allSteps: Step[] = ['selecionar-template', 'selecionar-cliente', 'preencher-formulario'];
+  // When pre-selected, we show only 2 steps in the stepper
+  const visibleSteps: Step[] = preselected
+    ? ['selecionar-template', 'preencher-formulario']
+    : allSteps;
 
   return (
     <div className="space-y-8">
@@ -168,10 +231,10 @@ export const ContratoNovoPage: React.FC = () => {
 
       {/* Stepper */}
       <div className="flex items-center gap-2 text-sm font-semibold flex-wrap">
-        {(['selecionar-template', 'selecionar-cliente', 'preencher-formulario'] as Step[]).map((s, i) => {
-          const labels = ['Escolher Template', 'Selecionar Cliente', 'Preencher Dados'];
+        {visibleSteps.map((s, i) => {
           const current = step === s;
-          const done = ['selecionar-template', 'selecionar-cliente', 'preencher-formulario'].indexOf(step) > i;
+          const doneIdx = visibleSteps.indexOf(step);
+          const done = doneIdx > i;
           return (
             <React.Fragment key={s}>
               {i > 0 && <ChevronRight size={16} className="text-slate-300" />}
@@ -179,7 +242,7 @@ export const ContratoNovoPage: React.FC = () => {
                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs text-white ${current ? 'bg-blue-600' : done ? 'bg-green-500' : 'bg-slate-200'}`}>
                   {i + 1}
                 </span>
-                {labels[i]}
+                {stepLabels[s]}
               </span>
             </React.Fragment>
           );
@@ -223,7 +286,7 @@ export const ContratoNovoPage: React.FC = () => {
         )
       )}
 
-      {/* ── Step 2: Customer Selector ─────────────────────────────────────── */}
+      {/* ── Step 2: Customer Selector (skipped when pre-selected) ─────────── */}
       {step === 'selecionar-cliente' && (
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
           <div className="p-6 border-b border-slate-100 flex items-center gap-3">
@@ -290,96 +353,111 @@ export const ContratoNovoPage: React.FC = () => {
 
       {/* ── Step 3: Form ──────────────────────────────────────────────────── */}
       {step === 'preencher-formulario' && selectedTemplate && (
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
-          <div className="p-6 border-b border-slate-100">
+        !selectedRental ? (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-10 flex flex-col items-center gap-4 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-amber-50 flex items-center justify-center">
+              <AlertCircle size={28} className="text-amber-400" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-800">{selectedCustomer?.name} não possui aluguel ativo</p>
+              <p className="text-slate-400 text-sm mt-1">Selecione um cliente com aluguel ativo para gerar o contrato.</p>
+            </div>
             <button
               onClick={() => setStep('selecionar-cliente')}
-              className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 font-semibold transition-colors mb-4"
+              className="mt-2 flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
             >
               <ArrowLeft size={16} />
               Trocar cliente
             </button>
+          </div>
+        ) : (
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm">
+            <div className="p-6 border-b border-slate-100">
+              <button
+                onClick={() => setStep(preselected ? 'selecionar-template' : 'selecionar-cliente')}
+                className="flex items-center gap-2 text-sm text-slate-500 hover:text-slate-800 font-semibold transition-colors mb-4"
+              >
+                <ArrowLeft size={16} />
+                {preselected ? 'Trocar template' : 'Trocar cliente'}
+              </button>
 
-            {/* Resumo do cliente e veículo */}
-            <div className="flex flex-wrap gap-3">
-              <div className="flex items-center gap-2.5 bg-blue-50 px-4 py-2.5 rounded-xl">
-                <User size={16} className="text-blue-500" />
-                <div>
-                  <p className="text-xs text-blue-400 font-semibold uppercase tracking-wider">Cliente</p>
-                  <p className="text-sm font-bold text-blue-800">{selectedCustomer?.name}</p>
-                </div>
-              </div>
-              {selectedVehicle && (
-                <div className="flex items-center gap-2.5 bg-green-50 px-4 py-2.5 rounded-xl">
-                  <Bike size={16} className="text-green-500" />
+              <div className="flex flex-wrap gap-3">
+                <div className="flex items-center gap-2.5 bg-blue-50 px-4 py-2.5 rounded-xl">
+                  <User size={16} className="text-blue-500" />
                   <div>
-                    <p className="text-xs text-green-400 font-semibold uppercase tracking-wider">Veículo</p>
-                    <p className="text-sm font-bold text-green-800">{selectedVehicle.plate}</p>
+                    <p className="text-xs text-blue-400 font-semibold uppercase tracking-wider">Cliente</p>
+                    <p className="text-sm font-bold text-blue-800">{selectedCustomer?.name}</p>
                   </div>
                 </div>
-              )}
-              {!selectedRental && (
-                <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-4 py-2.5 rounded-xl">
-                  <AlertCircle size={16} className="text-amber-500" />
-                  <p className="text-xs text-amber-700 font-semibold">Sem aluguel ativo — o contrato não será vinculado a um aluguel.</p>
-                </div>
-              )}
+                {selectedVehicle && (
+                  <div className="flex items-center gap-2.5 bg-green-50 px-4 py-2.5 rounded-xl">
+                    <Bike size={16} className="text-green-500" />
+                    <div>
+                      <p className="text-xs text-green-400 font-semibold uppercase tracking-wider">Veículo</p>
+                      <p className="text-sm font-bold text-green-800">
+                        {selectedVehicle.plate}
+                        {selectedVehicle.model && ` — ${selectedVehicle.model.brand} ${selectedVehicle.model.name}`}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {selectedTemplate.fields.map((field) => (
+                <ContratoFormField
+                  key={field.key}
+                  field={field}
+                  value={formData[field.key] ?? ''}
+                  onChange={(v) => handleFieldChange(field.key, v)}
+                  error={errors[field.key]}
+                  autoFilled={!!field.source && !!resolveSource(field.source, selectedCustomer, selectedVehicle)}
+                />
+              ))}
+            </div>
+
+            {submitError && (
+              <div className="mx-6 mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 font-medium flex items-center gap-2">
+                <AlertCircle size={16} className="flex-shrink-0" />
+                {submitError}
+              </div>
+            )}
+
+            <div className="p-6 border-t border-slate-100 flex justify-end gap-3">
+              <Link
+                href="/contratos"
+                className="px-5 py-2.5 rounded-xl font-semibold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+              >
+                Cancelar
+              </Link>
+              <button
+                onClick={handleGenerate}
+                disabled={submitting}
+                className="px-6 py-2.5 rounded-xl font-semibold text-sm text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    Gerando...
+                  </>
+                ) : (
+                  <>
+                    <FileSignature size={16} />
+                    Gerar Contrato
+                  </>
+                )}
+              </button>
             </div>
           </div>
-
-          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {selectedTemplate.fields.map((field) => (
-              <ContratoFormField
-                key={field.key}
-                field={field}
-                value={formData[field.key] ?? ''}
-                onChange={(v) => handleFieldChange(field.key, v)}
-                error={errors[field.key]}
-                autoFilled={!!field.source && !!resolveSource(field.source, selectedCustomer, selectedVehicle)}
-              />
-            ))}
-          </div>
-
-          {submitError && (
-            <div className="mx-6 mb-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 font-medium flex items-center gap-2">
-              <AlertCircle size={16} className="flex-shrink-0" />
-              {submitError}
-            </div>
-          )}
-
-          {!selectedRental && (
-            <div className="mx-6 mb-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 font-medium">
-              Este cliente não possui aluguel ativo. Selecione um cliente com aluguel ativo para vincular o contrato.
-            </div>
-          )}
-
-          <div className="p-6 border-t border-slate-100 flex justify-end gap-3">
-            <Link
-              href="/contratos"
-              className="px-5 py-2.5 rounded-xl font-semibold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
-            >
-              Cancelar
-            </Link>
-            <button
-              onClick={handleGenerate}
-              disabled={submitting || !selectedRental}
-              className="px-6 py-2.5 rounded-xl font-semibold text-sm text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {submitting ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Gerando...
-                </>
-              ) : (
-                <>
-                  <FileSignature size={16} />
-                  Gerar Contrato
-                </>
-              )}
-            </button>
-          </div>
-        </div>
+        )
       )}
     </div>
   );
-};
+}
+
+export const ContratoNovoPage: React.FC = () => (
+  <Suspense>
+    <ContratoNovoPageInner />
+  </Suspense>
+);

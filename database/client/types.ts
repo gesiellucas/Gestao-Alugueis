@@ -161,6 +161,13 @@ export interface Database {
           active_contract: boolean;
           balance_due: number;
           last_payment_date: string | null;
+          email: string | null;
+          address: string | null;
+          neighborhood: string | null;
+          city: string | null;
+          state: string | null;
+          cnh: string | null;
+          cnh_category: string | null;
           created_at: string;
           updated_at: string;
           updated_by: string | null;
@@ -178,6 +185,13 @@ export interface Database {
           active_contract?: boolean;
           balance_due?: number;
           last_payment_date?: string | null;
+          email?: string | null;
+          address?: string | null;
+          neighborhood?: string | null;
+          city?: string | null;
+          state?: string | null;
+          cnh?: string | null;
+          cnh_category?: string | null;
           created_at?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -195,6 +209,13 @@ export interface Database {
           active_contract?: boolean;
           balance_due?: number;
           last_payment_date?: string | null;
+          email?: string | null;
+          address?: string | null;
+          neighborhood?: string | null;
+          city?: string | null;
+          state?: string | null;
+          cnh?: string | null;
+          cnh_category?: string | null;
           created_at?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -299,6 +320,7 @@ export interface Database {
         Row: {
           id: string;
           plate: string;
+          chassi: string | null;
           model_id: string;
           year: number;
           status_id: string;
@@ -316,6 +338,7 @@ export interface Database {
         Insert: {
           id: string;
           plate: string;
+          chassi?: string | null;
           model_id: string;
           year: number;
           status_id: string;
@@ -333,6 +356,7 @@ export interface Database {
         Update: {
           id?: string;
           plate?: string;
+          chassi?: string | null;
           model_id?: string;
           year?: number;
           status_id?: string;

@@ -93,6 +93,13 @@ export const customers = pgTable('customers', {
   active_contract: boolean('active_contract').notNull().default(false),
   balance_due: numeric('balance_due', { precision: 10, scale: 2 }).notNull().default('0'),
   last_payment_date: text('last_payment_date'),
+  email: text('email'),
+  address: text('address'),
+  neighborhood: text('neighborhood'),
+  city: text('city'),
+  state: text('state'),
+  cnh: text('cnh'),
+  cnh_category: text('cnh_category'),
   ...syncMetadataColumns,
 }, (table) => [
   index('idx_customers_user_id').on(table.user_id),
@@ -117,6 +124,7 @@ export const vehicleModels = pgTable('vehicle_models', {
 export const vehicles = pgTable('vehicles', {
   id: text('id').primaryKey(),
   plate: text('plate').notNull(),
+  chassi: text('chassi'),
   model_id: text('model_id'),
   year: numeric('year').notNull(),
   status_id: text('status_id').notNull(),

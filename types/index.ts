@@ -57,6 +57,13 @@ export interface Customer extends SyncMetadata {
   active_contract: boolean;
   balance_due: number;
   last_payment_date?: string | null;
+  email?: string | null;
+  address?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
+  cnh?: string | null;
+  cnh_category?: string | null;
 }
 
 export interface VehicleModel extends SyncMetadata {
@@ -70,6 +77,7 @@ export interface VehicleModel extends SyncMetadata {
 export interface Vehicle extends SyncMetadata {
   id: string;
   plate: string;
+  chassi?: string | null;
   model_id: string;
   model?: VehicleModel; // Populated from join
   year: number;

@@ -430,6 +430,14 @@ export const VeiculoDetalhePage: React.FC = () => {
                 </span>
                 <span className="font-bold text-slate-700 font-mono tracking-tight">{vehicle.plate}</span>
               </div>
+              {vehicle.chassi && (
+                <div className="flex items-center justify-between py-3">
+                  <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    <Hash size={12} /> Chassi
+                  </span>
+                  <span className="font-bold text-slate-700 font-mono tracking-tight text-sm">{vehicle.chassi}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between py-3">
                 <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
                   <Calendar size={12} /> Ano

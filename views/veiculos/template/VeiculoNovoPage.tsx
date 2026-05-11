@@ -13,12 +13,14 @@ export const VeiculoNovoPage: React.FC = () => {
 
   const [form, setForm] = useState<{
     plate: string;
+    chassi: string;
     model_id: string | "";
     year: number;
     mileage: number;
     default_monthly_rate: number;
   }>({
     plate: "",
+    chassi: "",
     model_id: "",
     year: new Date().getFullYear(),
     mileage: 0,
@@ -76,6 +78,7 @@ export const VeiculoNovoPage: React.FC = () => {
 
       const newVehicle = await localVehiclesApi.create({
         plate: form.plate,
+        chassi: form.chassi || null,
         model_id: finalModelId as string,
         year: form.year,
         status_id: availableStatusId,
@@ -126,6 +129,22 @@ export const VeiculoNovoPage: React.FC = () => {
                 }
                 placeholder="ABC-1234"
                 required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                Chassi
+              </label>
+              <input
+                type="text"
+                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
+                value={form.chassi}
+                onChange={(e) =>
+                  setForm({ ...form, chassi: e.target.value.toUpperCase() })
+                }
+                placeholder="9C2JC3110MR000000"
+                maxLength={17}
               />
             </div>
 

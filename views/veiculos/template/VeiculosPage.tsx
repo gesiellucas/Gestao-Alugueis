@@ -3,12 +3,12 @@ import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { PlusCircle, Search, ChevronDown, ChevronUp, ChevronsUpDown, Wrench, User, ShieldOff } from "lucide-react";
+import { Search, ChevronDown, ChevronUp, ChevronsUpDown, ShieldOff } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { TablePagination } from "@/components/TablePagination";
 import { usePagination } from "../../../hooks/usePagination";
 
-type SortKey = "brand" | "model" | "year" | "plate" | "mileage" | "monthly_rate" | "status" | "renter";
+type SortKey = "created_at" | "year" | "plate" | "renterOrStatus";
 type SortDir = "asc" | "desc";
 
 function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; sortDir: SortDir }) {
@@ -19,37 +19,19 @@ function SortIcon({ col, sortKey, sortDir }: { col: SortKey; sortKey: SortKey; s
 }
 
 export const VeiculosPage: React.FC = () => {
-  const { vehicles, customers, rentalContracts, maintenanceRecords, vehicleStatuses, vehicleStatusIds } = useAppContext();
+  const { vehicles, customers, maintenanceRecords, vehicleStatuses, vehicleStatusIds } = useAppContext();
   const router = useRouter();
 
   const [statusFilter, setStatusFilter] = useState<string | "TODOS">("TODOS");
   const [plateFilter, setPlateFilter] = useState("");
   const [brandFilter, setBrandFilter] = useState<string>("TODAS");
-  const [sortKey, setSortKey] = useState<SortKey>("brand");
-  const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [sortKey, setSortKey] = useState<SortKey>("created_at");
+  const [sortDir, setSortDir] = useState<SortDir>("desc");
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
     else { setSortKey(key); setSortDir("asc"); }
   };
-
-  // Build status style map from vehicleStatuses data
-  const statusStyleMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const s of vehicleStatuses) {
-      // Generate class based on color hex
-      map[s.id] = `border`;
-    }
-    return map;
-  }, [vehicleStatuses]);
-
-  const statusNameMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const s of vehicleStatuses) {
-      map[s.id] = s.name;
-    }
-    return map;
-  }, [vehicleStatuses]);
 
   const tableRows = useMemo(() => {
     const rows = vehicles
@@ -60,23 +42,25 @@ export const VeiculosPage: React.FC = () => {
         return true;
       })
       .map((v) => {
-        const contract = rentalContracts.find((c) => c.vehicle_id === v.id && c.status === "ACTIVE");
         const renter = v.current_renter_id ? customers.find((c) => c.id === v.current_renter_id) : null;
         const maintenance = maintenanceRecords.find((m) => m.vehicle_id === v.id && m.status === "OPEN");
+        const renterOrStatus = renter?.name
+          ? renter.name
+          : v.status_id === vehicleStatusIds.MAINTENANCE
+          ? "Manutenção"
+          : v.vehicleStatus?.name || "Disponível";
         return {
           id: v.id,
-          brand: v.model?.brand || "Desconhecida",
-          model: v.model?.name || "Desconhecido",
           year: v.year,
           plate: v.plate,
-          mileage: v.mileage,
-          monthly_rate: contract?.monthly_rate ?? v.default_monthly_rate,
           status: v.vehicleStatus?.name || "Desconhecido",
           status_id: v.status_id,
           statusColor: v.vehicleStatus?.color || "#6b7280",
           renter: renter?.name ?? "",
           renterId: v.current_renter_id,
           maintenanceId: maintenance?.id,
+          created_at: v.created_at,
+          renterOrStatus,
         };
       });
 
@@ -91,7 +75,7 @@ export const VeiculosPage: React.FC = () => {
     });
 
     return rows;
-  }, [vehicles, customers, rentalContracts, maintenanceRecords, statusFilter, plateFilter, brandFilter, sortKey, sortDir, vehicleStatuses]);
+  }, [vehicles, customers, maintenanceRecords, statusFilter, plateFilter, brandFilter, sortKey, sortDir, vehicleStatusIds]);
 
   const pagination = usePagination(tableRows, 10);
 
@@ -106,8 +90,6 @@ export const VeiculosPage: React.FC = () => {
       </span>
     </th>
   );
-
-  console.log(pagination.paginatedItems)
 
   return (
     <div className="space-y-8">
@@ -167,7 +149,7 @@ export const VeiculosPage: React.FC = () => {
                 <tr className="[&>th]:px-6 [&>th]:py-4 [&>th]:text-left [&>th]:text-xs [&>th]:font-bold [&>th]:uppercase [&>th]:tracking-widest">
                   <Th col="plate" label="Placa" />
                   <Th col="year" label="Ano" />
-                  <Th col="renter" label="Locatário / Situação" />
+                  <Th col="renterOrStatus" label="Locatário / Situação" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">

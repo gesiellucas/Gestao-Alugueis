@@ -16,11 +16,13 @@ export const VeiculoEditarPage: React.FC = () => {
 
   const [form, setForm] = useState<{
     plate: string;
+    chassi: string;
     model_id: string | "";
     year: number;
     mileage: number;
   }>({
     plate: vehicle?.plate || "",
+    chassi: vehicle?.chassi || "",
     model_id: vehicle?.model_id || "",
     year: vehicle?.year || new Date().getFullYear(),
     mileage: vehicle?.mileage || 0,
@@ -33,6 +35,7 @@ export const VeiculoEditarPage: React.FC = () => {
     if (vehicle) {
       setForm({
         plate: vehicle.plate || "",
+        chassi: vehicle.chassi || "",
         model_id: vehicle.model_id || "",
         year: vehicle.year || new Date().getFullYear(),
         mileage: vehicle.mileage || 0,
@@ -66,6 +69,7 @@ export const VeiculoEditarPage: React.FC = () => {
     try {
       await localVehiclesApi.update(id, {
         plate: form.plate,
+        chassi: form.chassi || null,
         model_id: form.model_id || vehicle.model_id,
         year: form.year,
         mileage: form.mileage,
@@ -77,6 +81,7 @@ export const VeiculoEditarPage: React.FC = () => {
             ? {
               ...v,
               plate: form.plate,
+              chassi: form.chassi || null,
               model_id: form.model_id || v.model_id,
               year: form.year,
               mileage: form.mileage,
@@ -130,6 +135,22 @@ export const VeiculoEditarPage: React.FC = () => {
                   setForm({ ...form, plate: e.target.value.toUpperCase() })
                 }
                 required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                Chassi
+              </label>
+              <input
+                type="text"
+                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
+                value={form.chassi}
+                onChange={(e) =>
+                  setForm({ ...form, chassi: e.target.value.toUpperCase() })
+                }
+                placeholder="9C2JC3110MR000000"
+                maxLength={17}
               />
             </div>
             <div>

@@ -25,6 +25,7 @@ import {
   ZoomIn,
   ChevronLeft,
   ChevronRight,
+  FileSignature,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
@@ -291,13 +292,20 @@ export const AluguelDetalhePage: React.FC = () => {
                 <ChevronDown size={15} className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
               </button>
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-200 rounded-xl shadow-lg z-50 overflow-hidden">
                   <button
                     onClick={openEdit}
                     className="w-full flex items-center gap-2 px-4 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
                   >
                     <Pencil size={15} />
                     Editar
+                  </button>
+                  <button
+                    onClick={() => { setDropdownOpen(false); router.push(`/contratos/novo?rental_id=${id}`); }}
+                    className="w-full flex items-center gap-2 px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors"
+                  >
+                    <FileSignature size={15} />
+                    Gerar Contrato
                   </button>
                   <button
                     onClick={() => { setDropdownOpen(false); setConfirmEnd(true); }}

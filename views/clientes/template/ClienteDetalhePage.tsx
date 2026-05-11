@@ -13,6 +13,9 @@ import {
   Bike,
   ChevronDown,
   Trash2,
+  Mail,
+  MapPin,
+  CreditCard,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
@@ -52,8 +55,6 @@ export const ClienteDetalhePage: React.FC = () => {
       </div>
     );
   }
-
-  const hasDebt = customer.balance_due > 0;
 
   return (
     <div className="space-y-8">
@@ -156,14 +157,45 @@ export const ClienteDetalhePage: React.FC = () => {
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-4 text-slate-400 text-sm font-medium">
-                <span className="flex items-center gap-1">
-                  <FileText size={14} /> CPF: {formatCPF(customer.cpf)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Phone size={14} /> {formatPhone(customer.phone)}
-                </span>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-400 text-sm font-medium mt-1">
+                {customer.cpf && (
+                  <span className="flex items-center gap-1">
+                    <FileText size={14} /> CPF: {formatCPF(customer.cpf)}
+                  </span>
+                )}
+                {customer.phone && (
+                  <span className="flex items-center gap-1">
+                    <Phone size={14} /> {formatPhone(customer.phone)}
+                  </span>
+                )}
+                {customer.email && (
+                  <span className="flex items-center gap-1">
+                    <Mail size={14} /> {customer.email}
+                  </span>
+                )}
               </div>
+              {(customer.address || customer.neighborhood || customer.city) && (
+                <div className="flex items-start gap-1 text-slate-400 text-sm font-medium mt-1">
+                  <MapPin size={14} className="mt-0.5 shrink-0" />
+                  <span>
+                    {[
+                      customer.address,
+                      customer.neighborhood,
+                      customer.city && customer.state
+                        ? `${customer.city}-${customer.state}`
+                        : (customer.city || customer.state),
+                    ].filter(Boolean).join(', ')}
+                  </span>
+                </div>
+              )}
+              {(customer.cnh || customer.cnh_category) && (
+                <div className="flex items-center gap-1 text-slate-400 text-sm font-medium mt-1">
+                  <CreditCard size={14} />
+                  <span>
+                    CNH: {[customer.cnh, customer.cnh_category ? `Cat. ${customer.cnh_category}` : null].filter(Boolean).join(' — ')}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -240,20 +272,21 @@ export const ClienteDetalhePage: React.FC = () => {
                 {customerRentals.map((contract) => {
                   const contractVehicle = vehicles.find((v) => v.id === contract.vehicle_id);
                   return (
-                    <tr key={contract.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
+                    <tr
+                      key={contract.id}
+                      onClick={() => router.push(`/alugueis/${contract.id}`)}
+                      className="border-b border-slate-50 hover:bg-blue-50/60 cursor-pointer transition-colors"
+                    >
                       <td className="px-6 py-4">
                         {contractVehicle ? (
-                          <Link
-                            href={`/veiculo/${contractVehicle.id}`}
-                            className="font-bold text-[#004AAD] hover:text-blue-600 transition-colors"
-                          >
+                          <span className="font-bold text-[#004AAD]">
                             {contractVehicle.model?.name ?? '—'}
                             {contractVehicle.plate && (
                               <span className="ml-2 text-xs font-bold bg-blue-600 text-white px-2 py-0.5 rounded">
                                 {contractVehicle.plate}
                               </span>
                             )}
-                          </Link>
+                          </span>
                         ) : (
                           <span className="text-slate-400">—</span>
                         )}

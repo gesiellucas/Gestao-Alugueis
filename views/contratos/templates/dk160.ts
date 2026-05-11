@@ -5,15 +5,16 @@ import { ContratoTemplate } from '../../../types';
  * Arquivo original: public/contratos/CONTRATO COMPRA FACILITADA DK160.docx
  *
  * Variáveis automáticas (preenchidas pelo sistema):
- *   nome_cliente, cpf_cliente     → seletor de cliente
- *   placa_veiculo                 → seletor de veículo
+ *   nome_cliente, cpf_cliente, telefone_cliente, email_cliente → cliente
+ *   cnh_cliente, categoria_cnh_cliente → CNH do cliente
+ *   endereço_cliente, bairro_cliente, cidade_cliente → endereço do cliente
+ *   endereco_completo_cliente → junção "Rua e Nº, Bairro, Cidade-Estado"
+ *   placa_veiculo, chassi_veiculo, modelo_veiculo, marca_veiculo, ano_veiculo → veículo
  *   dia_contrato, mes_contrato_extenso, ano_contrato → data atual
  *
  * Variáveis manuais:
- *   endereço_cliente, bairro_cliente, cidade_cliente → endereço do locatário
- *   chassi_veiculo   → chassi (não está no cadastro do veículo)
  *   valor_recebido   → valor da caução
- *   forma_pagamento  → forma de pagamento da caução
+ *   forma_pagamento  → forma de pagamento da caução (texto livre)
  */
 export const templateDK160: ContratoTemplate = {
   id: 'compra-facilitada-dk160',
@@ -42,6 +43,7 @@ export const templateDK160: ContratoTemplate = {
       type: 'text',
       required: true,
       placeholder: 'Ex: Rua das Flores, 123',
+      source: 'customer.address',
     },
     {
       key: 'bairro_cliente',
@@ -49,13 +51,15 @@ export const templateDK160: ContratoTemplate = {
       type: 'text',
       required: true,
       placeholder: 'Ex: Centro',
+      source: 'customer.neighborhood',
     },
     {
       key: 'cidade_cliente',
-      label: 'Cidade',
+      label: 'Cidade-Estado',
       type: 'text',
       required: true,
-      placeholder: 'Ex: Ribeirão Preto',
+      placeholder: 'Ex: Ribeirão Preto-SP',
+      source: 'customer.cityState',
     },
     // ── Dados do veículo (pré-preenchidos, editáveis) ──────────────────────
     {
@@ -66,11 +70,33 @@ export const templateDK160: ContratoTemplate = {
       source: 'vehicle.plate',
     },
     {
+      key: 'modelo_veiculo',
+      label: 'Modelo',
+      type: 'text',
+      required: false,
+      source: 'vehicle.model',
+    },
+    {
+      key: 'marca_veiculo',
+      label: 'Marca',
+      type: 'text',
+      required: false,
+      source: 'vehicle.brand',
+    },
+    {
+      key: 'ano_veiculo',
+      label: 'Ano',
+      type: 'text',
+      required: false,
+      source: 'vehicle.year',
+    },
+    {
       key: 'chassi_veiculo',
       label: 'Chassi',
       type: 'text',
       required: true,
       placeholder: 'Ex: 9C2KC16009R200001',
+      source: 'vehicle.chassi',
     },
     // ── Dados adicionais do cliente ────────────────────────────────────────
     {
@@ -79,13 +105,15 @@ export const templateDK160: ContratoTemplate = {
       type: 'text',
       required: false,
       placeholder: 'Ex: 12345678900',
+      source: 'customer.cnh',
     },
     {
       key: 'categoria_cnh_cliente',
       label: 'Categoria da CNH',
       type: 'select',
       required: false,
-      options: ['A', 'AB', 'B', 'AC', 'AD', 'AE'],
+      options: ['A', 'AB', 'AC', 'AD', 'AE'],
+      source: 'customer.cnh_category',
     },
     {
       key: 'email_cliente',
@@ -93,6 +121,7 @@ export const templateDK160: ContratoTemplate = {
       type: 'text',
       required: false,
       placeholder: 'Ex: cliente@email.com',
+      source: 'customer.email',
     },
     {
       key: 'telefone_cliente',
@@ -107,6 +136,7 @@ export const templateDK160: ContratoTemplate = {
       type: 'text',
       required: false,
       placeholder: 'Ex: Rua das Flores, 123, Centro, Ribeirão Preto-SP',
+      source: 'customer.addressFull',
     },
     // ── Período do contrato ────────────────────────────────────────────────
     {
@@ -132,9 +162,9 @@ export const templateDK160: ContratoTemplate = {
     {
       key: 'forma_pagamento',
       label: 'Forma de Pagamento da Caução',
-      type: 'select',
+      type: 'textarea',
       required: true,
-      options: ['Pix', 'Dinheiro', 'Cartão de Débito', 'Cartão de Crédito', 'Transferência Bancária'],
+      placeholder: 'Ex: Pix para chave CPF 000.000.000-00',
     },
   ],
 };

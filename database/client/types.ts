@@ -444,6 +444,10 @@ export interface Database {
         Row: {
           id: string;
           rental_id: string;
+          template_id: string;
+          template_name: string;
+          form_data: string; // JSON stringificado
+          status: string; // rascunho | ativo | encerrado | cancelado
           created_at: string;
           updated_at: string;
           updated_by: string | null;
@@ -455,6 +459,10 @@ export interface Database {
         Insert: {
           id: string;
           rental_id: string;
+          template_id?: string;
+          template_name?: string;
+          form_data?: string;
+          status?: string;
           created_at?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -466,6 +474,10 @@ export interface Database {
         Update: {
           id?: string;
           rental_id?: string;
+          template_id?: string;
+          template_name?: string;
+          form_data?: string;
+          status?: string;
           created_at?: string;
           updated_at?: string;
           updated_by?: string | null;

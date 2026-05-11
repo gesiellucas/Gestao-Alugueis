@@ -12,7 +12,7 @@ export const localContractsApi = {
             .eq('is_deleted', 0);
         
         if (error) throw error;
-        return (data || []) as Contract[];
+        return (data || []) as unknown as Contract[];
     },
 
     async getById(id: string): Promise<Contract | null> {
@@ -24,7 +24,7 @@ export const localContractsApi = {
             .maybeSingle();
 
         if (error) throw error;
-        return data as Contract | null;
+        return data as unknown as Contract | null;
     },
 
     async getByRental(rental_id: string): Promise<Contract | null> {
@@ -36,7 +36,7 @@ export const localContractsApi = {
             .maybeSingle();
 
         if (error) throw error;
-        return data as Contract | null;
+        return data as unknown as Contract | null;
     },
 
     async create(contract: { rental_id: string }): Promise<Contract> {
@@ -56,7 +56,7 @@ export const localContractsApi = {
             .single();
 
         if (error) throw error;
-        return data as Contract;
+        return data as unknown as Contract;
     },
 
     async update(id: string, updates: { rental_id?: string }): Promise<Contract> {
@@ -71,7 +71,7 @@ export const localContractsApi = {
             .single();
 
         if (error) throw error;
-        return data as Contract;
+        return data as unknown as Contract;
     },
 
     async delete(id: string): Promise<void> {

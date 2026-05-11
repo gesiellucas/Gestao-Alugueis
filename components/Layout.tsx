@@ -24,6 +24,7 @@ import {
   Database,
   Info,
   BarChart3,
+  FileSignature,
 } from "lucide-react";
 import { SyncIndicator } from "./SyncIndicator";
 import { isElectron as checkElectron, windowControls } from "../lib/ipc";
@@ -75,6 +76,12 @@ export const Layout: React.FC<LayoutProps> = ({ user, onLogout, children }) => {
       label: "Oficina",
       icon: Wrench,
       show: hasPerm('oficina_view'),
+    },
+    {
+      to: "/contratos",
+      label: "Contratos",
+      icon: FileSignature,
+      show: hasPerm('financeiro_view') || hasPerm('clientes_view'),
     },
     {
       to: "/relatorios",

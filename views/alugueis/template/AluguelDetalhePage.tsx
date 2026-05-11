@@ -126,7 +126,7 @@ export const AluguelDetalhePage: React.FC = () => {
   useEffect(() => {
     if (!rental) return;
     supabaseContractsApi
-      .getByRental(rental.id)
+      .getLatestByRental(rental.id)
       .then((c) => setContractId(c?.id ?? null))
       .catch(() => setContractId(null));
   }, [rental?.id]);

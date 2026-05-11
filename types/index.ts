@@ -94,6 +94,46 @@ export interface RentalContract extends SyncMetadata {
 export interface Contract extends SyncMetadata {
   id: string;
   rental_id: string;
+  template_id: string;
+  template_name: string;
+  form_data: Record<string, string>; // variáveis preenchidas do template
+  status: ContratoStatus;
+}
+
+export type ContratoFieldType = 'text' | 'textarea' | 'date' | 'number' | 'select' | 'cpf' | 'phone';
+
+export interface ContratoTemplateField {
+  key: string;
+  label: string;
+  type: ContratoFieldType;
+  required: boolean;
+  placeholder?: string;
+  options?: string[];
+  /** Caminho para pré-preencher: 'customer.name', 'customer.cpf', 'vehicle.plate' */
+  source?: string;
+}
+
+export interface ContratoTemplate {
+  id: string;
+  name: string;
+  description: string;
+  /** Caminho relativo ao /public para o arquivo .docx de template */
+  templateFile: string;
+  fields: ContratoTemplateField[];
+}
+
+export type ContratoStatus = 'rascunho' | 'ativo' | 'encerrado' | 'cancelado';
+
+export interface ContratoGerado {
+  id: string;
+  template_id: string;
+  template_name: string;
+  data: Record<string, string | number>;
+  status: ContratoStatus;
+  customer_id?: string | null;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export type MaintenanceType = 'Revisão Periódica' | 'Corretiva/Quebra' | 'Troca de Óleo' | 'Troca de Pneu' | 'Vistoria de Entrada';

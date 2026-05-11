@@ -60,7 +60,11 @@
       "Bash(find 'd:\\\\Workspace\\\\GitHub\\\\Gestao Alugueis' -path */node_modules -prune -o -name types.ts -o -name types.d.ts -print)",
       "Bash(find 'd:\\\\Workspace\\\\GitHub\\\\Gestao Alugueis' -maxdepth 2 -name *.ts -o -name *.d.ts)",
       "Bash(xargs grep *)",
-      "Bash(node -e \"require\\('jspdf'\\); require\\('html2canvas'\\); console.log\\('ok'\\)\")"
+      "Bash(node -e \"require\\('jspdf'\\); require\\('html2canvas'\\); console.log\\('ok'\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(node -e \"const x = require\\('mammoth'\\)\")",
+      "Bash(python3 -c ' *)",
+      "Bash(node -e \"require\\('docxtemplater'\\); require\\('pizzip'\\); console.log\\('OK'\\)\")"
     ]
   }
 }

@@ -160,6 +160,10 @@ export const rentals = pgTable('rentals', {
 export const contracts = pgTable('contracts', {
   id: text('id').primaryKey(),
   rental_id: text('rental_id').notNull(),
+  template_id: text('template_id').notNull().default(''),
+  template_name: text('template_name').notNull().default(''),
+  form_data: text('form_data').notNull().default('{}'), // JSON stringificado
+  status: text('status').notNull().default('rascunho'), // rascunho | ativo | encerrado | cancelado
   ...syncMetadataColumns,
 }, (table) => [
   index('idx_contracts_rental_id').on(table.rental_id),

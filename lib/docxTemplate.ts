@@ -27,6 +27,10 @@ interface FlatOffset {
   el: WtElement;
 }
 
+function removeTextColors(xml: string): string {
+  return xml.replace(/<w:color\s[^>]*\/>/g, '');
+}
+
 function fillXmlByTextLevel(xml: string, data: Record<string, string>): string {
   // 1. Remover marcadores de spell/grammar check que fragmentam os runs
   xml = xml.replace(/<w:proofErr[^/]*\/>/g, '');
@@ -53,8 +57,8 @@ function fillXmlByTextLevel(xml: string, data: Record<string, string>): string {
     flatText += el.text;
   }
 
-  // 4. Encontrar todas as tags {{ varname }} no flat text
-  const tagRegex = /\{\{([^}]+)\}\}/g;
+  // 4. Encontrar todas as tags {{ varname }} no flat text (aceita 1 ou 2 chaves fechando)
+  const tagRegex = /\{\{([^{}]+)\}{1,2}/g;
   let tagMatch: RegExpExecArray | null;
   const replacements: { start: number; end: number; value: string }[] = [];
   while ((tagMatch = tagRegex.exec(flatText)) !== null) {
@@ -79,10 +83,20 @@ function fillXmlByTextLevel(xml: string, data: Record<string, string>): string {
         const localEnd = Math.min(rep.end - o.flatStart, o.el.text.length);
         const before = o.el.text.slice(0, localStart);
         const after = o.el.text.slice(localEnd);
-        o.el.text = before + rep.value + after;
+        const newText = before + rep.value + after;
+        o.el.text = newText;
+        // Garantir xml:space="preserve" quando o texto tem espaço inicial ou final
+        // (sem isso o Word descarta os espaços ao renderizar)
+        if ((newText.startsWith(' ') || newText.endsWith(' ')) && !o.el.openTag.includes('xml:space')) {
+          o.el.openTag = o.el.openTag.replace('<w:t', '<w:t xml:space="preserve"');
+        }
       } else {
         const localEnd = Math.min(rep.end - o.flatStart, o.el.text.length);
-        o.el.text = o.el.text.slice(localEnd);
+        const remaining = o.el.text.slice(localEnd);
+        o.el.text = remaining;
+        if ((remaining.startsWith(' ') || remaining.endsWith(' ')) && !o.el.openTag.includes('xml:space')) {
+          o.el.openTag = o.el.openTag.replace('<w:t', '<w:t xml:space="preserve"');
+        }
       }
     }
   }
@@ -111,8 +125,16 @@ export function fillDocxTemplate(
 ): Blob {
   const zip = new PizZip(buffer);
 
-  const docXml: string = zip.files['word/document.xml'].asText();
-  zip.file('word/document.xml', fillXmlByTextLevel(docXml, data));
+  // Processar document.xml + headers + footers + notas
+  const contentPattern = /^word\/(document|header\d*|footer\d*|endnotes|footnotes)\.xml$/;
+  for (const filename of Object.keys(zip.files)) {
+    if (contentPattern.test(filename)) {
+      let xml: string = zip.files[filename].asText();
+      xml = removeTextColors(xml);
+      xml = fillXmlByTextLevel(xml, data);
+      zip.file(filename, xml);
+    }
+  }
 
   const out: ArrayBuffer = zip.generate({
     type: 'arraybuffer',
@@ -135,9 +157,10 @@ const MESES_PT = [
 ];
 
 export function buildDateFields(date: Date = new Date()): Record<string, string> {
+  const mes = MESES_PT[date.getMonth()];
   return {
     dia_contrato: String(date.getDate()).padStart(2, '0'),
-    mes_contrato_extenso: MESES_PT[date.getMonth()],
+    mes_contrato_extenso: mes.charAt(0).toUpperCase() + mes.slice(1),
     ano_contrato: String(date.getFullYear()),
   };
 }

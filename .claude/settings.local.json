@@ -64,7 +64,8 @@
       "Bash(node -e ' *)",
       "Bash(node -e \"const x = require\\('mammoth'\\)\")",
       "Bash(python3 -c ' *)",
-      "Bash(node -e \"require\\('docxtemplater'\\); require\\('pizzip'\\); console.log\\('OK'\\)\")"
+      "Bash(node -e \"require\\('docxtemplater'\\); require\\('pizzip'\\); console.log\\('OK'\\)\")",
+      "Bash(unzip -p \"public/contratos/CONTRATO COMPRA FACILITADA DK160.docx\" word/document.xml)"
     ]
   }
 }

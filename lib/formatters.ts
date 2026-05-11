@@ -70,6 +70,25 @@ export function rawPhone(phone: string): string {
 }
 
 /**
+ * Formata valor monetário para BRL.
+ * Aceita número ou string em formato livre ("700", "700,00", "1.500,00", "R$ 700,00").
+ */
+export function formatBRL(value: string | number): string {
+  let num: number;
+  if (typeof value === 'number') {
+    num = value;
+  } else {
+    const cleaned = value.replace(/[R$\s]/g, '');
+    const normalized = cleaned.includes(',')
+      ? cleaned.replace(/\./g, '').replace(',', '.')
+      : cleaned;
+    num = parseFloat(normalized);
+  }
+  if (isNaN(num)) return typeof value === 'string' ? value : String(value);
+  return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+/**
  * Retorna número no formato correto para links wa.me.
  * Adiciona DDI "55" se necessário.
  */

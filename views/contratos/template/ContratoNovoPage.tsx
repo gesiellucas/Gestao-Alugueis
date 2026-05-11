@@ -12,7 +12,7 @@ import { fetchTemplateBuffer, fillDocxTemplate, downloadDocx, buildDateFields } 
 import { supabaseContractsApi } from '../../../database/api/supabase/contracts';
 import { supabaseContractDocumentsApi } from '../../../database/api/supabase/contractDocuments';
 import { localRentalsApi } from '../../../database/api/local/rentals';
-import { formatCPF } from '../../../lib/formatters';
+import { formatCPF, formatBRL } from '../../../lib/formatters';
 
 type Step = 'selecionar-template' | 'selecionar-cliente' | 'preencher-formulario';
 
@@ -171,6 +171,19 @@ function ContratoNovoPageInner() {
     try {
       const buffer = await fetchTemplateBuffer(selectedTemplate.templateFile);
       const allData = { ...buildDateFields(), ...formData };
+
+      // Formatar valor_recebido como BRL para o documento
+      if (allData.valor_recebido) {
+        allData.valor_recebido = formatBRL(allData.valor_recebido);
+      }
+
+      // DK160: o template tem ",{{dia_contrato}}" sem espaço após a vírgula.
+      // Adicionamos espaço apenas no início de dia_contrato; o template já
+      // fornece " de" após o dia e " {{" antes do mês via elementos com preserve.
+      if (selectedTemplate.id === 'compra-facilitada-dk160') {
+        if (allData.dia_contrato) allData.dia_contrato = ` ${allData.dia_contrato}`;
+      }
+
       const docxBlob = fillDocxTemplate(buffer, allData);
 
       const contract = await supabaseContractsApi.create({

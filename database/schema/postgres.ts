@@ -48,6 +48,7 @@ export const workshops = pgTable('workshops', {
 export const vehicleStatuses = pgTable('vehicle_statuses', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
+  code: text('code').notNull().default(''),
   color: text('color').notNull().default('#6b7280'),
   is_default: boolean('is_default').notNull().default(false),
   ...syncMetadataColumns,
@@ -92,6 +93,13 @@ export const customers = pgTable('customers', {
   active_contract: boolean('active_contract').notNull().default(false),
   balance_due: numeric('balance_due', { precision: 10, scale: 2 }).notNull().default('0'),
   last_payment_date: text('last_payment_date'),
+  email: text('email'),
+  address: text('address'),
+  neighborhood: text('neighborhood'),
+  city: text('city'),
+  state: text('state'),
+  cnh: text('cnh'),
+  cnh_category: text('cnh_category'),
   ...syncMetadataColumns,
 }, (table) => [
   index('idx_customers_user_id').on(table.user_id),
@@ -116,6 +124,7 @@ export const vehicleModels = pgTable('vehicle_models', {
 export const vehicles = pgTable('vehicles', {
   id: text('id').primaryKey(),
   plate: text('plate').notNull(),
+  chassi: text('chassi'),
   model_id: text('model_id'),
   year: numeric('year').notNull(),
   status_id: text('status_id').notNull(),
@@ -159,6 +168,10 @@ export const rentals = pgTable('rentals', {
 export const contracts = pgTable('contracts', {
   id: text('id').primaryKey(),
   rental_id: text('rental_id').notNull(),
+  template_id: text('template_id').notNull().default(''),
+  template_name: text('template_name').notNull().default(''),
+  form_data: text('form_data').notNull().default('{}'), // JSON stringificado
+  status: text('status').notNull().default('rascunho'), // rascunho | ativo | encerrado | cancelado
   ...syncMetadataColumns,
 }, (table) => [
   index('idx_contracts_rental_id').on(table.rental_id),
@@ -181,6 +194,7 @@ export const maintenanceRecords = pgTable('maintenance_records', {
   type: text('type').notNull(),
   cost: numeric('cost', { precision: 10, scale: 2 }).notNull().default('0'),
   status: text('status').notNull().default('OPEN'), // 'OPEN' | 'COMPLETED'
+  service_order_url: text('service_order_url'),
   ...syncMetadataColumns,
 }, (table) => [
   index('idx_maintenance_user_id').on(table.user_id),
@@ -212,7 +226,7 @@ export const unavailableVehicles = pgTable('unavailable_vehicles', {
 export const documents = pgTable('documents', {
   id: text('id').primaryKey(),
   parent_id: text('parent_id').notNull(),
-  origin_type: text('origin_type').notNull(), // 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE'
+  origin_type: text('origin_type').notNull(), // 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE' | 'SERVICE_ORDER'
   file_url: text('file_url').notNull(),
   ...syncMetadataColumns,
 }, (table) => [

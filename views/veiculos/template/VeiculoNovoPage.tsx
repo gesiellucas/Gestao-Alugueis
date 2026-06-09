@@ -4,22 +4,23 @@ import { useRouter } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
 import { localVehiclesApi } from "../../../database/api/local/vehicles";
 import { localVehicleModelsApi } from "../../../database/api/local/vehicleModels";
-import { VEHICLE_STATUS_IDS } from "../../../types";
 import { ArrowLeft, Save, PlusCircle, Link } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 
 export const VeiculoNovoPage: React.FC = () => {
   const router = useRouter();
-  const { setVehicles, vehicleModels, setVehicleModels } = useAppContext();
+  const { setVehicles, vehicleModels, setVehicleModels, vehicleStatusIds } = useAppContext();
 
   const [form, setForm] = useState<{
     plate: string;
+    chassi: string;
     model_id: string | "";
     year: number;
     mileage: number;
     default_monthly_rate: number;
   }>({
     plate: "",
+    chassi: "",
     model_id: "",
     year: new Date().getFullYear(),
     mileage: 0,
@@ -68,11 +69,19 @@ export const VeiculoNovoPage: React.FC = () => {
         return;
       }
 
+      const availableStatusId = vehicleStatusIds.AVAILABLE;
+      if (!availableStatusId) {
+        setError("Status 'Disponível' não encontrado no banco. Execute a migration e o seed.");
+        setSubmitting(false);
+        return;
+      }
+
       const newVehicle = await localVehiclesApi.create({
         plate: form.plate,
+        chassi: form.chassi || null,
         model_id: finalModelId as string,
         year: form.year,
-        status_id: VEHICLE_STATUS_IDS.AVAILABLE,
+        status_id: availableStatusId,
         mileage: form.mileage,
         default_monthly_rate: form.default_monthly_rate,
       });
@@ -80,6 +89,7 @@ export const VeiculoNovoPage: React.FC = () => {
       setVehicles((prev) => [newVehicle, ...prev]);
       router.push("/veiculos");
     } catch (err) {
+      console.error('[VeiculoNovo] Erro ao criar veículo:', err);
       setError("Erro ao cadastrar veículo. Verifique se a placa já não está cadastrada.");
     } finally {
       setSubmitting(false);
@@ -119,6 +129,22 @@ export const VeiculoNovoPage: React.FC = () => {
                 }
                 placeholder="ABC-1234"
                 required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+                Chassi
+              </label>
+              <input
+                type="text"
+                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
+                value={form.chassi}
+                onChange={(e) =>
+                  setForm({ ...form, chassi: e.target.value.toUpperCase() })
+                }
+                placeholder="9C2JC3110MR000000"
+                maxLength={17}
               />
             </div>
 

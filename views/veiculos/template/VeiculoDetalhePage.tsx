@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
-import { VEHICLE_STATUS_IDS, Document, UnavailableStatusType } from "../../../types";
+import { Document, UnavailableStatusType } from "../../../types";
 import { supabaseDocumentsApi } from "../../../database/api/supabase/documents";
 import { supabaseWorkshopDocumentsApi } from "../../../database/api/supabase/workshopDocuments";
 import {
@@ -23,10 +23,11 @@ import {
   ShieldOff,
   ImagePlus,
   FileText,
+  Trash2,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
-import { formatDate, formatPhone, toWhatsApp } from "../../../lib/formatters";
+import { formatDate, formatDateTime, formatPhone, toWhatsApp } from "../../../lib/formatters";
 
 function PhotoCellReadOnly({ recordId }: { recordId: string }) {
   const [photos, setPhotos] = useState<Document[]>([]);
@@ -92,10 +93,12 @@ export const VeiculoDetalhePage: React.FC = () => {
   const params = useParams();
   const id = (typeof window !== 'undefined' && (!params.id || params.id === 'placeholder') ? window.location.pathname.split('/').filter(Boolean).pop() : params.id) as string;
   const router = useRouter();
-  const { vehicles, customers, maintenanceRecords, rentalContracts, unavailableVehicles, handleEndRental, handleMakeVehicleUnavailable, loading } =
+  const { vehicles, customers, maintenanceRecords, rentalContracts, unavailableVehicles, handleEndRental, handleDeleteVehicle, handleMakeVehicleUnavailable, loading, vehicleStatusIds } =
     useAppContext();
   const [endingRental, setEndingRental] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
 
   // Unavailable modal state
@@ -247,7 +250,7 @@ export const VeiculoDetalhePage: React.FC = () => {
             <>
               <div className="fixed inset-0 z-40" onClick={() => setActionsOpen(false)} />
               <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200 z-50 py-1 overflow-hidden">
-                {vehicle.status_id === VEHICLE_STATUS_IDS.AVAILABLE && !isUnavailable && (
+                {vehicle.status_id === vehicleStatusIds.AVAILABLE && !isUnavailable && (
                   <Link
                     href={`/aluguel/novo/${vehicle.id}`}
                     className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-green-700 hover:bg-green-50 transition-colors"
@@ -256,7 +259,7 @@ export const VeiculoDetalhePage: React.FC = () => {
                     <KeyRound size={16} /> Alugar Moto
                   </Link>
                 )}
-                {vehicle.status_id === VEHICLE_STATUS_IDS.RENTED && (
+                {vehicle.status_id === vehicleStatusIds.RENTED && (
                   <button
                     onClick={() => { setShowEndConfirm(true); setActionsOpen(false); }}
                     className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
@@ -264,7 +267,7 @@ export const VeiculoDetalhePage: React.FC = () => {
                     <XCircle size={16} /> Encerrar Contrato
                   </button>
                 )}
-                {vehicle.status_id !== VEHICLE_STATUS_IDS.MAINTENANCE && !isUnavailable && (
+                {vehicle.status_id !== vehicleStatusIds.MAINTENANCE && !isUnavailable && (
                   <Link
                     href={`/oficina/novo_entrada?plate=${vehicle.plate}`}
                     className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-amber-600 hover:bg-amber-50 transition-colors"
@@ -287,6 +290,17 @@ export const VeiculoDetalhePage: React.FC = () => {
                   >
                     <ShieldOff size={16} /> Indisponível
                   </button>
+                )}
+                {vehicle.status_id === vehicleStatusIds.AVAILABLE && !isUnavailable && (
+                  <>
+                    <div className="border-t border-slate-100 my-1" />
+                    <button
+                      onClick={() => { setActionsOpen(false); setShowDeleteConfirm(true); }}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 size={16} /> Excluir Veículo
+                    </button>
+                  </>
                 )}
               </div>
             </>
@@ -342,6 +356,43 @@ export const VeiculoDetalhePage: React.FC = () => {
         </div>
       )}
 
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-6">
+            <h3 className="text-xl font-extrabold text-red-600">Excluir Veículo</h3>
+            <p className="text-slate-600">
+              Tem certeza que deseja excluir o veículo{" "}
+              <span className="font-bold font-mono">{vehicle.plate}</span>? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 py-3 font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  setDeleting(true);
+                  try {
+                    await handleDeleteVehicle(vehicle.id);
+                    router.push('/veiculos');
+                  } finally {
+                    setDeleting(false);
+                    setShowDeleteConfirm(false);
+                  }
+                }}
+                disabled={deleting}
+                className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all disabled:opacity-50"
+              >
+                {deleting ? 'Excluindo...' : 'Excluir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="flex items-center bg-brand-blue gap-3 px-6 py-4 border-b border-slate-100">
           <h3 className="font-bold text-white text-sm">
@@ -379,6 +430,14 @@ export const VeiculoDetalhePage: React.FC = () => {
                 </span>
                 <span className="font-bold text-slate-700 font-mono tracking-tight">{vehicle.plate}</span>
               </div>
+              {vehicle.chassi && (
+                <div className="flex items-center justify-between py-3">
+                  <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                    <Hash size={12} /> Chassi
+                  </span>
+                  <span className="font-bold text-slate-700 font-mono tracking-tight text-sm">{vehicle.chassi}</span>
+                </div>
+              )}
               <div className="flex items-center justify-between py-3">
                 <span className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
                   <Calendar size={12} /> Ano
@@ -629,17 +688,17 @@ export const VeiculoDetalhePage: React.FC = () => {
                     <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name || '—'}</td>
                     <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description || '—'}</td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      {formatDate(record.entry_date)}
+                      {formatDateTime(record.entry_date)}
                     </td>
                     <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                      {record.completion_date ? formatDate(record.completion_date) : '—'}
+                      {record.completion_date ? formatDateTime(record.completion_date) : '—'}
                     </td>
                     <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
                       <PhotoCellReadOnly recordId={record.id} />
                     </td>
                     <td className="px-6 py-4">
                       {record.status === "OPEN" ? (
-                        <span className="bg-amber-100 text-amber-700 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-amber-200 inline-flex items-center gap-1">
+                        <span className="bg-amber-100 text-amber-700 text-[7px] font-bold px-2.5 py-1 rounded-full uppercase tracking-widest border border-amber-200 inline-flex items-center gap-1">
                           <Wrench size={10} /> Em andamento
                         </span>
                       ) : (
@@ -681,13 +740,12 @@ export const VeiculoDetalhePage: React.FC = () => {
                     key={opt.value}
                     type="button"
                     onClick={() => setUnavailableType(opt.value)}
-                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-colors ${
-                      unavailableType === opt.value
-                        ? opt.color === 'purple'
-                          ? 'border-purple-500 bg-purple-50 text-purple-700'
-                          : 'border-slate-700 bg-slate-50 text-slate-800'
-                        : 'border-slate-200 text-slate-400 hover:border-slate-300'
-                    }`}
+                    className={`flex-1 py-2.5 rounded-xl text-sm font-bold border-2 transition-colors ${unavailableType === opt.value
+                      ? opt.color === 'purple'
+                        ? 'border-purple-500 bg-purple-50 text-purple-700'
+                        : 'border-slate-700 bg-slate-50 text-slate-800'
+                      : 'border-slate-200 text-slate-400 hover:border-slate-300'
+                      }`}
                   >
                     {opt.label}
                   </button>

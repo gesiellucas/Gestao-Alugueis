@@ -161,6 +161,13 @@ export interface Database {
           active_contract: boolean;
           balance_due: number;
           last_payment_date: string | null;
+          email: string | null;
+          address: string | null;
+          neighborhood: string | null;
+          city: string | null;
+          state: string | null;
+          cnh: string | null;
+          cnh_category: string | null;
           created_at: string;
           updated_at: string;
           updated_by: string | null;
@@ -178,6 +185,13 @@ export interface Database {
           active_contract?: boolean;
           balance_due?: number;
           last_payment_date?: string | null;
+          email?: string | null;
+          address?: string | null;
+          neighborhood?: string | null;
+          city?: string | null;
+          state?: string | null;
+          cnh?: string | null;
+          cnh_category?: string | null;
           created_at?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -195,6 +209,13 @@ export interface Database {
           active_contract?: boolean;
           balance_due?: number;
           last_payment_date?: string | null;
+          email?: string | null;
+          address?: string | null;
+          neighborhood?: string | null;
+          city?: string | null;
+          state?: string | null;
+          cnh?: string | null;
+          cnh_category?: string | null;
           created_at?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -254,6 +275,7 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          code: string;
           color: string;
           is_default: boolean;
           created_at: string;
@@ -267,6 +289,7 @@ export interface Database {
         Insert: {
           id: string;
           name: string;
+          code?: string;
           color?: string;
           is_default?: boolean;
           created_at?: string;
@@ -280,6 +303,7 @@ export interface Database {
         Update: {
           id?: string;
           name?: string;
+          code?: string;
           color?: string;
           is_default?: boolean;
           created_at?: string;
@@ -296,6 +320,7 @@ export interface Database {
         Row: {
           id: string;
           plate: string;
+          chassi: string | null;
           model_id: string;
           year: number;
           status_id: string;
@@ -313,6 +338,7 @@ export interface Database {
         Insert: {
           id: string;
           plate: string;
+          chassi?: string | null;
           model_id: string;
           year: number;
           status_id: string;
@@ -330,6 +356,7 @@ export interface Database {
         Update: {
           id?: string;
           plate?: string;
+          chassi?: string | null;
           model_id?: string;
           year?: number;
           status_id?: string;
@@ -441,6 +468,10 @@ export interface Database {
         Row: {
           id: string;
           rental_id: string;
+          template_id: string;
+          template_name: string;
+          form_data: string; // JSON stringificado
+          status: string; // rascunho | ativo | encerrado | cancelado
           created_at: string;
           updated_at: string;
           updated_by: string | null;
@@ -452,6 +483,10 @@ export interface Database {
         Insert: {
           id: string;
           rental_id: string;
+          template_id?: string;
+          template_name?: string;
+          form_data?: string;
+          status?: string;
           created_at?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -463,6 +498,10 @@ export interface Database {
         Update: {
           id?: string;
           rental_id?: string;
+          template_id?: string;
+          template_name?: string;
+          form_data?: string;
+          status?: string;
           created_at?: string;
           updated_at?: string;
           updated_by?: string | null;
@@ -622,7 +661,7 @@ export interface Database {
         Row: {
           id: string;
           parent_id: string;
-          origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE';
+          origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE' | 'SERVICE_ORDER';
           file_url: string;
           created_at: string;
           updated_at: string;
@@ -635,7 +674,7 @@ export interface Database {
         Insert: {
           id: string;
           parent_id: string;
-          origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE';
+          origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE' | 'SERVICE_ORDER';
           file_url: string;
           created_at?: string;
           updated_at?: string;
@@ -648,7 +687,7 @@ export interface Database {
         Update: {
           id?: string;
           parent_id?: string;
-          origin_type?: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE';
+          origin_type?: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE' | 'SERVICE_ORDER';
           file_url?: string;
           created_at?: string;
           updated_at?: string;

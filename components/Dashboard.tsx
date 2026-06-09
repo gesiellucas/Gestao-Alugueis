@@ -1,6 +1,5 @@
 'use client';
 import React from "react";
-import { VEHICLE_STATUS_IDS } from "../types";
 import { useAppContext } from "../contexts/AppContext";
 import { Wrench, Bike, TrendingUp, Lock, ShieldOff } from "lucide-react";
 import StatCard from "./StatCard";
@@ -9,15 +8,15 @@ import GaugeChart from "./GaugeChart";
 import { useFinanceAccess } from "../hooks/useFinanceAccess";
 
 export const Dashboard: React.FC = () => {
-  const { vehicles, maintenanceRecords: records } = useAppContext();
+  const { vehicles, maintenanceRecords: records, vehicleStatusIds } = useAppContext();
   const hasFinanceAccess = useFinanceAccess();
 
   const totalVehicles = vehicles.length;
   const rentedVehicles = vehicles.filter(
-    (v) => v.status_id === VEHICLE_STATUS_IDS.RENTED,
+    (v) => v.status_id === vehicleStatusIds.RENTED,
   ).length;
   const inMaintenance = vehicles.filter(
-    (v) => v.status_id === VEHICLE_STATUS_IDS.MAINTENANCE,
+    (v) => v.status_id === vehicleStatusIds.MAINTENANCE,
   ).length;
   const unavailableVehicles = vehicles.filter(
     (v) => v.vehicleStatus?.name === 'Roubada' || v.vehicleStatus?.name === 'PT',

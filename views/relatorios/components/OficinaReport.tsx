@@ -5,7 +5,7 @@ import { ReportFilters, FilterSelect, type DateRange } from './ReportFilters';
 import { ExportBar } from './ExportBar';
 import { exportReport, type ExportFormat } from '@/lib/exportReport';
 import { printReport } from '@/lib/printReport';
-import { formatDate } from '@/lib/formatters';
+import { formatDateTime } from '@/lib/formatters';
 
 export const OficinaReport: React.FC = () => {
   const { maintenanceRecords, vehicles, workshops } = useAppContext();
@@ -17,6 +17,8 @@ export const OficinaReport: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState('');
   const [sortByCost, setSortByCost] = useState('');
   const [mechanicFilter, setMechanicFilter] = useState('');
+  const [vehicleFilter, setVehicleFilter] = useState('');
+  const [workshopFilter, setWorkshopFilter] = useState('');
 
   const mechanics = useMemo(() => {
     const set = new Set(maintenanceRecords.map((m) => m.mechanic_name).filter(Boolean));
@@ -30,6 +32,8 @@ export const OficinaReport: React.FC = () => {
       if (dateRange.end && entryDate > dateRange.end) return false;
       if (statusFilter && m.status !== statusFilter) return false;
       if (mechanicFilter && m.mechanic_name !== mechanicFilter) return false;
+      if (vehicleFilter && m.vehicle_id !== vehicleFilter) return false;
+      if (workshopFilter && m.workshop_id !== workshopFilter) return false;
       return true;
     });
 
@@ -37,7 +41,7 @@ export const OficinaReport: React.FC = () => {
     if (sortByCost === 'desc') data = [...data].sort((a, b) => b.cost - a.cost);
 
     return data;
-  }, [maintenanceRecords, dateRange, statusFilter, sortByCost, mechanicFilter]);
+  }, [maintenanceRecords, dateRange, statusFilter, sortByCost, mechanicFilter, vehicleFilter, workshopFilter]);
 
   const getVehiclePlate = (vehicleId: string) => {
     return vehicles.find((v) => v.id === vehicleId)?.plate || vehicleId;
@@ -67,8 +71,8 @@ export const OficinaReport: React.FC = () => {
       mechanic_name: m.mechanic_name,
       type: m.type,
       description: m.description,
-      entry_date_fmt: formatDate(m.entry_date),
-      completion_date_fmt: m.completion_date ? formatDate(m.completion_date) : '—',
+      entry_date_fmt: formatDateTime(m.entry_date),
+      completion_date_fmt: m.completion_date ? formatDateTime(m.completion_date) : '—',
       cost_fmt: m.cost.toFixed(2),
       status_label: m.status === 'OPEN' ? 'Aberto' : 'Concluído',
     }));
@@ -84,11 +88,13 @@ export const OficinaReport: React.FC = () => {
     const columns = [
       { label: 'Placa' }, { label: 'Oficina' }, { label: 'Mecânico' }, { label: 'Tipo' },
       { label: 'Entrada' }, { label: 'Conclusão' }, { label: 'Custo (R$)' }, { label: 'Status' },
+      { label: 'Observações' },
     ];
     const rows = filtered.map((m) => [
       getVehiclePlate(m.vehicle_id), getWorkshopName(m.workshop_id), m.mechanic_name, m.type,
-      formatDate(m.entry_date), m.completion_date ? formatDate(m.completion_date) : '—',
+      formatDateTime(m.entry_date), m.completion_date ? formatDateTime(m.completion_date) : '—',
       m.cost.toFixed(2), m.status === 'OPEN' ? 'Aberto' : 'Concluído',
+      m.description || '—',
     ]);
     printReport({ title: 'Relatório de Oficina', subtitle: `Período: ${dateRange.start} a ${dateRange.end}`, columns, rows });
   };
@@ -96,6 +102,20 @@ export const OficinaReport: React.FC = () => {
   return (
     <div className="space-y-5">
       <ReportFilters dateRange={dateRange} onDateRangeChange={setDateRange}>
+        <FilterSelect
+          label="Veículo"
+          value={vehicleFilter}
+          onChange={setVehicleFilter}
+          options={vehicles.map((v) => ({ value: v.id, label: `${v.plate} — ${v.model?.name || ''}` }))}
+          placeholder="Todos os veículos"
+        />
+        <FilterSelect
+          label="Oficina"
+          value={workshopFilter}
+          onChange={setWorkshopFilter}
+          options={workshops.map((w) => ({ value: w.id, label: w.name }))}
+          placeholder="Todas as oficinas"
+        />
         <FilterSelect
           label="Status do Serviço"
           value={statusFilter}
@@ -139,12 +159,13 @@ export const OficinaReport: React.FC = () => {
                 <th>Conclusão</th>
                 <th>Custo</th>
                 <th>Status</th>
+                <th>Observações</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-10 text-center text-slate-400 text-sm">
+                  <td colSpan={9} className="px-5 py-10 text-center text-slate-400 text-sm">
                     Nenhum registro encontrado para o período selecionado.
                   </td>
                 </tr>
@@ -155,13 +176,16 @@ export const OficinaReport: React.FC = () => {
                     <td className="px-5 py-3 text-slate-600">{getWorkshopName(m.workshop_id)}</td>
                     <td className="px-5 py-3 text-slate-600">{m.mechanic_name}</td>
                     <td className="px-5 py-3 text-slate-600">{m.type}</td>
-                    <td className="px-5 py-3 text-slate-600">{formatDate(m.entry_date)}</td>
-                    <td className="px-5 py-3 text-slate-600">{m.completion_date ? formatDate(m.completion_date) : '—'}</td>
+                    <td className="px-5 py-3 text-slate-600">{formatDateTime(m.entry_date)}</td>
+                    <td className="px-5 py-3 text-slate-600">{m.completion_date ? formatDateTime(m.completion_date) : '—'}</td>
                     <td className="px-5 py-3 font-bold text-slate-700">R$ {m.cost.toFixed(2)}</td>
                     <td className="px-5 py-3">
                       <span className={`inline-block px-2.5 py-1 rounded-lg text-xs font-bold ${m.status === 'OPEN' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
                         {m.status === 'OPEN' ? 'Aberto' : 'Concluído'}
                       </span>
+                    </td>
+                    <td className="px-5 py-3 text-slate-500 max-w-xs truncate" title={m.description || ''}>
+                      {m.description || '—'}
                     </td>
                   </tr>
                 ))

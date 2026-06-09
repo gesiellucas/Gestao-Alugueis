@@ -7,16 +7,6 @@ export interface PaginatedResult<T> {
   totalPages: number;
 }
 
-// Seed IDs for default vehicle statuses (match vehicle_statuses table)
-// IDs devem corresponder aos registros no seed (vehicle_statuses)
-export const VEHICLE_STATUS_IDS = {
-  AVAILABLE: '1',
-  RENTED: '2',
-  MAINTENANCE: '3',
-  UNAVAILABLE: '4',
-  STOLEN: '5',
-  TOTALED: '6',
-} as const;
 
 export interface SyncMetadata {
   created_at: string;
@@ -38,6 +28,7 @@ export interface Workshop extends SyncMetadata {
 export interface VehicleStatusRecord extends SyncMetadata {
   id: string;
   name: string;
+  code: string; // Stable semantic key: AVAILABLE, RENTED, MAINTENANCE, UNAVAILABLE, STOLEN, TOTALED
   color: string;
   is_default: boolean | number;
 }
@@ -66,6 +57,13 @@ export interface Customer extends SyncMetadata {
   active_contract: boolean;
   balance_due: number;
   last_payment_date?: string | null;
+  email?: string | null;
+  address?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  state?: string | null;
+  cnh?: string | null;
+  cnh_category?: string | null;
 }
 
 export interface VehicleModel extends SyncMetadata {
@@ -79,6 +77,7 @@ export interface VehicleModel extends SyncMetadata {
 export interface Vehicle extends SyncMetadata {
   id: string;
   plate: string;
+  chassi?: string | null;
   model_id: string;
   model?: VehicleModel; // Populated from join
   year: number;
@@ -103,6 +102,46 @@ export interface RentalContract extends SyncMetadata {
 export interface Contract extends SyncMetadata {
   id: string;
   rental_id: string;
+  template_id: string;
+  template_name: string;
+  form_data: Record<string, string>; // variáveis preenchidas do template
+  status: ContratoStatus;
+}
+
+export type ContratoFieldType = 'text' | 'textarea' | 'date' | 'number' | 'select' | 'cpf' | 'phone';
+
+export interface ContratoTemplateField {
+  key: string;
+  label: string;
+  type: ContratoFieldType;
+  required: boolean;
+  placeholder?: string;
+  options?: string[];
+  /** Caminho para pré-preencher: 'customer.name', 'customer.cpf', 'vehicle.plate' */
+  source?: string;
+}
+
+export interface ContratoTemplate {
+  id: string;
+  name: string;
+  description: string;
+  /** Caminho relativo ao /public para o arquivo .docx de template */
+  templateFile: string;
+  fields: ContratoTemplateField[];
+}
+
+export type ContratoStatus = 'rascunho' | 'ativo' | 'encerrado' | 'cancelado';
+
+export interface ContratoGerado {
+  id: string;
+  template_id: string;
+  template_name: string;
+  data: Record<string, string | number>;
+  status: ContratoStatus;
+  customer_id?: string | null;
+  user_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export type MaintenanceType = 'Revisão Periódica' | 'Corretiva/Quebra' | 'Troca de Óleo' | 'Troca de Pneu' | 'Vistoria de Entrada';
@@ -120,6 +159,7 @@ export interface MaintenanceRecord extends SyncMetadata {
   type: MaintenanceType;
   cost: number;
   status: 'OPEN' | 'COMPLETED';
+  service_order_url?: string | null;
 }
 
 export type UnavailableStatusType = 'STOLEN' | 'TOTAL_LOSS';
@@ -135,6 +175,6 @@ export interface UnavailableVehicle extends SyncMetadata {
 export interface Document extends SyncMetadata {
   id: string;
   parent_id: string;
-  origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE';
+  origin_type: 'CONTRACT' | 'WORKSHOP' | 'UNAVAILABLE_VEHICLE' | 'SERVICE_ORDER';
   file_url: string;
 }

@@ -18,6 +18,8 @@ export const WorkshopsTab: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<FormData>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = async () => {
     try {
@@ -79,12 +81,15 @@ export const WorkshopsTab: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Deseja excluir esta oficina?')) return;
+    setDeleting(true);
     try {
       await localWorkshopsApi.delete(id);
+      setConfirmDeleteId(null);
       await load();
     } catch {
       alert('Erro ao excluir oficina.');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -200,7 +205,7 @@ export const WorkshopsTab: React.FC = () => {
                           <Edit2 size={16} />
                         </button>
                         <button
-                          onClick={() => handleDelete(w.id)}
+                          onClick={() => setConfirmDeleteId(w.id)}
                           className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
                         >
                           <Trash2 size={16} />
@@ -222,6 +227,36 @@ export const WorkshopsTab: React.FC = () => {
           />
         </>
       )}
+      {confirmDeleteId && (() => {
+        const w = workshops.find(x => x.id === confirmDeleteId);
+        return (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-6">
+              <h3 className="text-xl font-extrabold text-red-600">Excluir Oficina</h3>
+              <p className="text-slate-600">
+                Tem certeza que deseja excluir a oficina{" "}
+                <span className="font-bold">{w?.name}</span>?
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setConfirmDeleteId(null)}
+                  disabled={deleting}
+                  className="flex-1 py-3 font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => handleDelete(confirmDeleteId)}
+                  disabled={deleting}
+                  className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all disabled:opacity-50"
+                >
+                  {deleting ? 'Excluindo...' : 'Excluir'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 };

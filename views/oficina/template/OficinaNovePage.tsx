@@ -2,7 +2,7 @@
 import React, { useState, useRef, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAppContext } from "../../../contexts/AppContext";
-import { MaintenanceRecord, VEHICLE_STATUS_IDS } from "../../../types";
+import { MaintenanceRecord } from "../../../types";
 import { Camera, X } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { supabaseWorkshopDocumentsApi } from "../../../database/api/supabase/workshopDocuments";
@@ -10,7 +10,7 @@ import { supabaseWorkshopDocumentsApi } from "../../../database/api/supabase/wor
 export const OficinaNovePage: React.FC = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { vehicles, workshops, handleAddMaintenanceRecord } = useAppContext();
+  const { vehicles, workshops, handleAddMaintenanceRecord, vehicleStatusIds } = useAppContext();
 
   const [selectedPlate, setSelectedPlate] = useState(searchParams.get("plate") ?? "");
   const [selectedWorkshopId, setSelectedWorkshopId] = useState<string | "">("");
@@ -18,6 +18,7 @@ export const OficinaNovePage: React.FC = () => {
   const [form, setForm] = useState({
     description: "",
     mechanic_name: "",
+    entry_date: new Date().toISOString().slice(0, 16),
   });
 
   const [photoFiles, setPhotoFiles] = useState<File[]>([]);
@@ -43,7 +44,7 @@ export const OficinaNovePage: React.FC = () => {
   }, []);
 
   const availableVehicles = vehicles.filter(
-    (v) => v.status_id !== VEHICLE_STATUS_IDS.MAINTENANCE,
+    (v) => v.status_id !== vehicleStatusIds.MAINTENANCE,
   );
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,7 +59,7 @@ export const OficinaNovePage: React.FC = () => {
       vehicle_id: vehicle.id,
       workshop_id: selectedWorkshopId || null,
       vehicle_plate: vehicle.plate,
-      entry_date: now,
+      entry_date: new Date(form.entry_date).toISOString(),
       status: "OPEN",
       cost: 0,
       type: 'Revisão Periódica',
@@ -149,6 +150,19 @@ export const OficinaNovePage: React.FC = () => {
                 </option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-400 mb-2">
+              Data e Hora de Entrada
+            </label>
+            <input
+              type="datetime-local"
+              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
+              value={form.entry_date}
+              onChange={(e) => setForm({ ...form, entry_date: e.target.value })}
+              required
+            />
           </div>
 
           <div>

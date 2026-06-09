@@ -12,15 +12,10 @@ if (!supabaseUrl || !supabaseAnonKey || !supabasePublishableKey) {
   );
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabasePublishableKey, {
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true
-  },
-  global: {
-    headers: {
-      'Authorization': `Bearer ${supabaseAnonKey}`
-    }
   }
 });

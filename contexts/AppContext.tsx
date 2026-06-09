@@ -4,7 +4,6 @@ import {
   Vehicle,
   MaintenanceRecord,
   Customer,
-  VEHICLE_STATUS_IDS,
   VehicleStatusRecord,
   AppUser,
   RentalContract,
@@ -32,6 +31,7 @@ interface AppContextType {
   vehicleModels: VehicleModel[];
   setVehicleModels: React.Dispatch<React.SetStateAction<VehicleModel[]>>;
   vehicleStatuses: VehicleStatusRecord[];
+  vehicleStatusIds: Record<string, string>;
   workshops: Workshop[];
   maintenanceRecords: MaintenanceRecord[];
   setMaintenanceRecords: React.Dispatch<
@@ -46,6 +46,8 @@ interface AppContextType {
   handleCreateRental: (vehicleId: string, customerId: string, monthlyRate: number, startDate: string) => Promise<RentalContract>;
   handleUpdateRental: (id: string, updates: { start_date?: string; monthly_rate?: number }) => Promise<void>;
   handleEndRental: (vehicleId: string) => Promise<void>;
+  handleDeleteVehicle: (vehicleId: string) => Promise<void>;
+  handleDeleteCustomer: (customerId: string) => Promise<void>;
   unavailableVehicles: UnavailableVehicle[];
   handleMakeVehicleUnavailable: (vehicleId: string, statusType: UnavailableStatusType, reason: string) => Promise<UnavailableVehicle>;
   loading: boolean;
@@ -79,6 +81,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   const [unavailableVehicles, setUnavailableVehicles] = useState<UnavailableVehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // const vehicleStatusIds: Record<string, string> = Object.fromEntries(
+  //   vehicleStatuses.map((s) => [s.name, s.id])
+  // );
+
+  const vehicleStatusIds = {
+    AVAILABLE: "1",
+    RENTED: "2",
+    MAINTENANCE: "3",
+    UNAVAILABLE: "4",
+    RESERVED: "5",
+    STOLEN: "6",
+    TOTALED: "7",
+  }
 
   // Re-hydrate user from localStorage on mount
   useEffect(() => {
@@ -170,16 +186,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       await localVehiclesApi.updateStatus(
         record.vehicle_id,
-        VEHICLE_STATUS_IDS.MAINTENANCE,
+        vehicleStatusIds.MAINTENANCE,
       );
 
-      const maintenanceStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.MAINTENANCE);
+      const maintenanceStatus = vehicleStatuses.find(s => s.id === vehicleStatusIds.MAINTENANCE);
 
       setMaintenanceRecords((prev) => [newRecord, ...prev]);
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === record.vehicle_id
-            ? { ...v, status_id: VEHICLE_STATUS_IDS.MAINTENANCE, vehicleStatus: maintenanceStatus }
+            ? { ...v, status_id: vehicleStatusIds.MAINTENANCE, vehicleStatus: maintenanceStatus }
             : v,
         ),
       );
@@ -195,22 +211,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
 
       await localMaintenanceApi.complete(recordId, record.cost);
 
-      await localVehiclesApi.updateStatus(
-        record.vehicle_id,
-        VEHICLE_STATUS_IDS.AVAILABLE,
+      // Se havia contrato ativo quando foi para manutenção, restaura para ALUGADO
+      const activeContract = rentalContracts.find(
+        (c) => c.vehicle_id === record.vehicle_id && c.status === 'ACTIVE',
       );
 
-      const availableStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.AVAILABLE);
+      const targetStatusId = activeContract
+        ? vehicleStatusIds.RENTED
+        : vehicleStatusIds.AVAILABLE;
+      const targetStatus = vehicleStatuses.find(s => s.id === targetStatusId);
+
+      await localVehiclesApi.updateStatus(record.vehicle_id, targetStatusId);
 
       setMaintenanceRecords((prev) =>
         prev.map((r) =>
           r.id === recordId
-            ? {
-              ...r,
-              status: "COMPLETED",
-              completion_date: new Date().toISOString(),
-              cost: record.cost,
-            }
+            ? { ...r, status: "COMPLETED", completion_date: new Date().toISOString(), cost: record.cost }
             : r,
         ),
       );
@@ -218,7 +234,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === record.vehicle_id
-            ? { ...v, status_id: VEHICLE_STATUS_IDS.AVAILABLE, vehicleStatus: availableStatus }
+            ? { ...v, status_id: targetStatusId, vehicleStatus: targetStatus }
             : v,
         ),
       );
@@ -244,11 +260,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       });
 
       await localVehiclesApi.update(vehicleId, {
-        status_id: VEHICLE_STATUS_IDS.RENTED,
+        status_id: vehicleStatusIds.RENTED,
         current_renter_id: customerId,
       });
 
-      const rentedStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.RENTED);
+      const rentedStatus = vehicleStatuses.find(s => s.id === vehicleStatusIds.RENTED);
 
       await localCustomersApi.update(customerId, { active_contract: true });
 
@@ -256,7 +272,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === vehicleId
-            ? { ...v, status_id: VEHICLE_STATUS_IDS.RENTED, vehicleStatus: rentedStatus, current_renter_id: customerId }
+            ? { ...v, status_id: vehicleStatusIds.RENTED, vehicleStatus: rentedStatus, current_renter_id: customerId }
             : v,
         ),
       );
@@ -288,11 +304,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       await localRentalsApi.end(activeContract.id);
 
       await localVehiclesApi.update(vehicleId, {
-        status_id: VEHICLE_STATUS_IDS.AVAILABLE,
+        status_id: vehicleStatusIds.AVAILABLE,
         current_renter_id: null,
       });
 
-      const availableStatus = vehicleStatuses.find(s => s.id === VEHICLE_STATUS_IDS.AVAILABLE);
+      const availableStatus = vehicleStatuses.find(s => s.id === vehicleStatusIds.AVAILABLE);
 
       const customerId = activeContract.customer_id;
       const otherActiveContracts = rentalContracts.filter(
@@ -316,7 +332,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       setVehicles((prev) =>
         prev.map((v) =>
           v.id === vehicleId
-            ? { ...v, status_id: VEHICLE_STATUS_IDS.AVAILABLE, vehicleStatus: availableStatus, current_renter_id: null }
+            ? { ...v, status_id: vehicleStatusIds.AVAILABLE, vehicleStatus: availableStatus, current_renter_id: null }
             : v,
         ),
       );
@@ -332,6 +348,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  const handleDeleteVehicle = async (vehicleId: string): Promise<void> => {
+    await localVehiclesApi.delete(vehicleId);
+    setVehicles((prev) => prev.filter((v) => v.id !== vehicleId));
+  };
+
+  const handleDeleteCustomer = async (customerId: string): Promise<void> => {
+    await localCustomersApi.delete(customerId);
+    setCustomers((prev) => prev.filter((c) => c.id !== customerId));
+  };
+
   const handleMakeVehicleUnavailable = async (
     vehicleId: string,
     statusType: UnavailableStatusType,
@@ -345,9 +371,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
       reason,
     });
 
-    // Encontra o status correspondente (Roubada = '5', PT = '6')
-    const statusName = statusType === 'STOLEN' ? 'Roubada' : 'PT';
-    const targetStatus = vehicleStatuses.find(s => s.name === statusName);
+    const statusCode = statusType === 'STOLEN' ? 'STOLEN' : 'TOTALED';
+    const targetStatus = vehicleStatuses.find(s => s.code === statusCode);
     const targetStatusId = targetStatus?.id ?? '';
 
     if (targetStatusId) {
@@ -400,6 +425,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         vehicleModels,
         setVehicleModels,
         vehicleStatuses,
+        vehicleStatusIds,
         workshops,
         maintenanceRecords,
         setMaintenanceRecords,
@@ -412,6 +438,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         handleCreateRental,
         handleUpdateRental,
         handleEndRental,
+        handleDeleteVehicle,
+        handleDeleteCustomer,
         unavailableVehicles,
         handleMakeVehicleUnavailable,
         loading,

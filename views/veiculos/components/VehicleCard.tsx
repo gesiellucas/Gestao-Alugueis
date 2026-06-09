@@ -3,7 +3,7 @@ import React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Hash, Circle, User, DollarSign, Wrench } from "lucide-react";
-import { VEHICLE_STATUS_IDS } from "../../../types";
+import { useAppContext } from "../../../contexts/AppContext";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
 
 interface VehicleCardProps {
@@ -41,6 +41,7 @@ export const VehicleCard = ({
 }: VehicleCardProps) => {
   const router = useRouter();
   const hasFinanceAccess = useFinanceAccess();
+  const { vehicleStatusIds } = useAppContext();
 
   const handleClientClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -54,7 +55,7 @@ export const VehicleCard = ({
     e.preventDefault();
     e.stopPropagation();
     if (maintenanceId) {
-      router.push(`/oficina/${maintenanceId}`);
+      router.push(`/oficina/manutencao/${maintenanceId}`);
     }
   };
 
@@ -104,7 +105,7 @@ export const VehicleCard = ({
         </div>
 
         <div className="space-y-3">
-          {status_id === VEHICLE_STATUS_IDS.RENTED && current_renter_id ? (
+          {status_id === vehicleStatusIds.RENTED && current_renter_id ? (
             <div
               className="flex items-center gap-3 p-3 bg-blue-50 rounded-xl border border-blue-100 hover:bg-blue-100 transition-colors cursor-pointer"
               onClick={handleClientClick}
@@ -121,7 +122,7 @@ export const VehicleCard = ({
                 </p>
               </div>
             </div>
-          ) : status_id === VEHICLE_STATUS_IDS.MAINTENANCE && maintenanceId ? (
+          ) : status_id === vehicleStatusIds.MAINTENANCE && maintenanceId ? (
             <div
               className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl border border-amber-100 hover:bg-amber-100 transition-colors cursor-pointer"
               onClick={handleMaintenanceClick}

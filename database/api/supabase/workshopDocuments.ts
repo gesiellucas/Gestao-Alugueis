@@ -4,7 +4,11 @@
  * Fotos de manutenção armazenadas na Supabase Storage no bucket "workshop-documents".
  * Caminho: workshop-documents/{maintenanceRecordId}/{uuid}.{ext}
  *
- * A tabela `documents` usa parent_id = maintenanceRecord.id e origin_type = 'WORKSHOP'.
+ * Tipos de documento:
+ *   - WORKSHOP       → fotos da manutenção
+ *   - SERVICE_ORDER  → PDF da Ordem de Serviço
+ *
+ * Ambos usam parent_id = maintenanceRecord.id na tabela `documents`.
  */
 import { supabase } from '../../client/supabase';
 import { Document } from '../../../types';
@@ -16,7 +20,7 @@ function mapRow(row: Record<string, unknown>): Document {
     ...row,
     id: row.id as string,
     parent_id: row.parent_id as string,
-    origin_type: row.origin_type as 'CONTRACT' | 'WORKSHOP',
+    origin_type: row.origin_type as Document['origin_type'],
     file_url: row.file_url as string,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
@@ -51,6 +55,19 @@ export const supabaseWorkshopDocumentsApi = {
     return (data ?? []).map((r) => mapRow(r as Record<string, unknown>));
   },
 
+  async getServiceOrders(maintenanceId: string): Promise<Document[]> {
+    const { data, error } = await supabase
+      .from('documents')
+      .select('*')
+      .eq('parent_id', maintenanceId)
+      .eq('origin_type', 'SERVICE_ORDER')
+      .eq('is_deleted', 0)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return (data ?? []).map((r) => mapRow(r as Record<string, unknown>));
+  },
+
   async uploadAndCreate(maintenanceId: string, file: File): Promise<Document> {
     const ext = file.name.split('.').pop() ?? '';
     const uniqueName = `${Date.now()}-${Math.random().toString(36).slice(2)}${ext ? `.${ext}` : ''}`;
@@ -77,6 +94,48 @@ export const supabaseWorkshopDocumentsApi = {
         id: crypto.randomUUID(),
         parent_id: maintenanceId,
         origin_type: 'WORKSHOP',
+        file_url: fileUrl,
+        device_id: 'web',
+        version: 1,
+        is_deleted: 0,
+        sync_status: 'synced',
+      } as any)
+      .select()
+      .single();
+
+    if (insertError) {
+      await supabase.storage.from(BUCKET).remove([storagePath]);
+      throw insertError;
+    }
+
+    return mapRow(data as Record<string, unknown>);
+  },
+
+  async uploadServiceOrderPdf(maintenanceId: string, pdfBlob: Blob, osNumber: string): Promise<Document> {
+    const timestamp = Date.now();
+    const storagePath = `${maintenanceId}/OS-${osNumber}-${timestamp}.jpg`;
+
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET)
+      .upload(storagePath, pdfBlob, {
+        contentType: 'image/jpeg',
+        upsert: true,
+      });
+
+    if (uploadError) throw uploadError;
+
+    const { data: urlData } = supabase.storage
+      .from(BUCKET)
+      .getPublicUrl(storagePath);
+
+    const fileUrl = urlData.publicUrl;
+
+    const { data, error: insertError } = await supabase
+      .from('documents')
+      .insert({
+        id: crypto.randomUUID(),
+        parent_id: maintenanceId,
+        origin_type: 'SERVICE_ORDER',
         file_url: fileUrl,
         device_id: 'web',
         version: 1,

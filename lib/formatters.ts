@@ -28,6 +28,18 @@ export function formatDate(dateString: string | null | undefined): string {
   return date.toLocaleDateString('pt-BR');
 }
 
+/** Formata data+hora ISO para "DD/MM/AAAA HH:mm" no locale pt-BR */
+export function formatDateTime(dateString: string | null | undefined): string {
+  if (!dateString) return '—';
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  return (
+    date.toLocaleDateString('pt-BR') +
+    ' ' +
+    date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+  );
+}
+
 /** Máscara de CPF para uso em inputs: aplica "000.000.000-00" em tempo real */
 export function maskCPF(value: string): string {
   const d = value.replace(/\D/g, '').slice(0, 11);
@@ -55,6 +67,25 @@ export function rawCPF(cpf: string): string {
 /** Remove formatação de telefone para armazenamento: "(11) 99999-9999" → "11999999999" */
 export function rawPhone(phone: string): string {
   return phone.replace(/\D/g, '');
+}
+
+/**
+ * Formata valor monetário para BRL.
+ * Aceita número ou string em formato livre ("700", "700,00", "1.500,00", "R$ 700,00").
+ */
+export function formatBRL(value: string | number): string {
+  let num: number;
+  if (typeof value === 'number') {
+    num = value;
+  } else {
+    const cleaned = value.replace(/[R$\s]/g, '');
+    const normalized = cleaned.includes(',')
+      ? cleaned.replace(/\./g, '').replace(',', '.')
+      : cleaned;
+    num = parseFloat(normalized);
+  }
+  if (isNaN(num)) return typeof value === 'string' ? value : String(value);
+  return num.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 /**

@@ -1,5 +1,5 @@
 'use client';
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAppContext } from "../../../contexts/AppContext";
@@ -11,6 +11,11 @@ import {
   CheckCircle,
   MessageSquare,
   Bike,
+  ChevronDown,
+  Trash2,
+  Mail,
+  MapPin,
+  CreditCard,
 } from "lucide-react";
 import { ModuleHeader } from "@/components/ModuleHeader";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
@@ -20,7 +25,11 @@ export const ClienteDetalhePage: React.FC = () => {
   const params = useParams();
   const id = (typeof window !== 'undefined' && (!params.id || params.id === 'placeholder') ? window.location.pathname.split('/').filter(Boolean).pop() : params.id) as string;
   const router = useRouter();
-  const { customers, vehicles, rentalContracts, loading } = useAppContext();
+  const { customers, vehicles, rentalContracts, loading, handleDeleteCustomer } = useAppContext();
+
+  const [actionsOpen, setActionsOpen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const hasFinanceAccess = useFinanceAccess();
   const customer = customers.find((c) => c.id === id);
@@ -47,8 +56,6 @@ export const ClienteDetalhePage: React.FC = () => {
     );
   }
 
-  const hasDebt = customer.balance_due > 0;
-
   return (
     <div className="space-y-8">
       <ModuleHeader
@@ -59,14 +66,78 @@ export const ClienteDetalhePage: React.FC = () => {
           { label: customer.name }
         ]}
         extraHeader={
-          <Link
-            href={`/cliente/editar/${customer.id}`}
-            className="bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-all flex items-center gap-2 text-sm"
-          >
-            <Pencil size={16} /> Editar Cliente
-          </Link>
+          <div className="relative">
+            <button
+              onClick={() => setActionsOpen((v) => !v)}
+              className="bg-[#004AAD] text-white px-5 py-2.5 rounded-xl font-bold hover:bg-[#003a8c] transition-all flex items-center gap-2 text-sm"
+            >
+              Ações <ChevronDown size={16} className={`transition-transform ${actionsOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {actionsOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setActionsOpen(false)} />
+                <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl border border-slate-200 z-50 py-1 overflow-hidden">
+                  <Link
+                    href={`/cliente/editar/${customer.id}`}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors"
+                    onClick={() => setActionsOpen(false)}
+                  >
+                    <Pencil size={16} /> Editar Cliente
+                  </Link>
+                  {!customer.active_contract && (
+                    <>
+                      <div className="border-t border-slate-100 my-1" />
+                      <button
+                        onClick={() => { setActionsOpen(false); setShowDeleteConfirm(true); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                      >
+                        <Trash2 size={16} /> Excluir Cliente
+                      </button>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
         }
       />
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl space-y-6">
+            <h3 className="text-xl font-extrabold text-red-600">Excluir Cliente</h3>
+            <p className="text-slate-600">
+              Tem certeza que deseja excluir o cliente{" "}
+              <span className="font-bold">{customer.name}</span>? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="flex-1 py-3 font-bold text-slate-500 hover:bg-slate-50 rounded-xl transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={async () => {
+                  setDeleting(true);
+                  try {
+                    await handleDeleteCustomer(customer.id);
+                    router.push('/clientes');
+                  } finally {
+                    setDeleting(false);
+                    setShowDeleteConfirm(false);
+                  }
+                }}
+                disabled={deleting}
+                className="flex-1 py-3 bg-red-600 text-white rounded-xl font-bold hover:bg-red-700 transition-all disabled:opacity-50"
+              >
+                {deleting ? 'Excluindo...' : 'Excluir'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-10">
@@ -86,14 +157,45 @@ export const ClienteDetalhePage: React.FC = () => {
                   </span>
                 )}
               </div>
-              <div className="flex items-center gap-4 text-slate-400 text-sm font-medium">
-                <span className="flex items-center gap-1">
-                  <FileText size={14} /> CPF: {formatCPF(customer.cpf)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Phone size={14} /> {formatPhone(customer.phone)}
-                </span>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-slate-400 text-sm font-medium mt-1">
+                {customer.cpf && (
+                  <span className="flex items-center gap-1">
+                    <FileText size={14} /> CPF: {formatCPF(customer.cpf)}
+                  </span>
+                )}
+                {customer.phone && (
+                  <span className="flex items-center gap-1">
+                    <Phone size={14} /> {formatPhone(customer.phone)}
+                  </span>
+                )}
+                {customer.email && (
+                  <span className="flex items-center gap-1">
+                    <Mail size={14} /> {customer.email}
+                  </span>
+                )}
               </div>
+              {(customer.address || customer.neighborhood || customer.city) && (
+                <div className="flex items-start gap-1 text-slate-400 text-sm font-medium mt-1">
+                  <MapPin size={14} className="mt-0.5 shrink-0" />
+                  <span>
+                    {[
+                      customer.address,
+                      customer.neighborhood,
+                      customer.city && customer.state
+                        ? `${customer.city}-${customer.state}`
+                        : (customer.city || customer.state),
+                    ].filter(Boolean).join(', ')}
+                  </span>
+                </div>
+              )}
+              {(customer.cnh || customer.cnh_category) && (
+                <div className="flex items-center gap-1 text-slate-400 text-sm font-medium mt-1">
+                  <CreditCard size={14} />
+                  <span>
+                    CNH: {[customer.cnh, customer.cnh_category ? `Cat. ${customer.cnh_category}` : null].filter(Boolean).join(' — ')}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 
@@ -170,20 +272,21 @@ export const ClienteDetalhePage: React.FC = () => {
                 {customerRentals.map((contract) => {
                   const contractVehicle = vehicles.find((v) => v.id === contract.vehicle_id);
                   return (
-                    <tr key={contract.id} className="border-b border-slate-50 hover:bg-slate-50/60 transition-colors">
+                    <tr
+                      key={contract.id}
+                      onClick={() => router.push(`/alugueis/${contract.id}`)}
+                      className="border-b border-slate-50 hover:bg-blue-50/60 cursor-pointer transition-colors"
+                    >
                       <td className="px-6 py-4">
                         {contractVehicle ? (
-                          <Link
-                            href={`/veiculo/${contractVehicle.id}`}
-                            className="font-bold text-[#004AAD] hover:text-blue-600 transition-colors"
-                          >
+                          <span className="font-bold text-[#004AAD]">
                             {contractVehicle.model?.name ?? '—'}
                             {contractVehicle.plate && (
                               <span className="ml-2 text-xs font-bold bg-blue-600 text-white px-2 py-0.5 rounded">
                                 {contractVehicle.plate}
                               </span>
                             )}
-                          </Link>
+                          </span>
                         ) : (
                           <span className="text-slate-400">—</span>
                         )}

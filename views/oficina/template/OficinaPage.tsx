@@ -10,7 +10,7 @@ import { ModuleHeader } from "@/components/ModuleHeader";
 import { TablePagination } from "@/components/TablePagination";
 import { usePagination } from "../../../hooks/usePagination";
 import { useFinanceAccess } from "../../../hooks/useFinanceAccess";
-import { formatDate } from "../../../lib/formatters";
+import { formatDate, formatDateTime } from "../../../lib/formatters";
 
 function PhotoCell({ record }: { record: MaintenanceRecord }) {
   const [photos, setPhotos] = useState<Document[]>([]);
@@ -199,7 +199,7 @@ export const OficinaPage: React.FC = () => {
                       <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
                         <div className="flex items-center gap-1.5">
                           <Clock size={14} />
-                          {formatDate(record.entry_date)}
+                          {formatDateTime(record.entry_date)}
                         </div>
                       </td>
                       <td className="px-6 py-4" onClick={(e) => e.stopPropagation()}>
@@ -269,7 +269,7 @@ export const OficinaPage: React.FC = () => {
                       <td className="px-6 py-4 text-slate-600 font-medium">{record.mechanic_name}</td>
                       <td className="px-6 py-4 text-slate-500 max-w-xs truncate">{record.description}</td>
                       <td className="px-6 py-4 text-slate-400 font-medium whitespace-nowrap">
-                        {record.completion_date ? formatDate(record.completion_date) : "—"}
+                        {record.completion_date ? formatDateTime(record.completion_date) : "—"}
                       </td>
                       {hasFinanceAccess && (
                         <td className="px-6 py-4 font-bold text-slate-700">

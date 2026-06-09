@@ -19,21 +19,32 @@ export const ClienteEditarPage: React.FC = () => {
     name: customer?.name || "",
     phone: formatPhone(customer?.phone) === '—' ? '' : formatPhone(customer?.phone),
     cpf: formatCPF(customer?.cpf) === '—' ? '' : formatCPF(customer?.cpf),
+    email: customer?.email || "",
+    address: customer?.address || "",
+    neighborhood: customer?.neighborhood || "",
+    city: customer?.city || "",
+    state: customer?.state || "",
+    cnh: customer?.cnh || "",
+    cnh_category: customer?.cnh_category || "",
     active_contract: customer?.active_contract || false,
-    balance_due: customer?.balance_due || 0,
   });
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Re-fill form when customer data becomes available (production: data loads after mount)
   useEffect(() => {
     if (customer) {
       setForm({
         name: customer.name || "",
         phone: formatPhone(customer.phone) === '—' ? '' : formatPhone(customer.phone),
         cpf: formatCPF(customer.cpf) === '—' ? '' : formatCPF(customer.cpf),
+        email: customer.email || "",
+        address: customer.address || "",
+        neighborhood: customer.neighborhood || "",
+        city: customer.city || "",
+        state: customer.state || "",
+        cnh: customer.cnh || "",
+        cnh_category: customer.cnh_category || "",
         active_contract: customer.active_contract || false,
-        balance_due: customer.balance_due || 0,
       });
     }
   }, [customer?.id]);
@@ -65,8 +76,14 @@ export const ClienteEditarPage: React.FC = () => {
         name: form.name,
         phone: rawPhone(form.phone),
         cpf: rawCPF(form.cpf),
+        email: form.email || null,
+        address: form.address || null,
+        neighborhood: form.neighborhood || null,
+        city: form.city || null,
+        state: form.state || null,
+        cnh: form.cnh || null,
+        cnh_category: form.cnh_category || null,
         active_contract: form.active_contract,
-        balance_due: form.balance_due,
       });
 
       setCustomers((prev) =>
@@ -77,19 +94,28 @@ export const ClienteEditarPage: React.FC = () => {
               name: form.name,
               phone: rawPhone(form.phone),
               cpf: rawCPF(form.cpf),
+              email: form.email || null,
+              address: form.address || null,
+              neighborhood: form.neighborhood || null,
+              city: form.city || null,
+              state: form.state || null,
+              cnh: form.cnh || null,
+              cnh_category: form.cnh_category || null,
               active_contract: form.active_contract,
-              balance_due: form.balance_due,
             }
             : c,
         ),
       );
       router.push(`/cliente/${id}`);
-    } catch (err) {
+    } catch {
       setError("Erro ao atualizar o cliente.");
     } finally {
       setSubmitting(false);
     }
   };
+
+  const field = "w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border";
+  const label = "block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2";
 
   return (
     <div className="space-y-8">
@@ -115,85 +141,147 @@ export const ClienteEditarPage: React.FC = () => {
               {error}
             </div>
           )}
+
+          {/* Nome */}
           <div>
-            <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-              Nome Completo
-            </label>
+            <label className={label}>Nome Completo</label>
             <input
               type="text"
-              className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
+              className={field}
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
               required
             />
           </div>
 
+          {/* Telefone + CPF */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-                Telefone (WhatsApp)
-              </label>
+              <label className={label}>Telefone (WhatsApp)</label>
               <input
                 type="text"
-                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
+                className={field}
                 value={form.phone}
                 onChange={(e) => setForm({ ...form, phone: maskPhone(e.target.value) })}
                 placeholder="(11) 99999-9999"
-                required
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-                CPF
-              </label>
+              <label className={label}>CPF</label>
               <input
                 type="text"
-                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
+                className={field}
                 value={form.cpf}
                 onChange={(e) => setForm({ ...form, cpf: maskCPF(e.target.value) })}
                 placeholder="000.000.000-00"
-                required
               />
             </div>
           </div>
 
+          {/* Email */}
+          <div>
+            <label className={label}>E-mail</label>
+            <input
+              type="email"
+              className={field}
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              placeholder="cliente@email.com"
+            />
+          </div>
+
+          {/* Endereço + Bairro */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-                Débito Pendente (R$)
-              </label>
+              <label className={label}>Endereço (rua e número)</label>
               <input
-                type="number"
-                className="w-full bg-slate-50 border-slate-200 rounded-xl p-4 font-bold text-slate-700 outline-none focus:ring-4 focus:ring-[#004AAD]/10 focus:border-blue-500 transition-all border"
-                value={form.balance_due}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    balance_due: parseFloat(e.target.value) || 0,
-                  })
-                }
-                min={0}
-                step={0.01}
+                type="text"
+                className={field}
+                value={form.address}
+                onChange={(e) => setForm({ ...form, address: e.target.value })}
+                placeholder="Ex: Rua das Flores, 123"
               />
             </div>
-            <div className="flex items-center gap-4">
-              <label className="block text-xs font-bold text-slate-400 uppercase tracking-widest">
-                Contrato Ativo
-              </label>
+            <div>
+              <label className={label}>Bairro</label>
+              <input
+                type="text"
+                className={field}
+                value={form.neighborhood}
+                onChange={(e) => setForm({ ...form, neighborhood: e.target.value })}
+                placeholder="Ex: Centro"
+              />
+            </div>
+          </div>
+
+          {/* Cidade + Estado */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className={label}>Cidade</label>
+              <input
+                type="text"
+                className={field}
+                value={form.city}
+                onChange={(e) => setForm({ ...form, city: e.target.value })}
+                placeholder="Ex: Ribeirão Preto"
+              />
+            </div>
+            <div>
+              <label className={label}>Estado (UF)</label>
+              <input
+                type="text"
+                className={field}
+                value={form.state}
+                onChange={(e) => setForm({ ...form, state: e.target.value.toUpperCase().slice(0, 2) })}
+                placeholder="Ex: SP"
+                maxLength={2}
+              />
+            </div>
+          </div>
+
+          {/* CNH + Categoria da CNH */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className={label}>Número da CNH</label>
+              <input
+                type="text"
+                className={field}
+                value={form.cnh}
+                onChange={(e) => setForm({ ...form, cnh: e.target.value })}
+                placeholder="Ex: 12345678900"
+              />
+            </div>
+            <div>
+              <label className={label}>Categoria da CNH</label>
+              <select
+                className={field}
+                value={form.cnh_category}
+                onChange={(e) => setForm({ ...form, cnh_category: e.target.value })}
+              >
+                <option value="">Selecione...</option>
+                {['A', 'AB', 'AC', 'AD', 'AE'].map((cat) => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Contrato Ativo */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div></div>
+            {/* Contrato Ativo */}
+            <div className="flex items-center gap-4 self-end pb-1">
+              <label className={label + " mb-0"}>Contrato Ativo</label>
               <button
                 type="button"
-                onClick={() =>
-                  setForm({ ...form, active_contract: !form.active_contract })
-                }
+                onClick={() => setForm({ ...form, active_contract: !form.active_contract })}
                 className={`relative w-14 h-7 rounded-full transition-colors ${form.active_contract ? "bg-green-500" : "bg-slate-300"}`}
               >
                 <div
                   className={`absolute top-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${form.active_contract ? "translate-x-7" : "translate-x-0.5"}`}
                 />
               </button>
-              <span
-                className={`text-sm font-bold ${form.active_contract ? "text-green-600" : "text-slate-400"}`}
-              >
+              <span className={`text-sm font-bold ${form.active_contract ? "text-green-600" : "text-slate-400"}`}>
                 {form.active_contract ? "Ativo" : "Inativo"}
               </span>
             </div>

@@ -57,10 +57,12 @@ try {
   // ── vehicle_statuses (não está no seed.sql, vem do seed.ts) ──────────────
   console.log('🌱 vehicle_statuses...');
   await upsert(client, 'vehicle_statuses', [
-    { id: '1', name: 'Disponível',    color: '#22c55e', is_default: true,  ...meta },
-    { id: '2', name: 'Alugada',       color: '#3b82f6', is_default: true,  ...meta },
-    { id: '3', name: 'Em Manutenção', color: '#f59e0b', is_default: true,  ...meta },
-    { id: '4', name: 'Indisponível',  color: '#ef4444', is_default: true,  ...meta },
+    { id: '1', name: 'Disponível',    code: 'AVAILABLE',    color: '#22c55e', is_default: true,  ...meta },
+    { id: '2', name: 'Alugada',       code: 'RENTED',       color: '#3b82f6', is_default: true,  ...meta },
+    { id: '3', name: 'Em Manutenção', code: 'MAINTENANCE',  color: '#f59e0b', is_default: true,  ...meta },
+    { id: '4', name: 'Indisponível',  code: 'UNAVAILABLE',  color: '#ef4444', is_default: true,  ...meta },
+    { id: '5', name: 'Roubada',       code: 'STOLEN',       color: '#7c3aed', is_default: false, ...meta },
+    { id: '6', name: 'PT',            code: 'TOTALED',      color: '#6b7280', is_default: false, ...meta },
   ]);
 
   // ── roles ────────────────────────────────────────────────────────────────
